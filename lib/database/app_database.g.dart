@@ -5207,6 +5207,24 @@ class $OfflineDtrLogsTable extends OfflineDtrLogs
       type: DriftSqlType.string,
       requiredDuringInsert: false,
       clientDefault: () => const Uuid().v4());
+  static const VerificationMeta _clientRequestIdMeta =
+      const VerificationMeta('clientRequestId');
+  @override
+  late final GeneratedColumn<String> clientRequestId = GeneratedColumn<String>(
+      'client_request_id', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _scheduleIdMeta =
+      const VerificationMeta('scheduleId');
+  @override
+  late final GeneratedColumn<String> scheduleId = GeneratedColumn<String>(
+      'schedule_id', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _actionTypeMeta =
+      const VerificationMeta('actionType');
+  @override
+  late final GeneratedColumn<String> actionType = GeneratedColumn<String>(
+      'action_type', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
   static const VerificationMeta _latitudeMeta =
       const VerificationMeta('latitude');
   @override
@@ -5251,16 +5269,44 @@ class $OfflineDtrLogsTable extends OfflineDtrLogs
       type: DriftSqlType.int,
       requiredDuringInsert: false,
       defaultValue: const Constant(0));
+  static const VerificationMeta _serverMessageMeta =
+      const VerificationMeta('serverMessage');
+  @override
+  late final GeneratedColumn<String> serverMessage = GeneratedColumn<String>(
+      'server_message', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _createdAtMeta =
+      const VerificationMeta('createdAt');
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+      'created_at', aliasedName, false,
+      type: DriftSqlType.dateTime,
+      requiredDuringInsert: false,
+      defaultValue: currentDateAndTime);
+  static const VerificationMeta _updatedAtMeta =
+      const VerificationMeta('updatedAt');
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+      'updated_at', aliasedName, false,
+      type: DriftSqlType.dateTime,
+      requiredDuringInsert: false,
+      defaultValue: currentDateAndTime);
   @override
   List<GeneratedColumn> get $columns => [
         id,
+        clientRequestId,
+        scheduleId,
+        actionType,
         latitude,
         longitude,
         accuracy,
         capturedAt,
         photoPath,
         deviceInfo,
-        syncStatus
+        syncStatus,
+        serverMessage,
+        createdAt,
+        updatedAt
       ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -5274,6 +5320,24 @@ class $OfflineDtrLogsTable extends OfflineDtrLogs
     final data = instance.toColumns(true);
     if (data.containsKey('id')) {
       context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('client_request_id')) {
+      context.handle(
+          _clientRequestIdMeta,
+          clientRequestId.isAcceptableOrUnknown(
+              data['client_request_id']!, _clientRequestIdMeta));
+    }
+    if (data.containsKey('schedule_id')) {
+      context.handle(
+          _scheduleIdMeta,
+          scheduleId.isAcceptableOrUnknown(
+              data['schedule_id']!, _scheduleIdMeta));
+    }
+    if (data.containsKey('action_type')) {
+      context.handle(
+          _actionTypeMeta,
+          actionType.isAcceptableOrUnknown(
+              data['action_type']!, _actionTypeMeta));
     }
     if (data.containsKey('latitude')) {
       context.handle(_latitudeMeta,
@@ -5319,17 +5383,41 @@ class $OfflineDtrLogsTable extends OfflineDtrLogs
           syncStatus.isAcceptableOrUnknown(
               data['sync_status']!, _syncStatusMeta));
     }
+    if (data.containsKey('server_message')) {
+      context.handle(
+          _serverMessageMeta,
+          serverMessage.isAcceptableOrUnknown(
+              data['server_message']!, _serverMessageMeta));
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(_createdAtMeta,
+          createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta));
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(_updatedAtMeta,
+          updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta));
+    }
     return context;
   }
 
   @override
   Set<GeneratedColumn> get $primaryKey => {id};
   @override
+  List<Set<GeneratedColumn>> get uniqueKeys => [
+        {clientRequestId},
+      ];
+  @override
   OfflineDtrLog map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return OfflineDtrLog(
       id: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}id'])!,
+      clientRequestId: attachedDatabase.typeMapping.read(
+          DriftSqlType.string, data['${effectivePrefix}client_request_id']),
+      scheduleId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}schedule_id']),
+      actionType: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}action_type']),
       latitude: attachedDatabase.typeMapping
           .read(DriftSqlType.double, data['${effectivePrefix}latitude'])!,
       longitude: attachedDatabase.typeMapping
@@ -5344,6 +5432,12 @@ class $OfflineDtrLogsTable extends OfflineDtrLogs
           .read(DriftSqlType.string, data['${effectivePrefix}device_info']),
       syncStatus: attachedDatabase.typeMapping
           .read(DriftSqlType.int, data['${effectivePrefix}sync_status'])!,
+      serverMessage: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}server_message']),
+      createdAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}created_at'])!,
+      updatedAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}updated_at'])!,
     );
   }
 
@@ -5355,6 +5449,9 @@ class $OfflineDtrLogsTable extends OfflineDtrLogs
 
 class OfflineDtrLog extends DataClass implements Insertable<OfflineDtrLog> {
   final String id;
+  final String? clientRequestId;
+  final String? scheduleId;
+  final String? actionType;
   final double latitude;
   final double longitude;
   final double accuracy;
@@ -5362,19 +5459,37 @@ class OfflineDtrLog extends DataClass implements Insertable<OfflineDtrLog> {
   final String photoPath;
   final String? deviceInfo;
   final int syncStatus;
+  final String? serverMessage;
+  final DateTime createdAt;
+  final DateTime updatedAt;
   const OfflineDtrLog(
       {required this.id,
+      this.clientRequestId,
+      this.scheduleId,
+      this.actionType,
       required this.latitude,
       required this.longitude,
       required this.accuracy,
       required this.capturedAt,
       required this.photoPath,
       this.deviceInfo,
-      required this.syncStatus});
+      required this.syncStatus,
+      this.serverMessage,
+      required this.createdAt,
+      required this.updatedAt});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['id'] = Variable<String>(id);
+    if (!nullToAbsent || clientRequestId != null) {
+      map['client_request_id'] = Variable<String>(clientRequestId);
+    }
+    if (!nullToAbsent || scheduleId != null) {
+      map['schedule_id'] = Variable<String>(scheduleId);
+    }
+    if (!nullToAbsent || actionType != null) {
+      map['action_type'] = Variable<String>(actionType);
+    }
     map['latitude'] = Variable<double>(latitude);
     map['longitude'] = Variable<double>(longitude);
     map['accuracy'] = Variable<double>(accuracy);
@@ -5384,12 +5499,26 @@ class OfflineDtrLog extends DataClass implements Insertable<OfflineDtrLog> {
       map['device_info'] = Variable<String>(deviceInfo);
     }
     map['sync_status'] = Variable<int>(syncStatus);
+    if (!nullToAbsent || serverMessage != null) {
+      map['server_message'] = Variable<String>(serverMessage);
+    }
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
     return map;
   }
 
   OfflineDtrLogsCompanion toCompanion(bool nullToAbsent) {
     return OfflineDtrLogsCompanion(
       id: Value(id),
+      clientRequestId: clientRequestId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(clientRequestId),
+      scheduleId: scheduleId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(scheduleId),
+      actionType: actionType == null && nullToAbsent
+          ? const Value.absent()
+          : Value(actionType),
       latitude: Value(latitude),
       longitude: Value(longitude),
       accuracy: Value(accuracy),
@@ -5399,6 +5528,11 @@ class OfflineDtrLog extends DataClass implements Insertable<OfflineDtrLog> {
           ? const Value.absent()
           : Value(deviceInfo),
       syncStatus: Value(syncStatus),
+      serverMessage: serverMessage == null && nullToAbsent
+          ? const Value.absent()
+          : Value(serverMessage),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
     );
   }
 
@@ -5407,6 +5541,9 @@ class OfflineDtrLog extends DataClass implements Insertable<OfflineDtrLog> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return OfflineDtrLog(
       id: serializer.fromJson<String>(json['id']),
+      clientRequestId: serializer.fromJson<String?>(json['clientRequestId']),
+      scheduleId: serializer.fromJson<String?>(json['scheduleId']),
+      actionType: serializer.fromJson<String?>(json['actionType']),
       latitude: serializer.fromJson<double>(json['latitude']),
       longitude: serializer.fromJson<double>(json['longitude']),
       accuracy: serializer.fromJson<double>(json['accuracy']),
@@ -5414,6 +5551,9 @@ class OfflineDtrLog extends DataClass implements Insertable<OfflineDtrLog> {
       photoPath: serializer.fromJson<String>(json['photoPath']),
       deviceInfo: serializer.fromJson<String?>(json['deviceInfo']),
       syncStatus: serializer.fromJson<int>(json['syncStatus']),
+      serverMessage: serializer.fromJson<String?>(json['serverMessage']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
     );
   }
   @override
@@ -5421,6 +5561,9 @@ class OfflineDtrLog extends DataClass implements Insertable<OfflineDtrLog> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'id': serializer.toJson<String>(id),
+      'clientRequestId': serializer.toJson<String?>(clientRequestId),
+      'scheduleId': serializer.toJson<String?>(scheduleId),
+      'actionType': serializer.toJson<String?>(actionType),
       'latitude': serializer.toJson<double>(latitude),
       'longitude': serializer.toJson<double>(longitude),
       'accuracy': serializer.toJson<double>(accuracy),
@@ -5428,20 +5571,34 @@ class OfflineDtrLog extends DataClass implements Insertable<OfflineDtrLog> {
       'photoPath': serializer.toJson<String>(photoPath),
       'deviceInfo': serializer.toJson<String?>(deviceInfo),
       'syncStatus': serializer.toJson<int>(syncStatus),
+      'serverMessage': serializer.toJson<String?>(serverMessage),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
     };
   }
 
   OfflineDtrLog copyWith(
           {String? id,
+          Value<String?> clientRequestId = const Value.absent(),
+          Value<String?> scheduleId = const Value.absent(),
+          Value<String?> actionType = const Value.absent(),
           double? latitude,
           double? longitude,
           double? accuracy,
           DateTime? capturedAt,
           String? photoPath,
           Value<String?> deviceInfo = const Value.absent(),
-          int? syncStatus}) =>
+          int? syncStatus,
+          Value<String?> serverMessage = const Value.absent(),
+          DateTime? createdAt,
+          DateTime? updatedAt}) =>
       OfflineDtrLog(
         id: id ?? this.id,
+        clientRequestId: clientRequestId.present
+            ? clientRequestId.value
+            : this.clientRequestId,
+        scheduleId: scheduleId.present ? scheduleId.value : this.scheduleId,
+        actionType: actionType.present ? actionType.value : this.actionType,
         latitude: latitude ?? this.latitude,
         longitude: longitude ?? this.longitude,
         accuracy: accuracy ?? this.accuracy,
@@ -5449,10 +5606,21 @@ class OfflineDtrLog extends DataClass implements Insertable<OfflineDtrLog> {
         photoPath: photoPath ?? this.photoPath,
         deviceInfo: deviceInfo.present ? deviceInfo.value : this.deviceInfo,
         syncStatus: syncStatus ?? this.syncStatus,
+        serverMessage:
+            serverMessage.present ? serverMessage.value : this.serverMessage,
+        createdAt: createdAt ?? this.createdAt,
+        updatedAt: updatedAt ?? this.updatedAt,
       );
   OfflineDtrLog copyWithCompanion(OfflineDtrLogsCompanion data) {
     return OfflineDtrLog(
       id: data.id.present ? data.id.value : this.id,
+      clientRequestId: data.clientRequestId.present
+          ? data.clientRequestId.value
+          : this.clientRequestId,
+      scheduleId:
+          data.scheduleId.present ? data.scheduleId.value : this.scheduleId,
+      actionType:
+          data.actionType.present ? data.actionType.value : this.actionType,
       latitude: data.latitude.present ? data.latitude.value : this.latitude,
       longitude: data.longitude.present ? data.longitude.value : this.longitude,
       accuracy: data.accuracy.present ? data.accuracy.value : this.accuracy,
@@ -5463,6 +5631,11 @@ class OfflineDtrLog extends DataClass implements Insertable<OfflineDtrLog> {
           data.deviceInfo.present ? data.deviceInfo.value : this.deviceInfo,
       syncStatus:
           data.syncStatus.present ? data.syncStatus.value : this.syncStatus,
+      serverMessage: data.serverMessage.present
+          ? data.serverMessage.value
+          : this.serverMessage,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
     );
   }
 
@@ -5470,36 +5643,64 @@ class OfflineDtrLog extends DataClass implements Insertable<OfflineDtrLog> {
   String toString() {
     return (StringBuffer('OfflineDtrLog(')
           ..write('id: $id, ')
+          ..write('clientRequestId: $clientRequestId, ')
+          ..write('scheduleId: $scheduleId, ')
+          ..write('actionType: $actionType, ')
           ..write('latitude: $latitude, ')
           ..write('longitude: $longitude, ')
           ..write('accuracy: $accuracy, ')
           ..write('capturedAt: $capturedAt, ')
           ..write('photoPath: $photoPath, ')
           ..write('deviceInfo: $deviceInfo, ')
-          ..write('syncStatus: $syncStatus')
+          ..write('syncStatus: $syncStatus, ')
+          ..write('serverMessage: $serverMessage, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(id, latitude, longitude, accuracy, capturedAt,
-      photoPath, deviceInfo, syncStatus);
+  int get hashCode => Object.hash(
+      id,
+      clientRequestId,
+      scheduleId,
+      actionType,
+      latitude,
+      longitude,
+      accuracy,
+      capturedAt,
+      photoPath,
+      deviceInfo,
+      syncStatus,
+      serverMessage,
+      createdAt,
+      updatedAt);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is OfflineDtrLog &&
           other.id == this.id &&
+          other.clientRequestId == this.clientRequestId &&
+          other.scheduleId == this.scheduleId &&
+          other.actionType == this.actionType &&
           other.latitude == this.latitude &&
           other.longitude == this.longitude &&
           other.accuracy == this.accuracy &&
           other.capturedAt == this.capturedAt &&
           other.photoPath == this.photoPath &&
           other.deviceInfo == this.deviceInfo &&
-          other.syncStatus == this.syncStatus);
+          other.syncStatus == this.syncStatus &&
+          other.serverMessage == this.serverMessage &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt);
 }
 
 class OfflineDtrLogsCompanion extends UpdateCompanion<OfflineDtrLog> {
   final Value<String> id;
+  final Value<String?> clientRequestId;
+  final Value<String?> scheduleId;
+  final Value<String?> actionType;
   final Value<double> latitude;
   final Value<double> longitude;
   final Value<double> accuracy;
@@ -5507,9 +5708,15 @@ class OfflineDtrLogsCompanion extends UpdateCompanion<OfflineDtrLog> {
   final Value<String> photoPath;
   final Value<String?> deviceInfo;
   final Value<int> syncStatus;
+  final Value<String?> serverMessage;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
   final Value<int> rowid;
   const OfflineDtrLogsCompanion({
     this.id = const Value.absent(),
+    this.clientRequestId = const Value.absent(),
+    this.scheduleId = const Value.absent(),
+    this.actionType = const Value.absent(),
     this.latitude = const Value.absent(),
     this.longitude = const Value.absent(),
     this.accuracy = const Value.absent(),
@@ -5517,10 +5724,16 @@ class OfflineDtrLogsCompanion extends UpdateCompanion<OfflineDtrLog> {
     this.photoPath = const Value.absent(),
     this.deviceInfo = const Value.absent(),
     this.syncStatus = const Value.absent(),
+    this.serverMessage = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   OfflineDtrLogsCompanion.insert({
     this.id = const Value.absent(),
+    this.clientRequestId = const Value.absent(),
+    this.scheduleId = const Value.absent(),
+    this.actionType = const Value.absent(),
     required double latitude,
     required double longitude,
     required double accuracy,
@@ -5528,6 +5741,9 @@ class OfflineDtrLogsCompanion extends UpdateCompanion<OfflineDtrLog> {
     required String photoPath,
     this.deviceInfo = const Value.absent(),
     this.syncStatus = const Value.absent(),
+    this.serverMessage = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
     this.rowid = const Value.absent(),
   })  : latitude = Value(latitude),
         longitude = Value(longitude),
@@ -5536,6 +5752,9 @@ class OfflineDtrLogsCompanion extends UpdateCompanion<OfflineDtrLog> {
         photoPath = Value(photoPath);
   static Insertable<OfflineDtrLog> custom({
     Expression<String>? id,
+    Expression<String>? clientRequestId,
+    Expression<String>? scheduleId,
+    Expression<String>? actionType,
     Expression<double>? latitude,
     Expression<double>? longitude,
     Expression<double>? accuracy,
@@ -5543,10 +5762,16 @@ class OfflineDtrLogsCompanion extends UpdateCompanion<OfflineDtrLog> {
     Expression<String>? photoPath,
     Expression<String>? deviceInfo,
     Expression<int>? syncStatus,
+    Expression<String>? serverMessage,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
+      if (clientRequestId != null) 'client_request_id': clientRequestId,
+      if (scheduleId != null) 'schedule_id': scheduleId,
+      if (actionType != null) 'action_type': actionType,
       if (latitude != null) 'latitude': latitude,
       if (longitude != null) 'longitude': longitude,
       if (accuracy != null) 'accuracy': accuracy,
@@ -5554,12 +5779,18 @@ class OfflineDtrLogsCompanion extends UpdateCompanion<OfflineDtrLog> {
       if (photoPath != null) 'photo_path': photoPath,
       if (deviceInfo != null) 'device_info': deviceInfo,
       if (syncStatus != null) 'sync_status': syncStatus,
+      if (serverMessage != null) 'server_message': serverMessage,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
       if (rowid != null) 'rowid': rowid,
     });
   }
 
   OfflineDtrLogsCompanion copyWith(
       {Value<String>? id,
+      Value<String?>? clientRequestId,
+      Value<String?>? scheduleId,
+      Value<String?>? actionType,
       Value<double>? latitude,
       Value<double>? longitude,
       Value<double>? accuracy,
@@ -5567,9 +5798,15 @@ class OfflineDtrLogsCompanion extends UpdateCompanion<OfflineDtrLog> {
       Value<String>? photoPath,
       Value<String?>? deviceInfo,
       Value<int>? syncStatus,
+      Value<String?>? serverMessage,
+      Value<DateTime>? createdAt,
+      Value<DateTime>? updatedAt,
       Value<int>? rowid}) {
     return OfflineDtrLogsCompanion(
       id: id ?? this.id,
+      clientRequestId: clientRequestId ?? this.clientRequestId,
+      scheduleId: scheduleId ?? this.scheduleId,
+      actionType: actionType ?? this.actionType,
       latitude: latitude ?? this.latitude,
       longitude: longitude ?? this.longitude,
       accuracy: accuracy ?? this.accuracy,
@@ -5577,6 +5814,9 @@ class OfflineDtrLogsCompanion extends UpdateCompanion<OfflineDtrLog> {
       photoPath: photoPath ?? this.photoPath,
       deviceInfo: deviceInfo ?? this.deviceInfo,
       syncStatus: syncStatus ?? this.syncStatus,
+      serverMessage: serverMessage ?? this.serverMessage,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -5586,6 +5826,15 @@ class OfflineDtrLogsCompanion extends UpdateCompanion<OfflineDtrLog> {
     final map = <String, Expression>{};
     if (id.present) {
       map['id'] = Variable<String>(id.value);
+    }
+    if (clientRequestId.present) {
+      map['client_request_id'] = Variable<String>(clientRequestId.value);
+    }
+    if (scheduleId.present) {
+      map['schedule_id'] = Variable<String>(scheduleId.value);
+    }
+    if (actionType.present) {
+      map['action_type'] = Variable<String>(actionType.value);
     }
     if (latitude.present) {
       map['latitude'] = Variable<double>(latitude.value);
@@ -5608,6 +5857,15 @@ class OfflineDtrLogsCompanion extends UpdateCompanion<OfflineDtrLog> {
     if (syncStatus.present) {
       map['sync_status'] = Variable<int>(syncStatus.value);
     }
+    if (serverMessage.present) {
+      map['server_message'] = Variable<String>(serverMessage.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -5618,6 +5876,9 @@ class OfflineDtrLogsCompanion extends UpdateCompanion<OfflineDtrLog> {
   String toString() {
     return (StringBuffer('OfflineDtrLogsCompanion(')
           ..write('id: $id, ')
+          ..write('clientRequestId: $clientRequestId, ')
+          ..write('scheduleId: $scheduleId, ')
+          ..write('actionType: $actionType, ')
           ..write('latitude: $latitude, ')
           ..write('longitude: $longitude, ')
           ..write('accuracy: $accuracy, ')
@@ -5625,6 +5886,1105 @@ class OfflineDtrLogsCompanion extends UpdateCompanion<OfflineDtrLog> {
           ..write('photoPath: $photoPath, ')
           ..write('deviceInfo: $deviceInfo, ')
           ..write('syncStatus: $syncStatus, ')
+          ..write('serverMessage: $serverMessage, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $CachedDtrSchedulesTable extends CachedDtrSchedules
+    with TableInfo<$CachedDtrSchedulesTable, CachedDtrSchedule> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $CachedDtrSchedulesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+      'id', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _userIdMeta = const VerificationMeta('userId');
+  @override
+  late final GeneratedColumn<String> userId = GeneratedColumn<String>(
+      'user_id', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _statusMeta = const VerificationMeta('status');
+  @override
+  late final GeneratedColumn<String> status = GeneratedColumn<String>(
+      'status', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _startTimeMeta =
+      const VerificationMeta('startTime');
+  @override
+  late final GeneratedColumn<DateTime> startTime = GeneratedColumn<DateTime>(
+      'start_time', aliasedName, false,
+      type: DriftSqlType.dateTime, requiredDuringInsert: true);
+  static const VerificationMeta _endTimeMeta =
+      const VerificationMeta('endTime');
+  @override
+  late final GeneratedColumn<DateTime> endTime = GeneratedColumn<DateTime>(
+      'end_time', aliasedName, false,
+      type: DriftSqlType.dateTime, requiredDuringInsert: true);
+  static const VerificationMeta _storeIdMeta =
+      const VerificationMeta('storeId');
+  @override
+  late final GeneratedColumn<String> storeId = GeneratedColumn<String>(
+      'store_id', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _storeCodeMeta =
+      const VerificationMeta('storeCode');
+  @override
+  late final GeneratedColumn<String> storeCode = GeneratedColumn<String>(
+      'store_code', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _storeNameMeta =
+      const VerificationMeta('storeName');
+  @override
+  late final GeneratedColumn<String> storeName = GeneratedColumn<String>(
+      'store_name', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _storeLatitudeMeta =
+      const VerificationMeta('storeLatitude');
+  @override
+  late final GeneratedColumn<double> storeLatitude = GeneratedColumn<double>(
+      'store_latitude', aliasedName, true,
+      type: DriftSqlType.double, requiredDuringInsert: false);
+  static const VerificationMeta _storeLongitudeMeta =
+      const VerificationMeta('storeLongitude');
+  @override
+  late final GeneratedColumn<double> storeLongitude = GeneratedColumn<double>(
+      'store_longitude', aliasedName, true,
+      type: DriftSqlType.double, requiredDuringInsert: false);
+  static const VerificationMeta _radiusMetersMeta =
+      const VerificationMeta('radiusMeters');
+  @override
+  late final GeneratedColumn<double> radiusMeters = GeneratedColumn<double>(
+      'radius_meters', aliasedName, true,
+      type: DriftSqlType.double, requiredDuringInsert: false);
+  static const VerificationMeta _lastLogTypeMeta =
+      const VerificationMeta('lastLogType');
+  @override
+  late final GeneratedColumn<String> lastLogType = GeneratedColumn<String>(
+      'last_log_type', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _lastLogAtMeta =
+      const VerificationMeta('lastLogAt');
+  @override
+  late final GeneratedColumn<DateTime> lastLogAt = GeneratedColumn<DateTime>(
+      'last_log_at', aliasedName, true,
+      type: DriftSqlType.dateTime, requiredDuringInsert: false);
+  static const VerificationMeta _isSegmentCompleteMeta =
+      const VerificationMeta('isSegmentComplete');
+  @override
+  late final GeneratedColumn<bool> isSegmentComplete = GeneratedColumn<bool>(
+      'is_segment_complete', aliasedName, false,
+      type: DriftSqlType.bool,
+      requiredDuringInsert: false,
+      defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'CHECK ("is_segment_complete" IN (0, 1))'),
+      defaultValue: const Constant(false));
+  static const VerificationMeta _rawJsonMeta =
+      const VerificationMeta('rawJson');
+  @override
+  late final GeneratedColumn<String> rawJson = GeneratedColumn<String>(
+      'raw_json', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _fetchedAtMeta =
+      const VerificationMeta('fetchedAt');
+  @override
+  late final GeneratedColumn<DateTime> fetchedAt = GeneratedColumn<DateTime>(
+      'fetched_at', aliasedName, false,
+      type: DriftSqlType.dateTime, requiredDuringInsert: true);
+  static const VerificationMeta _validUntilMeta =
+      const VerificationMeta('validUntil');
+  @override
+  late final GeneratedColumn<DateTime> validUntil = GeneratedColumn<DateTime>(
+      'valid_until', aliasedName, false,
+      type: DriftSqlType.dateTime, requiredDuringInsert: true);
+  @override
+  List<GeneratedColumn> get $columns => [
+        id,
+        userId,
+        status,
+        startTime,
+        endTime,
+        storeId,
+        storeCode,
+        storeName,
+        storeLatitude,
+        storeLongitude,
+        radiusMeters,
+        lastLogType,
+        lastLogAt,
+        isSegmentComplete,
+        rawJson,
+        fetchedAt,
+        validUntil
+      ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'cached_dtr_schedules';
+  @override
+  VerificationContext validateIntegrity(Insertable<CachedDtrSchedule> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('user_id')) {
+      context.handle(_userIdMeta,
+          userId.isAcceptableOrUnknown(data['user_id']!, _userIdMeta));
+    }
+    if (data.containsKey('status')) {
+      context.handle(_statusMeta,
+          status.isAcceptableOrUnknown(data['status']!, _statusMeta));
+    }
+    if (data.containsKey('start_time')) {
+      context.handle(_startTimeMeta,
+          startTime.isAcceptableOrUnknown(data['start_time']!, _startTimeMeta));
+    } else if (isInserting) {
+      context.missing(_startTimeMeta);
+    }
+    if (data.containsKey('end_time')) {
+      context.handle(_endTimeMeta,
+          endTime.isAcceptableOrUnknown(data['end_time']!, _endTimeMeta));
+    } else if (isInserting) {
+      context.missing(_endTimeMeta);
+    }
+    if (data.containsKey('store_id')) {
+      context.handle(_storeIdMeta,
+          storeId.isAcceptableOrUnknown(data['store_id']!, _storeIdMeta));
+    }
+    if (data.containsKey('store_code')) {
+      context.handle(_storeCodeMeta,
+          storeCode.isAcceptableOrUnknown(data['store_code']!, _storeCodeMeta));
+    }
+    if (data.containsKey('store_name')) {
+      context.handle(_storeNameMeta,
+          storeName.isAcceptableOrUnknown(data['store_name']!, _storeNameMeta));
+    }
+    if (data.containsKey('store_latitude')) {
+      context.handle(
+          _storeLatitudeMeta,
+          storeLatitude.isAcceptableOrUnknown(
+              data['store_latitude']!, _storeLatitudeMeta));
+    }
+    if (data.containsKey('store_longitude')) {
+      context.handle(
+          _storeLongitudeMeta,
+          storeLongitude.isAcceptableOrUnknown(
+              data['store_longitude']!, _storeLongitudeMeta));
+    }
+    if (data.containsKey('radius_meters')) {
+      context.handle(
+          _radiusMetersMeta,
+          radiusMeters.isAcceptableOrUnknown(
+              data['radius_meters']!, _radiusMetersMeta));
+    }
+    if (data.containsKey('last_log_type')) {
+      context.handle(
+          _lastLogTypeMeta,
+          lastLogType.isAcceptableOrUnknown(
+              data['last_log_type']!, _lastLogTypeMeta));
+    }
+    if (data.containsKey('last_log_at')) {
+      context.handle(
+          _lastLogAtMeta,
+          lastLogAt.isAcceptableOrUnknown(
+              data['last_log_at']!, _lastLogAtMeta));
+    }
+    if (data.containsKey('is_segment_complete')) {
+      context.handle(
+          _isSegmentCompleteMeta,
+          isSegmentComplete.isAcceptableOrUnknown(
+              data['is_segment_complete']!, _isSegmentCompleteMeta));
+    }
+    if (data.containsKey('raw_json')) {
+      context.handle(_rawJsonMeta,
+          rawJson.isAcceptableOrUnknown(data['raw_json']!, _rawJsonMeta));
+    } else if (isInserting) {
+      context.missing(_rawJsonMeta);
+    }
+    if (data.containsKey('fetched_at')) {
+      context.handle(_fetchedAtMeta,
+          fetchedAt.isAcceptableOrUnknown(data['fetched_at']!, _fetchedAtMeta));
+    } else if (isInserting) {
+      context.missing(_fetchedAtMeta);
+    }
+    if (data.containsKey('valid_until')) {
+      context.handle(
+          _validUntilMeta,
+          validUntil.isAcceptableOrUnknown(
+              data['valid_until']!, _validUntilMeta));
+    } else if (isInserting) {
+      context.missing(_validUntilMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  CachedDtrSchedule map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return CachedDtrSchedule(
+      id: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}id'])!,
+      userId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}user_id']),
+      status: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}status']),
+      startTime: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}start_time'])!,
+      endTime: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}end_time'])!,
+      storeId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}store_id']),
+      storeCode: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}store_code']),
+      storeName: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}store_name']),
+      storeLatitude: attachedDatabase.typeMapping
+          .read(DriftSqlType.double, data['${effectivePrefix}store_latitude']),
+      storeLongitude: attachedDatabase.typeMapping
+          .read(DriftSqlType.double, data['${effectivePrefix}store_longitude']),
+      radiusMeters: attachedDatabase.typeMapping
+          .read(DriftSqlType.double, data['${effectivePrefix}radius_meters']),
+      lastLogType: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}last_log_type']),
+      lastLogAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}last_log_at']),
+      isSegmentComplete: attachedDatabase.typeMapping.read(
+          DriftSqlType.bool, data['${effectivePrefix}is_segment_complete'])!,
+      rawJson: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}raw_json'])!,
+      fetchedAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}fetched_at'])!,
+      validUntil: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}valid_until'])!,
+    );
+  }
+
+  @override
+  $CachedDtrSchedulesTable createAlias(String alias) {
+    return $CachedDtrSchedulesTable(attachedDatabase, alias);
+  }
+}
+
+class CachedDtrSchedule extends DataClass
+    implements Insertable<CachedDtrSchedule> {
+  final String id;
+  final String? userId;
+  final String? status;
+  final DateTime startTime;
+  final DateTime endTime;
+  final String? storeId;
+  final String? storeCode;
+  final String? storeName;
+  final double? storeLatitude;
+  final double? storeLongitude;
+  final double? radiusMeters;
+  final String? lastLogType;
+  final DateTime? lastLogAt;
+  final bool isSegmentComplete;
+  final String rawJson;
+  final DateTime fetchedAt;
+  final DateTime validUntil;
+  const CachedDtrSchedule(
+      {required this.id,
+      this.userId,
+      this.status,
+      required this.startTime,
+      required this.endTime,
+      this.storeId,
+      this.storeCode,
+      this.storeName,
+      this.storeLatitude,
+      this.storeLongitude,
+      this.radiusMeters,
+      this.lastLogType,
+      this.lastLogAt,
+      required this.isSegmentComplete,
+      required this.rawJson,
+      required this.fetchedAt,
+      required this.validUntil});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    if (!nullToAbsent || userId != null) {
+      map['user_id'] = Variable<String>(userId);
+    }
+    if (!nullToAbsent || status != null) {
+      map['status'] = Variable<String>(status);
+    }
+    map['start_time'] = Variable<DateTime>(startTime);
+    map['end_time'] = Variable<DateTime>(endTime);
+    if (!nullToAbsent || storeId != null) {
+      map['store_id'] = Variable<String>(storeId);
+    }
+    if (!nullToAbsent || storeCode != null) {
+      map['store_code'] = Variable<String>(storeCode);
+    }
+    if (!nullToAbsent || storeName != null) {
+      map['store_name'] = Variable<String>(storeName);
+    }
+    if (!nullToAbsent || storeLatitude != null) {
+      map['store_latitude'] = Variable<double>(storeLatitude);
+    }
+    if (!nullToAbsent || storeLongitude != null) {
+      map['store_longitude'] = Variable<double>(storeLongitude);
+    }
+    if (!nullToAbsent || radiusMeters != null) {
+      map['radius_meters'] = Variable<double>(radiusMeters);
+    }
+    if (!nullToAbsent || lastLogType != null) {
+      map['last_log_type'] = Variable<String>(lastLogType);
+    }
+    if (!nullToAbsent || lastLogAt != null) {
+      map['last_log_at'] = Variable<DateTime>(lastLogAt);
+    }
+    map['is_segment_complete'] = Variable<bool>(isSegmentComplete);
+    map['raw_json'] = Variable<String>(rawJson);
+    map['fetched_at'] = Variable<DateTime>(fetchedAt);
+    map['valid_until'] = Variable<DateTime>(validUntil);
+    return map;
+  }
+
+  CachedDtrSchedulesCompanion toCompanion(bool nullToAbsent) {
+    return CachedDtrSchedulesCompanion(
+      id: Value(id),
+      userId:
+          userId == null && nullToAbsent ? const Value.absent() : Value(userId),
+      status:
+          status == null && nullToAbsent ? const Value.absent() : Value(status),
+      startTime: Value(startTime),
+      endTime: Value(endTime),
+      storeId: storeId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(storeId),
+      storeCode: storeCode == null && nullToAbsent
+          ? const Value.absent()
+          : Value(storeCode),
+      storeName: storeName == null && nullToAbsent
+          ? const Value.absent()
+          : Value(storeName),
+      storeLatitude: storeLatitude == null && nullToAbsent
+          ? const Value.absent()
+          : Value(storeLatitude),
+      storeLongitude: storeLongitude == null && nullToAbsent
+          ? const Value.absent()
+          : Value(storeLongitude),
+      radiusMeters: radiusMeters == null && nullToAbsent
+          ? const Value.absent()
+          : Value(radiusMeters),
+      lastLogType: lastLogType == null && nullToAbsent
+          ? const Value.absent()
+          : Value(lastLogType),
+      lastLogAt: lastLogAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(lastLogAt),
+      isSegmentComplete: Value(isSegmentComplete),
+      rawJson: Value(rawJson),
+      fetchedAt: Value(fetchedAt),
+      validUntil: Value(validUntil),
+    );
+  }
+
+  factory CachedDtrSchedule.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return CachedDtrSchedule(
+      id: serializer.fromJson<String>(json['id']),
+      userId: serializer.fromJson<String?>(json['userId']),
+      status: serializer.fromJson<String?>(json['status']),
+      startTime: serializer.fromJson<DateTime>(json['startTime']),
+      endTime: serializer.fromJson<DateTime>(json['endTime']),
+      storeId: serializer.fromJson<String?>(json['storeId']),
+      storeCode: serializer.fromJson<String?>(json['storeCode']),
+      storeName: serializer.fromJson<String?>(json['storeName']),
+      storeLatitude: serializer.fromJson<double?>(json['storeLatitude']),
+      storeLongitude: serializer.fromJson<double?>(json['storeLongitude']),
+      radiusMeters: serializer.fromJson<double?>(json['radiusMeters']),
+      lastLogType: serializer.fromJson<String?>(json['lastLogType']),
+      lastLogAt: serializer.fromJson<DateTime?>(json['lastLogAt']),
+      isSegmentComplete: serializer.fromJson<bool>(json['isSegmentComplete']),
+      rawJson: serializer.fromJson<String>(json['rawJson']),
+      fetchedAt: serializer.fromJson<DateTime>(json['fetchedAt']),
+      validUntil: serializer.fromJson<DateTime>(json['validUntil']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'userId': serializer.toJson<String?>(userId),
+      'status': serializer.toJson<String?>(status),
+      'startTime': serializer.toJson<DateTime>(startTime),
+      'endTime': serializer.toJson<DateTime>(endTime),
+      'storeId': serializer.toJson<String?>(storeId),
+      'storeCode': serializer.toJson<String?>(storeCode),
+      'storeName': serializer.toJson<String?>(storeName),
+      'storeLatitude': serializer.toJson<double?>(storeLatitude),
+      'storeLongitude': serializer.toJson<double?>(storeLongitude),
+      'radiusMeters': serializer.toJson<double?>(radiusMeters),
+      'lastLogType': serializer.toJson<String?>(lastLogType),
+      'lastLogAt': serializer.toJson<DateTime?>(lastLogAt),
+      'isSegmentComplete': serializer.toJson<bool>(isSegmentComplete),
+      'rawJson': serializer.toJson<String>(rawJson),
+      'fetchedAt': serializer.toJson<DateTime>(fetchedAt),
+      'validUntil': serializer.toJson<DateTime>(validUntil),
+    };
+  }
+
+  CachedDtrSchedule copyWith(
+          {String? id,
+          Value<String?> userId = const Value.absent(),
+          Value<String?> status = const Value.absent(),
+          DateTime? startTime,
+          DateTime? endTime,
+          Value<String?> storeId = const Value.absent(),
+          Value<String?> storeCode = const Value.absent(),
+          Value<String?> storeName = const Value.absent(),
+          Value<double?> storeLatitude = const Value.absent(),
+          Value<double?> storeLongitude = const Value.absent(),
+          Value<double?> radiusMeters = const Value.absent(),
+          Value<String?> lastLogType = const Value.absent(),
+          Value<DateTime?> lastLogAt = const Value.absent(),
+          bool? isSegmentComplete,
+          String? rawJson,
+          DateTime? fetchedAt,
+          DateTime? validUntil}) =>
+      CachedDtrSchedule(
+        id: id ?? this.id,
+        userId: userId.present ? userId.value : this.userId,
+        status: status.present ? status.value : this.status,
+        startTime: startTime ?? this.startTime,
+        endTime: endTime ?? this.endTime,
+        storeId: storeId.present ? storeId.value : this.storeId,
+        storeCode: storeCode.present ? storeCode.value : this.storeCode,
+        storeName: storeName.present ? storeName.value : this.storeName,
+        storeLatitude:
+            storeLatitude.present ? storeLatitude.value : this.storeLatitude,
+        storeLongitude:
+            storeLongitude.present ? storeLongitude.value : this.storeLongitude,
+        radiusMeters:
+            radiusMeters.present ? radiusMeters.value : this.radiusMeters,
+        lastLogType: lastLogType.present ? lastLogType.value : this.lastLogType,
+        lastLogAt: lastLogAt.present ? lastLogAt.value : this.lastLogAt,
+        isSegmentComplete: isSegmentComplete ?? this.isSegmentComplete,
+        rawJson: rawJson ?? this.rawJson,
+        fetchedAt: fetchedAt ?? this.fetchedAt,
+        validUntil: validUntil ?? this.validUntil,
+      );
+  CachedDtrSchedule copyWithCompanion(CachedDtrSchedulesCompanion data) {
+    return CachedDtrSchedule(
+      id: data.id.present ? data.id.value : this.id,
+      userId: data.userId.present ? data.userId.value : this.userId,
+      status: data.status.present ? data.status.value : this.status,
+      startTime: data.startTime.present ? data.startTime.value : this.startTime,
+      endTime: data.endTime.present ? data.endTime.value : this.endTime,
+      storeId: data.storeId.present ? data.storeId.value : this.storeId,
+      storeCode: data.storeCode.present ? data.storeCode.value : this.storeCode,
+      storeName: data.storeName.present ? data.storeName.value : this.storeName,
+      storeLatitude: data.storeLatitude.present
+          ? data.storeLatitude.value
+          : this.storeLatitude,
+      storeLongitude: data.storeLongitude.present
+          ? data.storeLongitude.value
+          : this.storeLongitude,
+      radiusMeters: data.radiusMeters.present
+          ? data.radiusMeters.value
+          : this.radiusMeters,
+      lastLogType:
+          data.lastLogType.present ? data.lastLogType.value : this.lastLogType,
+      lastLogAt: data.lastLogAt.present ? data.lastLogAt.value : this.lastLogAt,
+      isSegmentComplete: data.isSegmentComplete.present
+          ? data.isSegmentComplete.value
+          : this.isSegmentComplete,
+      rawJson: data.rawJson.present ? data.rawJson.value : this.rawJson,
+      fetchedAt: data.fetchedAt.present ? data.fetchedAt.value : this.fetchedAt,
+      validUntil:
+          data.validUntil.present ? data.validUntil.value : this.validUntil,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('CachedDtrSchedule(')
+          ..write('id: $id, ')
+          ..write('userId: $userId, ')
+          ..write('status: $status, ')
+          ..write('startTime: $startTime, ')
+          ..write('endTime: $endTime, ')
+          ..write('storeId: $storeId, ')
+          ..write('storeCode: $storeCode, ')
+          ..write('storeName: $storeName, ')
+          ..write('storeLatitude: $storeLatitude, ')
+          ..write('storeLongitude: $storeLongitude, ')
+          ..write('radiusMeters: $radiusMeters, ')
+          ..write('lastLogType: $lastLogType, ')
+          ..write('lastLogAt: $lastLogAt, ')
+          ..write('isSegmentComplete: $isSegmentComplete, ')
+          ..write('rawJson: $rawJson, ')
+          ..write('fetchedAt: $fetchedAt, ')
+          ..write('validUntil: $validUntil')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+      id,
+      userId,
+      status,
+      startTime,
+      endTime,
+      storeId,
+      storeCode,
+      storeName,
+      storeLatitude,
+      storeLongitude,
+      radiusMeters,
+      lastLogType,
+      lastLogAt,
+      isSegmentComplete,
+      rawJson,
+      fetchedAt,
+      validUntil);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is CachedDtrSchedule &&
+          other.id == this.id &&
+          other.userId == this.userId &&
+          other.status == this.status &&
+          other.startTime == this.startTime &&
+          other.endTime == this.endTime &&
+          other.storeId == this.storeId &&
+          other.storeCode == this.storeCode &&
+          other.storeName == this.storeName &&
+          other.storeLatitude == this.storeLatitude &&
+          other.storeLongitude == this.storeLongitude &&
+          other.radiusMeters == this.radiusMeters &&
+          other.lastLogType == this.lastLogType &&
+          other.lastLogAt == this.lastLogAt &&
+          other.isSegmentComplete == this.isSegmentComplete &&
+          other.rawJson == this.rawJson &&
+          other.fetchedAt == this.fetchedAt &&
+          other.validUntil == this.validUntil);
+}
+
+class CachedDtrSchedulesCompanion extends UpdateCompanion<CachedDtrSchedule> {
+  final Value<String> id;
+  final Value<String?> userId;
+  final Value<String?> status;
+  final Value<DateTime> startTime;
+  final Value<DateTime> endTime;
+  final Value<String?> storeId;
+  final Value<String?> storeCode;
+  final Value<String?> storeName;
+  final Value<double?> storeLatitude;
+  final Value<double?> storeLongitude;
+  final Value<double?> radiusMeters;
+  final Value<String?> lastLogType;
+  final Value<DateTime?> lastLogAt;
+  final Value<bool> isSegmentComplete;
+  final Value<String> rawJson;
+  final Value<DateTime> fetchedAt;
+  final Value<DateTime> validUntil;
+  final Value<int> rowid;
+  const CachedDtrSchedulesCompanion({
+    this.id = const Value.absent(),
+    this.userId = const Value.absent(),
+    this.status = const Value.absent(),
+    this.startTime = const Value.absent(),
+    this.endTime = const Value.absent(),
+    this.storeId = const Value.absent(),
+    this.storeCode = const Value.absent(),
+    this.storeName = const Value.absent(),
+    this.storeLatitude = const Value.absent(),
+    this.storeLongitude = const Value.absent(),
+    this.radiusMeters = const Value.absent(),
+    this.lastLogType = const Value.absent(),
+    this.lastLogAt = const Value.absent(),
+    this.isSegmentComplete = const Value.absent(),
+    this.rawJson = const Value.absent(),
+    this.fetchedAt = const Value.absent(),
+    this.validUntil = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  CachedDtrSchedulesCompanion.insert({
+    required String id,
+    this.userId = const Value.absent(),
+    this.status = const Value.absent(),
+    required DateTime startTime,
+    required DateTime endTime,
+    this.storeId = const Value.absent(),
+    this.storeCode = const Value.absent(),
+    this.storeName = const Value.absent(),
+    this.storeLatitude = const Value.absent(),
+    this.storeLongitude = const Value.absent(),
+    this.radiusMeters = const Value.absent(),
+    this.lastLogType = const Value.absent(),
+    this.lastLogAt = const Value.absent(),
+    this.isSegmentComplete = const Value.absent(),
+    required String rawJson,
+    required DateTime fetchedAt,
+    required DateTime validUntil,
+    this.rowid = const Value.absent(),
+  })  : id = Value(id),
+        startTime = Value(startTime),
+        endTime = Value(endTime),
+        rawJson = Value(rawJson),
+        fetchedAt = Value(fetchedAt),
+        validUntil = Value(validUntil);
+  static Insertable<CachedDtrSchedule> custom({
+    Expression<String>? id,
+    Expression<String>? userId,
+    Expression<String>? status,
+    Expression<DateTime>? startTime,
+    Expression<DateTime>? endTime,
+    Expression<String>? storeId,
+    Expression<String>? storeCode,
+    Expression<String>? storeName,
+    Expression<double>? storeLatitude,
+    Expression<double>? storeLongitude,
+    Expression<double>? radiusMeters,
+    Expression<String>? lastLogType,
+    Expression<DateTime>? lastLogAt,
+    Expression<bool>? isSegmentComplete,
+    Expression<String>? rawJson,
+    Expression<DateTime>? fetchedAt,
+    Expression<DateTime>? validUntil,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (userId != null) 'user_id': userId,
+      if (status != null) 'status': status,
+      if (startTime != null) 'start_time': startTime,
+      if (endTime != null) 'end_time': endTime,
+      if (storeId != null) 'store_id': storeId,
+      if (storeCode != null) 'store_code': storeCode,
+      if (storeName != null) 'store_name': storeName,
+      if (storeLatitude != null) 'store_latitude': storeLatitude,
+      if (storeLongitude != null) 'store_longitude': storeLongitude,
+      if (radiusMeters != null) 'radius_meters': radiusMeters,
+      if (lastLogType != null) 'last_log_type': lastLogType,
+      if (lastLogAt != null) 'last_log_at': lastLogAt,
+      if (isSegmentComplete != null) 'is_segment_complete': isSegmentComplete,
+      if (rawJson != null) 'raw_json': rawJson,
+      if (fetchedAt != null) 'fetched_at': fetchedAt,
+      if (validUntil != null) 'valid_until': validUntil,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  CachedDtrSchedulesCompanion copyWith(
+      {Value<String>? id,
+      Value<String?>? userId,
+      Value<String?>? status,
+      Value<DateTime>? startTime,
+      Value<DateTime>? endTime,
+      Value<String?>? storeId,
+      Value<String?>? storeCode,
+      Value<String?>? storeName,
+      Value<double?>? storeLatitude,
+      Value<double?>? storeLongitude,
+      Value<double?>? radiusMeters,
+      Value<String?>? lastLogType,
+      Value<DateTime?>? lastLogAt,
+      Value<bool>? isSegmentComplete,
+      Value<String>? rawJson,
+      Value<DateTime>? fetchedAt,
+      Value<DateTime>? validUntil,
+      Value<int>? rowid}) {
+    return CachedDtrSchedulesCompanion(
+      id: id ?? this.id,
+      userId: userId ?? this.userId,
+      status: status ?? this.status,
+      startTime: startTime ?? this.startTime,
+      endTime: endTime ?? this.endTime,
+      storeId: storeId ?? this.storeId,
+      storeCode: storeCode ?? this.storeCode,
+      storeName: storeName ?? this.storeName,
+      storeLatitude: storeLatitude ?? this.storeLatitude,
+      storeLongitude: storeLongitude ?? this.storeLongitude,
+      radiusMeters: radiusMeters ?? this.radiusMeters,
+      lastLogType: lastLogType ?? this.lastLogType,
+      lastLogAt: lastLogAt ?? this.lastLogAt,
+      isSegmentComplete: isSegmentComplete ?? this.isSegmentComplete,
+      rawJson: rawJson ?? this.rawJson,
+      fetchedAt: fetchedAt ?? this.fetchedAt,
+      validUntil: validUntil ?? this.validUntil,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (userId.present) {
+      map['user_id'] = Variable<String>(userId.value);
+    }
+    if (status.present) {
+      map['status'] = Variable<String>(status.value);
+    }
+    if (startTime.present) {
+      map['start_time'] = Variable<DateTime>(startTime.value);
+    }
+    if (endTime.present) {
+      map['end_time'] = Variable<DateTime>(endTime.value);
+    }
+    if (storeId.present) {
+      map['store_id'] = Variable<String>(storeId.value);
+    }
+    if (storeCode.present) {
+      map['store_code'] = Variable<String>(storeCode.value);
+    }
+    if (storeName.present) {
+      map['store_name'] = Variable<String>(storeName.value);
+    }
+    if (storeLatitude.present) {
+      map['store_latitude'] = Variable<double>(storeLatitude.value);
+    }
+    if (storeLongitude.present) {
+      map['store_longitude'] = Variable<double>(storeLongitude.value);
+    }
+    if (radiusMeters.present) {
+      map['radius_meters'] = Variable<double>(radiusMeters.value);
+    }
+    if (lastLogType.present) {
+      map['last_log_type'] = Variable<String>(lastLogType.value);
+    }
+    if (lastLogAt.present) {
+      map['last_log_at'] = Variable<DateTime>(lastLogAt.value);
+    }
+    if (isSegmentComplete.present) {
+      map['is_segment_complete'] = Variable<bool>(isSegmentComplete.value);
+    }
+    if (rawJson.present) {
+      map['raw_json'] = Variable<String>(rawJson.value);
+    }
+    if (fetchedAt.present) {
+      map['fetched_at'] = Variable<DateTime>(fetchedAt.value);
+    }
+    if (validUntil.present) {
+      map['valid_until'] = Variable<DateTime>(validUntil.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('CachedDtrSchedulesCompanion(')
+          ..write('id: $id, ')
+          ..write('userId: $userId, ')
+          ..write('status: $status, ')
+          ..write('startTime: $startTime, ')
+          ..write('endTime: $endTime, ')
+          ..write('storeId: $storeId, ')
+          ..write('storeCode: $storeCode, ')
+          ..write('storeName: $storeName, ')
+          ..write('storeLatitude: $storeLatitude, ')
+          ..write('storeLongitude: $storeLongitude, ')
+          ..write('radiusMeters: $radiusMeters, ')
+          ..write('lastLogType: $lastLogType, ')
+          ..write('lastLogAt: $lastLogAt, ')
+          ..write('isSegmentComplete: $isSegmentComplete, ')
+          ..write('rawJson: $rawJson, ')
+          ..write('fetchedAt: $fetchedAt, ')
+          ..write('validUntil: $validUntil, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $CachedAttendanceLogsTable extends CachedAttendanceLogs
+    with TableInfo<$CachedAttendanceLogsTable, CachedAttendanceLog> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $CachedAttendanceLogsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+      'id', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _logTimeMeta =
+      const VerificationMeta('logTime');
+  @override
+  late final GeneratedColumn<DateTime> logTime = GeneratedColumn<DateTime>(
+      'log_time', aliasedName, false,
+      type: DriftSqlType.dateTime, requiredDuringInsert: true);
+  static const VerificationMeta _rawJsonMeta =
+      const VerificationMeta('rawJson');
+  @override
+  late final GeneratedColumn<String> rawJson = GeneratedColumn<String>(
+      'raw_json', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _fetchedAtMeta =
+      const VerificationMeta('fetchedAt');
+  @override
+  late final GeneratedColumn<DateTime> fetchedAt = GeneratedColumn<DateTime>(
+      'fetched_at', aliasedName, false,
+      type: DriftSqlType.dateTime, requiredDuringInsert: true);
+  @override
+  List<GeneratedColumn> get $columns => [id, logTime, rawJson, fetchedAt];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'cached_attendance_logs';
+  @override
+  VerificationContext validateIntegrity(
+      Insertable<CachedAttendanceLog> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('log_time')) {
+      context.handle(_logTimeMeta,
+          logTime.isAcceptableOrUnknown(data['log_time']!, _logTimeMeta));
+    } else if (isInserting) {
+      context.missing(_logTimeMeta);
+    }
+    if (data.containsKey('raw_json')) {
+      context.handle(_rawJsonMeta,
+          rawJson.isAcceptableOrUnknown(data['raw_json']!, _rawJsonMeta));
+    } else if (isInserting) {
+      context.missing(_rawJsonMeta);
+    }
+    if (data.containsKey('fetched_at')) {
+      context.handle(_fetchedAtMeta,
+          fetchedAt.isAcceptableOrUnknown(data['fetched_at']!, _fetchedAtMeta));
+    } else if (isInserting) {
+      context.missing(_fetchedAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  CachedAttendanceLog map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return CachedAttendanceLog(
+      id: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}id'])!,
+      logTime: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}log_time'])!,
+      rawJson: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}raw_json'])!,
+      fetchedAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}fetched_at'])!,
+    );
+  }
+
+  @override
+  $CachedAttendanceLogsTable createAlias(String alias) {
+    return $CachedAttendanceLogsTable(attachedDatabase, alias);
+  }
+}
+
+class CachedAttendanceLog extends DataClass
+    implements Insertable<CachedAttendanceLog> {
+  final String id;
+  final DateTime logTime;
+  final String rawJson;
+  final DateTime fetchedAt;
+  const CachedAttendanceLog(
+      {required this.id,
+      required this.logTime,
+      required this.rawJson,
+      required this.fetchedAt});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['log_time'] = Variable<DateTime>(logTime);
+    map['raw_json'] = Variable<String>(rawJson);
+    map['fetched_at'] = Variable<DateTime>(fetchedAt);
+    return map;
+  }
+
+  CachedAttendanceLogsCompanion toCompanion(bool nullToAbsent) {
+    return CachedAttendanceLogsCompanion(
+      id: Value(id),
+      logTime: Value(logTime),
+      rawJson: Value(rawJson),
+      fetchedAt: Value(fetchedAt),
+    );
+  }
+
+  factory CachedAttendanceLog.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return CachedAttendanceLog(
+      id: serializer.fromJson<String>(json['id']),
+      logTime: serializer.fromJson<DateTime>(json['logTime']),
+      rawJson: serializer.fromJson<String>(json['rawJson']),
+      fetchedAt: serializer.fromJson<DateTime>(json['fetchedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'logTime': serializer.toJson<DateTime>(logTime),
+      'rawJson': serializer.toJson<String>(rawJson),
+      'fetchedAt': serializer.toJson<DateTime>(fetchedAt),
+    };
+  }
+
+  CachedAttendanceLog copyWith(
+          {String? id,
+          DateTime? logTime,
+          String? rawJson,
+          DateTime? fetchedAt}) =>
+      CachedAttendanceLog(
+        id: id ?? this.id,
+        logTime: logTime ?? this.logTime,
+        rawJson: rawJson ?? this.rawJson,
+        fetchedAt: fetchedAt ?? this.fetchedAt,
+      );
+  CachedAttendanceLog copyWithCompanion(CachedAttendanceLogsCompanion data) {
+    return CachedAttendanceLog(
+      id: data.id.present ? data.id.value : this.id,
+      logTime: data.logTime.present ? data.logTime.value : this.logTime,
+      rawJson: data.rawJson.present ? data.rawJson.value : this.rawJson,
+      fetchedAt: data.fetchedAt.present ? data.fetchedAt.value : this.fetchedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('CachedAttendanceLog(')
+          ..write('id: $id, ')
+          ..write('logTime: $logTime, ')
+          ..write('rawJson: $rawJson, ')
+          ..write('fetchedAt: $fetchedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, logTime, rawJson, fetchedAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is CachedAttendanceLog &&
+          other.id == this.id &&
+          other.logTime == this.logTime &&
+          other.rawJson == this.rawJson &&
+          other.fetchedAt == this.fetchedAt);
+}
+
+class CachedAttendanceLogsCompanion
+    extends UpdateCompanion<CachedAttendanceLog> {
+  final Value<String> id;
+  final Value<DateTime> logTime;
+  final Value<String> rawJson;
+  final Value<DateTime> fetchedAt;
+  final Value<int> rowid;
+  const CachedAttendanceLogsCompanion({
+    this.id = const Value.absent(),
+    this.logTime = const Value.absent(),
+    this.rawJson = const Value.absent(),
+    this.fetchedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  CachedAttendanceLogsCompanion.insert({
+    required String id,
+    required DateTime logTime,
+    required String rawJson,
+    required DateTime fetchedAt,
+    this.rowid = const Value.absent(),
+  })  : id = Value(id),
+        logTime = Value(logTime),
+        rawJson = Value(rawJson),
+        fetchedAt = Value(fetchedAt);
+  static Insertable<CachedAttendanceLog> custom({
+    Expression<String>? id,
+    Expression<DateTime>? logTime,
+    Expression<String>? rawJson,
+    Expression<DateTime>? fetchedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (logTime != null) 'log_time': logTime,
+      if (rawJson != null) 'raw_json': rawJson,
+      if (fetchedAt != null) 'fetched_at': fetchedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  CachedAttendanceLogsCompanion copyWith(
+      {Value<String>? id,
+      Value<DateTime>? logTime,
+      Value<String>? rawJson,
+      Value<DateTime>? fetchedAt,
+      Value<int>? rowid}) {
+    return CachedAttendanceLogsCompanion(
+      id: id ?? this.id,
+      logTime: logTime ?? this.logTime,
+      rawJson: rawJson ?? this.rawJson,
+      fetchedAt: fetchedAt ?? this.fetchedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (logTime.present) {
+      map['log_time'] = Variable<DateTime>(logTime.value);
+    }
+    if (rawJson.present) {
+      map['raw_json'] = Variable<String>(rawJson.value);
+    }
+    if (fetchedAt.present) {
+      map['fetched_at'] = Variable<DateTime>(fetchedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('CachedAttendanceLogsCompanion(')
+          ..write('id: $id, ')
+          ..write('logTime: $logTime, ')
+          ..write('rawJson: $rawJson, ')
+          ..write('fetchedAt: $fetchedAt, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -5645,6 +7005,10 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $SyncLogTable syncLog = $SyncLogTable(this);
   late final $AppSettingsTable appSettings = $AppSettingsTable(this);
   late final $OfflineDtrLogsTable offlineDtrLogs = $OfflineDtrLogsTable(this);
+  late final $CachedDtrSchedulesTable cachedDtrSchedules =
+      $CachedDtrSchedulesTable(this);
+  late final $CachedAttendanceLogsTable cachedAttendanceLogs =
+      $CachedAttendanceLogsTable(this);
   late final RoleDao roleDao = RoleDao(this as AppDatabase);
   late final PermissionDao permissionDao = PermissionDao(this as AppDatabase);
   late final ModuleDao moduleDao = ModuleDao(this as AppDatabase);
@@ -5668,7 +7032,9 @@ abstract class _$AppDatabase extends GeneratedDatabase {
         auditLogs,
         syncLog,
         appSettings,
-        offlineDtrLogs
+        offlineDtrLogs,
+        cachedDtrSchedules,
+        cachedAttendanceLogs
       ];
   @override
   DriftDatabaseOptions get options =>
@@ -9815,6 +11181,9 @@ typedef $$AppSettingsTableProcessedTableManager = ProcessedTableManager<
 typedef $$OfflineDtrLogsTableCreateCompanionBuilder = OfflineDtrLogsCompanion
     Function({
   Value<String> id,
+  Value<String?> clientRequestId,
+  Value<String?> scheduleId,
+  Value<String?> actionType,
   required double latitude,
   required double longitude,
   required double accuracy,
@@ -9822,11 +11191,17 @@ typedef $$OfflineDtrLogsTableCreateCompanionBuilder = OfflineDtrLogsCompanion
   required String photoPath,
   Value<String?> deviceInfo,
   Value<int> syncStatus,
+  Value<String?> serverMessage,
+  Value<DateTime> createdAt,
+  Value<DateTime> updatedAt,
   Value<int> rowid,
 });
 typedef $$OfflineDtrLogsTableUpdateCompanionBuilder = OfflineDtrLogsCompanion
     Function({
   Value<String> id,
+  Value<String?> clientRequestId,
+  Value<String?> scheduleId,
+  Value<String?> actionType,
   Value<double> latitude,
   Value<double> longitude,
   Value<double> accuracy,
@@ -9834,6 +11209,9 @@ typedef $$OfflineDtrLogsTableUpdateCompanionBuilder = OfflineDtrLogsCompanion
   Value<String> photoPath,
   Value<String?> deviceInfo,
   Value<int> syncStatus,
+  Value<String?> serverMessage,
+  Value<DateTime> createdAt,
+  Value<DateTime> updatedAt,
   Value<int> rowid,
 });
 
@@ -9848,6 +11226,16 @@ class $$OfflineDtrLogsTableFilterComposer
   });
   ColumnFilters<String> get id => $composableBuilder(
       column: $table.id, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get clientRequestId => $composableBuilder(
+      column: $table.clientRequestId,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get scheduleId => $composableBuilder(
+      column: $table.scheduleId, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get actionType => $composableBuilder(
+      column: $table.actionType, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<double> get latitude => $composableBuilder(
       column: $table.latitude, builder: (column) => ColumnFilters(column));
@@ -9869,6 +11257,15 @@ class $$OfflineDtrLogsTableFilterComposer
 
   ColumnFilters<int> get syncStatus => $composableBuilder(
       column: $table.syncStatus, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get serverMessage => $composableBuilder(
+      column: $table.serverMessage, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+      column: $table.createdAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+      column: $table.updatedAt, builder: (column) => ColumnFilters(column));
 }
 
 class $$OfflineDtrLogsTableOrderingComposer
@@ -9882,6 +11279,16 @@ class $$OfflineDtrLogsTableOrderingComposer
   });
   ColumnOrderings<String> get id => $composableBuilder(
       column: $table.id, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get clientRequestId => $composableBuilder(
+      column: $table.clientRequestId,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get scheduleId => $composableBuilder(
+      column: $table.scheduleId, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get actionType => $composableBuilder(
+      column: $table.actionType, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<double> get latitude => $composableBuilder(
       column: $table.latitude, builder: (column) => ColumnOrderings(column));
@@ -9903,6 +11310,16 @@ class $$OfflineDtrLogsTableOrderingComposer
 
   ColumnOrderings<int> get syncStatus => $composableBuilder(
       column: $table.syncStatus, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get serverMessage => $composableBuilder(
+      column: $table.serverMessage,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+      column: $table.createdAt, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+      column: $table.updatedAt, builder: (column) => ColumnOrderings(column));
 }
 
 class $$OfflineDtrLogsTableAnnotationComposer
@@ -9916,6 +11333,15 @@ class $$OfflineDtrLogsTableAnnotationComposer
   });
   GeneratedColumn<String> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get clientRequestId => $composableBuilder(
+      column: $table.clientRequestId, builder: (column) => column);
+
+  GeneratedColumn<String> get scheduleId => $composableBuilder(
+      column: $table.scheduleId, builder: (column) => column);
+
+  GeneratedColumn<String> get actionType => $composableBuilder(
+      column: $table.actionType, builder: (column) => column);
 
   GeneratedColumn<double> get latitude =>
       $composableBuilder(column: $table.latitude, builder: (column) => column);
@@ -9937,6 +11363,15 @@ class $$OfflineDtrLogsTableAnnotationComposer
 
   GeneratedColumn<int> get syncStatus => $composableBuilder(
       column: $table.syncStatus, builder: (column) => column);
+
+  GeneratedColumn<String> get serverMessage => $composableBuilder(
+      column: $table.serverMessage, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
 }
 
 class $$OfflineDtrLogsTableTableManager extends RootTableManager<
@@ -9967,6 +11402,9 @@ class $$OfflineDtrLogsTableTableManager extends RootTableManager<
               $$OfflineDtrLogsTableAnnotationComposer($db: db, $table: table),
           updateCompanionCallback: ({
             Value<String> id = const Value.absent(),
+            Value<String?> clientRequestId = const Value.absent(),
+            Value<String?> scheduleId = const Value.absent(),
+            Value<String?> actionType = const Value.absent(),
             Value<double> latitude = const Value.absent(),
             Value<double> longitude = const Value.absent(),
             Value<double> accuracy = const Value.absent(),
@@ -9974,10 +11412,16 @@ class $$OfflineDtrLogsTableTableManager extends RootTableManager<
             Value<String> photoPath = const Value.absent(),
             Value<String?> deviceInfo = const Value.absent(),
             Value<int> syncStatus = const Value.absent(),
+            Value<String?> serverMessage = const Value.absent(),
+            Value<DateTime> createdAt = const Value.absent(),
+            Value<DateTime> updatedAt = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
               OfflineDtrLogsCompanion(
             id: id,
+            clientRequestId: clientRequestId,
+            scheduleId: scheduleId,
+            actionType: actionType,
             latitude: latitude,
             longitude: longitude,
             accuracy: accuracy,
@@ -9985,10 +11429,16 @@ class $$OfflineDtrLogsTableTableManager extends RootTableManager<
             photoPath: photoPath,
             deviceInfo: deviceInfo,
             syncStatus: syncStatus,
+            serverMessage: serverMessage,
+            createdAt: createdAt,
+            updatedAt: updatedAt,
             rowid: rowid,
           ),
           createCompanionCallback: ({
             Value<String> id = const Value.absent(),
+            Value<String?> clientRequestId = const Value.absent(),
+            Value<String?> scheduleId = const Value.absent(),
+            Value<String?> actionType = const Value.absent(),
             required double latitude,
             required double longitude,
             required double accuracy,
@@ -9996,10 +11446,16 @@ class $$OfflineDtrLogsTableTableManager extends RootTableManager<
             required String photoPath,
             Value<String?> deviceInfo = const Value.absent(),
             Value<int> syncStatus = const Value.absent(),
+            Value<String?> serverMessage = const Value.absent(),
+            Value<DateTime> createdAt = const Value.absent(),
+            Value<DateTime> updatedAt = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
               OfflineDtrLogsCompanion.insert(
             id: id,
+            clientRequestId: clientRequestId,
+            scheduleId: scheduleId,
+            actionType: actionType,
             latitude: latitude,
             longitude: longitude,
             accuracy: accuracy,
@@ -10007,6 +11463,9 @@ class $$OfflineDtrLogsTableTableManager extends RootTableManager<
             photoPath: photoPath,
             deviceInfo: deviceInfo,
             syncStatus: syncStatus,
+            serverMessage: serverMessage,
+            createdAt: createdAt,
+            updatedAt: updatedAt,
             rowid: rowid,
           ),
           withReferenceMapper: (p0) => p0
@@ -10031,6 +11490,531 @@ typedef $$OfflineDtrLogsTableProcessedTableManager = ProcessedTableManager<
     ),
     OfflineDtrLog,
     PrefetchHooks Function()>;
+typedef $$CachedDtrSchedulesTableCreateCompanionBuilder
+    = CachedDtrSchedulesCompanion Function({
+  required String id,
+  Value<String?> userId,
+  Value<String?> status,
+  required DateTime startTime,
+  required DateTime endTime,
+  Value<String?> storeId,
+  Value<String?> storeCode,
+  Value<String?> storeName,
+  Value<double?> storeLatitude,
+  Value<double?> storeLongitude,
+  Value<double?> radiusMeters,
+  Value<String?> lastLogType,
+  Value<DateTime?> lastLogAt,
+  Value<bool> isSegmentComplete,
+  required String rawJson,
+  required DateTime fetchedAt,
+  required DateTime validUntil,
+  Value<int> rowid,
+});
+typedef $$CachedDtrSchedulesTableUpdateCompanionBuilder
+    = CachedDtrSchedulesCompanion Function({
+  Value<String> id,
+  Value<String?> userId,
+  Value<String?> status,
+  Value<DateTime> startTime,
+  Value<DateTime> endTime,
+  Value<String?> storeId,
+  Value<String?> storeCode,
+  Value<String?> storeName,
+  Value<double?> storeLatitude,
+  Value<double?> storeLongitude,
+  Value<double?> radiusMeters,
+  Value<String?> lastLogType,
+  Value<DateTime?> lastLogAt,
+  Value<bool> isSegmentComplete,
+  Value<String> rawJson,
+  Value<DateTime> fetchedAt,
+  Value<DateTime> validUntil,
+  Value<int> rowid,
+});
+
+class $$CachedDtrSchedulesTableFilterComposer
+    extends Composer<_$AppDatabase, $CachedDtrSchedulesTable> {
+  $$CachedDtrSchedulesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get userId => $composableBuilder(
+      column: $table.userId, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get status => $composableBuilder(
+      column: $table.status, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get startTime => $composableBuilder(
+      column: $table.startTime, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get endTime => $composableBuilder(
+      column: $table.endTime, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get storeId => $composableBuilder(
+      column: $table.storeId, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get storeCode => $composableBuilder(
+      column: $table.storeCode, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get storeName => $composableBuilder(
+      column: $table.storeName, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<double> get storeLatitude => $composableBuilder(
+      column: $table.storeLatitude, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<double> get storeLongitude => $composableBuilder(
+      column: $table.storeLongitude,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<double> get radiusMeters => $composableBuilder(
+      column: $table.radiusMeters, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get lastLogType => $composableBuilder(
+      column: $table.lastLogType, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get lastLogAt => $composableBuilder(
+      column: $table.lastLogAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<bool> get isSegmentComplete => $composableBuilder(
+      column: $table.isSegmentComplete,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get rawJson => $composableBuilder(
+      column: $table.rawJson, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get fetchedAt => $composableBuilder(
+      column: $table.fetchedAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get validUntil => $composableBuilder(
+      column: $table.validUntil, builder: (column) => ColumnFilters(column));
+}
+
+class $$CachedDtrSchedulesTableOrderingComposer
+    extends Composer<_$AppDatabase, $CachedDtrSchedulesTable> {
+  $$CachedDtrSchedulesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get userId => $composableBuilder(
+      column: $table.userId, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get status => $composableBuilder(
+      column: $table.status, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get startTime => $composableBuilder(
+      column: $table.startTime, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get endTime => $composableBuilder(
+      column: $table.endTime, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get storeId => $composableBuilder(
+      column: $table.storeId, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get storeCode => $composableBuilder(
+      column: $table.storeCode, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get storeName => $composableBuilder(
+      column: $table.storeName, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<double> get storeLatitude => $composableBuilder(
+      column: $table.storeLatitude,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<double> get storeLongitude => $composableBuilder(
+      column: $table.storeLongitude,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<double> get radiusMeters => $composableBuilder(
+      column: $table.radiusMeters,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get lastLogType => $composableBuilder(
+      column: $table.lastLogType, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get lastLogAt => $composableBuilder(
+      column: $table.lastLogAt, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<bool> get isSegmentComplete => $composableBuilder(
+      column: $table.isSegmentComplete,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get rawJson => $composableBuilder(
+      column: $table.rawJson, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get fetchedAt => $composableBuilder(
+      column: $table.fetchedAt, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get validUntil => $composableBuilder(
+      column: $table.validUntil, builder: (column) => ColumnOrderings(column));
+}
+
+class $$CachedDtrSchedulesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $CachedDtrSchedulesTable> {
+  $$CachedDtrSchedulesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get userId =>
+      $composableBuilder(column: $table.userId, builder: (column) => column);
+
+  GeneratedColumn<String> get status =>
+      $composableBuilder(column: $table.status, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get startTime =>
+      $composableBuilder(column: $table.startTime, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get endTime =>
+      $composableBuilder(column: $table.endTime, builder: (column) => column);
+
+  GeneratedColumn<String> get storeId =>
+      $composableBuilder(column: $table.storeId, builder: (column) => column);
+
+  GeneratedColumn<String> get storeCode =>
+      $composableBuilder(column: $table.storeCode, builder: (column) => column);
+
+  GeneratedColumn<String> get storeName =>
+      $composableBuilder(column: $table.storeName, builder: (column) => column);
+
+  GeneratedColumn<double> get storeLatitude => $composableBuilder(
+      column: $table.storeLatitude, builder: (column) => column);
+
+  GeneratedColumn<double> get storeLongitude => $composableBuilder(
+      column: $table.storeLongitude, builder: (column) => column);
+
+  GeneratedColumn<double> get radiusMeters => $composableBuilder(
+      column: $table.radiusMeters, builder: (column) => column);
+
+  GeneratedColumn<String> get lastLogType => $composableBuilder(
+      column: $table.lastLogType, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get lastLogAt =>
+      $composableBuilder(column: $table.lastLogAt, builder: (column) => column);
+
+  GeneratedColumn<bool> get isSegmentComplete => $composableBuilder(
+      column: $table.isSegmentComplete, builder: (column) => column);
+
+  GeneratedColumn<String> get rawJson =>
+      $composableBuilder(column: $table.rawJson, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get fetchedAt =>
+      $composableBuilder(column: $table.fetchedAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get validUntil => $composableBuilder(
+      column: $table.validUntil, builder: (column) => column);
+}
+
+class $$CachedDtrSchedulesTableTableManager extends RootTableManager<
+    _$AppDatabase,
+    $CachedDtrSchedulesTable,
+    CachedDtrSchedule,
+    $$CachedDtrSchedulesTableFilterComposer,
+    $$CachedDtrSchedulesTableOrderingComposer,
+    $$CachedDtrSchedulesTableAnnotationComposer,
+    $$CachedDtrSchedulesTableCreateCompanionBuilder,
+    $$CachedDtrSchedulesTableUpdateCompanionBuilder,
+    (
+      CachedDtrSchedule,
+      BaseReferences<_$AppDatabase, $CachedDtrSchedulesTable, CachedDtrSchedule>
+    ),
+    CachedDtrSchedule,
+    PrefetchHooks Function()> {
+  $$CachedDtrSchedulesTableTableManager(
+      _$AppDatabase db, $CachedDtrSchedulesTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$CachedDtrSchedulesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$CachedDtrSchedulesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$CachedDtrSchedulesTableAnnotationComposer(
+                  $db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<String> id = const Value.absent(),
+            Value<String?> userId = const Value.absent(),
+            Value<String?> status = const Value.absent(),
+            Value<DateTime> startTime = const Value.absent(),
+            Value<DateTime> endTime = const Value.absent(),
+            Value<String?> storeId = const Value.absent(),
+            Value<String?> storeCode = const Value.absent(),
+            Value<String?> storeName = const Value.absent(),
+            Value<double?> storeLatitude = const Value.absent(),
+            Value<double?> storeLongitude = const Value.absent(),
+            Value<double?> radiusMeters = const Value.absent(),
+            Value<String?> lastLogType = const Value.absent(),
+            Value<DateTime?> lastLogAt = const Value.absent(),
+            Value<bool> isSegmentComplete = const Value.absent(),
+            Value<String> rawJson = const Value.absent(),
+            Value<DateTime> fetchedAt = const Value.absent(),
+            Value<DateTime> validUntil = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              CachedDtrSchedulesCompanion(
+            id: id,
+            userId: userId,
+            status: status,
+            startTime: startTime,
+            endTime: endTime,
+            storeId: storeId,
+            storeCode: storeCode,
+            storeName: storeName,
+            storeLatitude: storeLatitude,
+            storeLongitude: storeLongitude,
+            radiusMeters: radiusMeters,
+            lastLogType: lastLogType,
+            lastLogAt: lastLogAt,
+            isSegmentComplete: isSegmentComplete,
+            rawJson: rawJson,
+            fetchedAt: fetchedAt,
+            validUntil: validUntil,
+            rowid: rowid,
+          ),
+          createCompanionCallback: ({
+            required String id,
+            Value<String?> userId = const Value.absent(),
+            Value<String?> status = const Value.absent(),
+            required DateTime startTime,
+            required DateTime endTime,
+            Value<String?> storeId = const Value.absent(),
+            Value<String?> storeCode = const Value.absent(),
+            Value<String?> storeName = const Value.absent(),
+            Value<double?> storeLatitude = const Value.absent(),
+            Value<double?> storeLongitude = const Value.absent(),
+            Value<double?> radiusMeters = const Value.absent(),
+            Value<String?> lastLogType = const Value.absent(),
+            Value<DateTime?> lastLogAt = const Value.absent(),
+            Value<bool> isSegmentComplete = const Value.absent(),
+            required String rawJson,
+            required DateTime fetchedAt,
+            required DateTime validUntil,
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              CachedDtrSchedulesCompanion.insert(
+            id: id,
+            userId: userId,
+            status: status,
+            startTime: startTime,
+            endTime: endTime,
+            storeId: storeId,
+            storeCode: storeCode,
+            storeName: storeName,
+            storeLatitude: storeLatitude,
+            storeLongitude: storeLongitude,
+            radiusMeters: radiusMeters,
+            lastLogType: lastLogType,
+            lastLogAt: lastLogAt,
+            isSegmentComplete: isSegmentComplete,
+            rawJson: rawJson,
+            fetchedAt: fetchedAt,
+            validUntil: validUntil,
+            rowid: rowid,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ));
+}
+
+typedef $$CachedDtrSchedulesTableProcessedTableManager = ProcessedTableManager<
+    _$AppDatabase,
+    $CachedDtrSchedulesTable,
+    CachedDtrSchedule,
+    $$CachedDtrSchedulesTableFilterComposer,
+    $$CachedDtrSchedulesTableOrderingComposer,
+    $$CachedDtrSchedulesTableAnnotationComposer,
+    $$CachedDtrSchedulesTableCreateCompanionBuilder,
+    $$CachedDtrSchedulesTableUpdateCompanionBuilder,
+    (
+      CachedDtrSchedule,
+      BaseReferences<_$AppDatabase, $CachedDtrSchedulesTable, CachedDtrSchedule>
+    ),
+    CachedDtrSchedule,
+    PrefetchHooks Function()>;
+typedef $$CachedAttendanceLogsTableCreateCompanionBuilder
+    = CachedAttendanceLogsCompanion Function({
+  required String id,
+  required DateTime logTime,
+  required String rawJson,
+  required DateTime fetchedAt,
+  Value<int> rowid,
+});
+typedef $$CachedAttendanceLogsTableUpdateCompanionBuilder
+    = CachedAttendanceLogsCompanion Function({
+  Value<String> id,
+  Value<DateTime> logTime,
+  Value<String> rawJson,
+  Value<DateTime> fetchedAt,
+  Value<int> rowid,
+});
+
+class $$CachedAttendanceLogsTableFilterComposer
+    extends Composer<_$AppDatabase, $CachedAttendanceLogsTable> {
+  $$CachedAttendanceLogsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get logTime => $composableBuilder(
+      column: $table.logTime, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get rawJson => $composableBuilder(
+      column: $table.rawJson, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get fetchedAt => $composableBuilder(
+      column: $table.fetchedAt, builder: (column) => ColumnFilters(column));
+}
+
+class $$CachedAttendanceLogsTableOrderingComposer
+    extends Composer<_$AppDatabase, $CachedAttendanceLogsTable> {
+  $$CachedAttendanceLogsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get logTime => $composableBuilder(
+      column: $table.logTime, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get rawJson => $composableBuilder(
+      column: $table.rawJson, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get fetchedAt => $composableBuilder(
+      column: $table.fetchedAt, builder: (column) => ColumnOrderings(column));
+}
+
+class $$CachedAttendanceLogsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $CachedAttendanceLogsTable> {
+  $$CachedAttendanceLogsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get logTime =>
+      $composableBuilder(column: $table.logTime, builder: (column) => column);
+
+  GeneratedColumn<String> get rawJson =>
+      $composableBuilder(column: $table.rawJson, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get fetchedAt =>
+      $composableBuilder(column: $table.fetchedAt, builder: (column) => column);
+}
+
+class $$CachedAttendanceLogsTableTableManager extends RootTableManager<
+    _$AppDatabase,
+    $CachedAttendanceLogsTable,
+    CachedAttendanceLog,
+    $$CachedAttendanceLogsTableFilterComposer,
+    $$CachedAttendanceLogsTableOrderingComposer,
+    $$CachedAttendanceLogsTableAnnotationComposer,
+    $$CachedAttendanceLogsTableCreateCompanionBuilder,
+    $$CachedAttendanceLogsTableUpdateCompanionBuilder,
+    (
+      CachedAttendanceLog,
+      BaseReferences<_$AppDatabase, $CachedAttendanceLogsTable,
+          CachedAttendanceLog>
+    ),
+    CachedAttendanceLog,
+    PrefetchHooks Function()> {
+  $$CachedAttendanceLogsTableTableManager(
+      _$AppDatabase db, $CachedAttendanceLogsTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$CachedAttendanceLogsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$CachedAttendanceLogsTableOrderingComposer(
+                  $db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$CachedAttendanceLogsTableAnnotationComposer(
+                  $db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<String> id = const Value.absent(),
+            Value<DateTime> logTime = const Value.absent(),
+            Value<String> rawJson = const Value.absent(),
+            Value<DateTime> fetchedAt = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              CachedAttendanceLogsCompanion(
+            id: id,
+            logTime: logTime,
+            rawJson: rawJson,
+            fetchedAt: fetchedAt,
+            rowid: rowid,
+          ),
+          createCompanionCallback: ({
+            required String id,
+            required DateTime logTime,
+            required String rawJson,
+            required DateTime fetchedAt,
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              CachedAttendanceLogsCompanion.insert(
+            id: id,
+            logTime: logTime,
+            rawJson: rawJson,
+            fetchedAt: fetchedAt,
+            rowid: rowid,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ));
+}
+
+typedef $$CachedAttendanceLogsTableProcessedTableManager
+    = ProcessedTableManager<
+        _$AppDatabase,
+        $CachedAttendanceLogsTable,
+        CachedAttendanceLog,
+        $$CachedAttendanceLogsTableFilterComposer,
+        $$CachedAttendanceLogsTableOrderingComposer,
+        $$CachedAttendanceLogsTableAnnotationComposer,
+        $$CachedAttendanceLogsTableCreateCompanionBuilder,
+        $$CachedAttendanceLogsTableUpdateCompanionBuilder,
+        (
+          CachedAttendanceLog,
+          BaseReferences<_$AppDatabase, $CachedAttendanceLogsTable,
+              CachedAttendanceLog>
+        ),
+        CachedAttendanceLog,
+        PrefetchHooks Function()>;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -10055,4 +12039,8 @@ class $AppDatabaseManager {
       $$AppSettingsTableTableManager(_db, _db.appSettings);
   $$OfflineDtrLogsTableTableManager get offlineDtrLogs =>
       $$OfflineDtrLogsTableTableManager(_db, _db.offlineDtrLogs);
+  $$CachedDtrSchedulesTableTableManager get cachedDtrSchedules =>
+      $$CachedDtrSchedulesTableTableManager(_db, _db.cachedDtrSchedules);
+  $$CachedAttendanceLogsTableTableManager get cachedAttendanceLogs =>
+      $$CachedAttendanceLogsTableTableManager(_db, _db.cachedAttendanceLogs);
 }

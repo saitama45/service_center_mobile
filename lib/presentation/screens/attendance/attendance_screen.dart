@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -60,7 +61,11 @@ class _AttendanceScreenState extends ConsumerState<AttendanceScreen>
   }
 
   Future<void> _fetchLogs({int page = 1}) async {
-    if (page == 1) setState(() { _isLoading = true; _logs.clear(); });
+    if (page == 1)
+      setState(() {
+        _isLoading = true;
+        _logs.clear();
+      });
 
     final dateFrom = DateFormat('yyyy-MM-dd').format(_dateFrom);
     final dateTo = DateFormat('yyyy-MM-dd').format(_dateTo);
@@ -78,8 +83,8 @@ class _AttendanceScreenState extends ConsumerState<AttendanceScreen>
     if (!mounted) return;
     setState(() {
       if (page == 1) _data = data;
-      final newLogs = (data?['logs']?['data'] as List? ?? [])
-          .cast<Map<String, dynamic>>();
+      final newLogs =
+          (data?['logs']?['data'] as List? ?? []).cast<Map<String, dynamic>>();
       _logs.addAll(newLogs);
 
       // Sort all accumulated logs by log_time descending
@@ -187,20 +192,25 @@ class _AttendanceScreenState extends ConsumerState<AttendanceScreen>
             children: [
               Expanded(child: _buildStoreDropdown(stores)),
               const SizedBox(width: 8),
-              Expanded(child: _buildDateField('Date From', _dateFrom, () => _pickDate(isFrom: true))),
+              Expanded(
+                  child: _buildDateField(
+                      'Date From', _dateFrom, () => _pickDate(isFrom: true))),
             ],
           ),
           const SizedBox(height: 8),
           Row(
             children: [
-              Expanded(child: _buildDateField('Date To', _dateTo, () => _pickDate(isFrom: false))),
+              Expanded(
+                  child: _buildDateField(
+                      'Date To', _dateTo, () => _pickDate(isFrom: false))),
               const SizedBox(width: 8),
               OutlinedButton.icon(
                 onPressed: _resetFilters,
                 icon: const Icon(Icons.refresh, size: 16),
                 label: const Text('Reset'),
                 style: OutlinedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
                 ),
               ),
             ],
@@ -245,7 +255,8 @@ class _AttendanceScreenState extends ConsumerState<AttendanceScreen>
 
   InputDecoration _inputDecoration(String label) => InputDecoration(
         labelText: label,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(6)),
         isDense: true,
       );
@@ -281,7 +292,8 @@ class _AttendanceScreenState extends ConsumerState<AttendanceScreen>
                         itemCount: _logs.length + 1,
                         separatorBuilder: (_, __) => const SizedBox(height: 8),
                         itemBuilder: (_, i) {
-                          if (i == _logs.length) return _buildPaginationFooter();
+                          if (i == _logs.length)
+                            return _buildPaginationFooter();
                           return _buildLogCard(_logs[i]);
                         },
                       ),
@@ -351,7 +363,8 @@ class _AttendanceScreenState extends ConsumerState<AttendanceScreen>
 
   Widget _buildLogCard(Map<String, dynamic> log) {
     final user = log['user'] as Map<String, dynamic>?;
-    final store = (log['schedule_store'] ?? log['store']) as Map<String, dynamic>?;
+    final store =
+        (log['schedule_store'] ?? log['store']) as Map<String, dynamic>?;
     final String type = log['type'] ?? '';
     final bool isIn = type == 'time_in';
 
@@ -365,13 +378,20 @@ class _AttendanceScreenState extends ConsumerState<AttendanceScreen>
     // Build full photo URL from the server path
     final String? rawPath = log['photo_path'] as String?;
     final String? photoUrl = rawPath != null && rawPath.isNotEmpty
-        ? (rawPath.startsWith('http')
+        ? (rawPath.startsWith('http') ||
+                rawPath.startsWith('data:image') ||
+                rawPath.contains(':\\')
             ? rawPath
             : 'https://support.tablegroup.com.ph/serve-storage/$rawPath')
         : null;
-    final double? lat = log['latitude'] != null ? _toDouble(log['latitude']) : null;
-    final double? lng = log['longitude'] != null ? _toDouble(log['longitude']) : null;
+    final double? lat =
+        log['latitude'] != null ? _toDouble(log['latitude']) : null;
+    final double? lng =
+        log['longitude'] != null ? _toDouble(log['longitude']) : null;
     final String? deviceInfo = log['device_info'] as String?;
+    final bool isPending = log['is_pending'] == true;
+    final bool isFailed = log['is_failed'] == true;
+    final String? serverMessage = log['server_message'] as String?;
 
     return Card(
       elevation: 1,
@@ -412,7 +432,8 @@ class _AttendanceScreenState extends ConsumerState<AttendanceScreen>
                     if ((store['code'] ?? store['store_code']) != null)
                       Text(
                         'CODE: ${store['code'] ?? store['store_code']}',
-                        style: AppTextStyles.caption.copyWith(color: Colors.grey),
+                        style:
+                            AppTextStyles.caption.copyWith(color: Colors.grey),
                       ),
                     const SizedBox(height: 6),
                   ],
@@ -433,8 +454,20 @@ class _AttendanceScreenState extends ConsumerState<AttendanceScreen>
                         const SizedBox(width: 8),
                       ],
                       _buildTypeBadge(isIn),
+                      if (isPending || isFailed) ...[
+                        const SizedBox(width: 6),
+                        _buildSyncBadge(isFailed),
+                      ],
                     ],
                   ),
+                  if (isFailed && serverMessage != null) ...[
+                    const SizedBox(height: 4),
+                    Text(
+                      serverMessage,
+                      style: AppTextStyles.caption
+                          .copyWith(color: Colors.red.shade700),
+                    ),
+                  ],
                   // Device
                   if (deviceInfo != null) ...[
                     const SizedBox(height: 4),
@@ -482,6 +515,8 @@ class _AttendanceScreenState extends ConsumerState<AttendanceScreen>
         } catch (_) {
           image = _photoPlaceholder();
         }
+      } else if (!photoUrl.startsWith('http')) {
+        image = Image.file(File(photoUrl), fit: BoxFit.cover);
       } else {
         // Network URL — pass auth token in case the endpoint is protected
         image = CachedNetworkImage(
@@ -512,6 +547,8 @@ class _AttendanceScreenState extends ConsumerState<AttendanceScreen>
   }
 
   void _showPhotoPreview(String photoUrl) {
+    final isLocal =
+        !photoUrl.startsWith('http') && !photoUrl.startsWith('data:image');
     showDialog(
       context: context,
       builder: (ctx) => Dialog(
@@ -523,17 +560,22 @@ class _AttendanceScreenState extends ConsumerState<AttendanceScreen>
               minScale: 0.5,
               maxScale: 4.0,
               child: Center(
-                child: CachedNetworkImage(
-                  imageUrl: photoUrl,
-                  httpHeaders: _authToken != null
-                      ? {'Authorization': 'Bearer $_authToken'}
-                      : const {},
-                  fit: BoxFit.contain,
-                  placeholder: (_, __) =>
-                      const Center(child: CircularProgressIndicator()),
-                  errorWidget: (_, __, ___) =>
-                      const Icon(Icons.broken_image, color: Colors.white, size: 64),
-                ),
+                child: isLocal
+                    ? Image.file(File(photoUrl), fit: BoxFit.contain)
+                    : CachedNetworkImage(
+                        imageUrl: photoUrl,
+                        httpHeaders: _authToken != null
+                            ? {'Authorization': 'Bearer $_authToken'}
+                            : const {},
+                        fit: BoxFit.contain,
+                        placeholder: (_, __) =>
+                            const Center(child: CircularProgressIndicator()),
+                        errorWidget: (_, __, ___) => const Icon(
+                          Icons.broken_image,
+                          color: Colors.white,
+                          size: 64,
+                        ),
+                      ),
               ),
             ),
             Positioned(
@@ -581,6 +623,26 @@ class _AttendanceScreenState extends ConsumerState<AttendanceScreen>
           fontSize: 11,
           fontWeight: FontWeight.bold,
           color: isIn ? Colors.green.shade700 : Colors.red.shade700,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSyncBadge(bool isFailed) {
+    final color = isFailed ? Colors.red : Colors.orange;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(4),
+        border: Border.all(color: color, width: 0.8),
+      ),
+      child: Text(
+        isFailed ? 'Failed' : 'Pending',
+        style: TextStyle(
+          fontSize: 11,
+          fontWeight: FontWeight.bold,
+          color: isFailed ? Colors.red.shade700 : Colors.orange.shade800,
         ),
       ),
     );

@@ -16,6 +16,7 @@ import '../../../core/widgets/app_drawer.dart';
 import '../../../core/widgets/bms_app_bar.dart';
 import '../../../core/widgets/bms_button.dart';
 import '../../../core/utils/device_info_util.dart';
+import '../../providers/app_providers.dart';
 import '../../providers/dtr_provider.dart';
 
 class DtrScreen extends ConsumerStatefulWidget {
@@ -33,7 +34,8 @@ class _DtrScreenState extends ConsumerState<DtrScreen> {
   @override
   void initState() {
     super.initState();
-    _clockStream = Stream.periodic(const Duration(seconds: 1), (_) => DateTime.now());
+    _clockStream =
+        Stream.periodic(const Duration(seconds: 1), (_) => DateTime.now());
     _initializeCamera();
   }
 
@@ -46,11 +48,13 @@ class _DtrScreenState extends ConsumerState<DtrScreen> {
       orElse: () => cameras.first,
     );
 
-    _cameraController = CameraController(front, ResolutionPreset.medium, enableAudio: false);
+    _cameraController =
+        CameraController(front, ResolutionPreset.medium, enableAudio: false);
     try {
       await _cameraController!.initialize();
       // Lock to portrait so the preview and captured photo are never slanted
-      await _cameraController!.lockCaptureOrientation(DeviceOrientation.portraitUp);
+      await _cameraController!
+          .lockCaptureOrientation(DeviceOrientation.portraitUp);
       if (mounted) setState(() {});
     } catch (e) {
       debugPrint('DTR: Camera error: $e');
@@ -65,7 +69,8 @@ class _DtrScreenState extends ConsumerState<DtrScreen> {
   }
 
   Future<void> _onTakeSelfie() async {
-    if (_cameraController == null || !_cameraController!.value.isInitialized) return;
+    if (_cameraController == null || !_cameraController!.value.isInitialized)
+      return;
     try {
       final photo = await _cameraController!.takePicture();
       ref.read(dtrProvider.notifier).setCapturedPhoto(photo);
@@ -78,6 +83,10 @@ class _DtrScreenState extends ConsumerState<DtrScreen> {
   Widget build(BuildContext context) {
     final state = ref.watch(dtrProvider);
     final notifier = ref.read(dtrProvider.notifier);
+    final isOffline = ref.watch(isOfflineProvider).maybeWhen(
+          data: (value) => value,
+          orElse: () => false,
+        );
 
     return Scaffold(
       backgroundColor: AppColors.white,
@@ -101,7 +110,7 @@ class _DtrScreenState extends ConsumerState<DtrScreen> {
               const SizedBox(height: AppDimensions.md),
 
               // ── Checklist & Action ───────────────────────────────────────
-              _buildActionSection(state, notifier),
+              _buildActionSection(state, notifier, isOffline),
 
               const SizedBox(height: AppDimensions.xl),
             ],
@@ -155,7 +164,8 @@ class _DtrScreenState extends ConsumerState<DtrScreen> {
       // GPS accuracy circle
       circles.add(Circle(
         circleId: const CircleId('accuracy'),
-        center: LatLng(state.currentPosition!.latitude, state.currentPosition!.longitude),
+        center: LatLng(
+            state.currentPosition!.latitude, state.currentPosition!.longitude),
         radius: state.accuracy ?? 50,
         fillColor: Colors.blue.withValues(alpha: 0.15),
         strokeColor: Colors.blue,
@@ -183,7 +193,8 @@ class _DtrScreenState extends ConsumerState<DtrScreen> {
               circleId: const CircleId('geofence'),
               center: LatLng(storeLat, storeLng),
               radius: radius,
-              fillColor: (within ? Colors.green : Colors.red).withValues(alpha: 0.12),
+              fillColor:
+                  (within ? Colors.green : Colors.red).withValues(alpha: 0.12),
               strokeColor: within ? Colors.green : Colors.red,
               strokeWidth: 2,
             ));
@@ -202,7 +213,8 @@ class _DtrScreenState extends ConsumerState<DtrScreen> {
           if (state.currentPosition != null)
             GoogleMap(
               initialCameraPosition: CameraPosition(
-                target: LatLng(state.currentPosition!.latitude, state.currentPosition!.longitude),
+                target: LatLng(state.currentPosition!.latitude,
+                    state.currentPosition!.longitude),
                 zoom: 17,
               ),
               onMapCreated: (c) => _mapController = c,
@@ -223,8 +235,10 @@ class _DtrScreenState extends ConsumerState<DtrScreen> {
               right: 16,
               child: FloatingActionButton.small(
                 backgroundColor: AppColors.white,
-                onPressed: () => ref.read(dtrProvider.notifier).refreshLocation(),
-                child: const Icon(Icons.gps_fixed, color: AppColors.primaryBlack),
+                onPressed: () =>
+                    ref.read(dtrProvider.notifier).refreshLocation(),
+                child:
+                    const Icon(Icons.gps_fixed, color: AppColors.primaryBlack),
               ),
             ),
             Positioned(
@@ -259,7 +273,8 @@ class _DtrScreenState extends ConsumerState<DtrScreen> {
 
     // Permission granted but still waiting for GPS fix
     if (state.errorMessage == null &&
-        (permission == LocationPermission.always || permission == LocationPermission.whileInUse)) {
+        (permission == LocationPermission.always ||
+            permission == LocationPermission.whileInUse)) {
       return const Center(child: CircularProgressIndicator());
     }
 
@@ -326,7 +341,8 @@ class _DtrScreenState extends ConsumerState<DtrScreen> {
           ElevatedButton.icon(
             icon: const Icon(Icons.my_location),
             label: const Text('Grant Location Access'),
-            onPressed: () => ref.read(dtrProvider.notifier).requestLocationPermission(),
+            onPressed: () =>
+                ref.read(dtrProvider.notifier).requestLocationPermission(),
           ),
         ],
       ),
@@ -334,7 +350,8 @@ class _DtrScreenState extends ConsumerState<DtrScreen> {
   }
 
   Widget _buildCameraSection(DtrState state) {
-    final isInitialized = _cameraController != null && _cameraController!.value.isInitialized;
+    final isInitialized =
+        _cameraController != null && _cameraController!.value.isInitialized;
     // Android cameras report aspect ratio in landscape (e.g. 4:3 = 1.33).
     // Invert it when > 1 so the container stays portrait-shaped.
     final double previewRatio = isInitialized
@@ -359,11 +376,14 @@ class _DtrScreenState extends ConsumerState<DtrScreen> {
               child: state.capturedPhoto != null
                   ? Transform.flip(
                       flipX: true,
-                      child: Image.file(File(state.capturedPhoto!.path), fit: BoxFit.cover),
+                      child: Image.file(File(state.capturedPhoto!.path),
+                          fit: BoxFit.cover),
                     )
                   : isInitialized
                       ? CameraPreview(_cameraController!)
-                      : const Center(child: Icon(Icons.camera_alt, color: Colors.white, size: 48)),
+                      : const Center(
+                          child: Icon(Icons.camera_alt,
+                              color: Colors.white, size: 48)),
             ),
           ),
           const SizedBox(height: 8),
@@ -379,18 +399,30 @@ class _DtrScreenState extends ConsumerState<DtrScreen> {
               label: 'Retake Photo',
               variant: BmsButtonVariant.danger,
               icon: Icons.refresh,
-              onPressed: () => ref.read(dtrProvider.notifier).clearCapturedPhoto(),
+              onPressed: () =>
+                  ref.read(dtrProvider.notifier).clearCapturedPhoto(),
             ),
         ],
       ),
     );
   }
 
-  Widget _buildActionSection(DtrState state, DtrNotifier notifier) {
+  Widget _buildActionSection(
+      DtrState state, DtrNotifier notifier, bool isOffline) {
     if (state.status == null) {
-      return const Padding(
-        padding: EdgeInsets.all(AppDimensions.lg),
-        child: Center(child: CircularProgressIndicator()),
+      return Padding(
+        padding: const EdgeInsets.all(AppDimensions.lg),
+        child: Center(
+          child: state.isLoading
+              ? const CircularProgressIndicator()
+              : Text(
+                  isOffline
+                      ? 'No cached active schedule is available for offline DTR. Connect to the internet to refresh your schedule.'
+                      : 'Unable to load DTR status. Pull down to retry.',
+                  textAlign: TextAlign.center,
+                  style: AppTextStyles.bodySmall,
+                ),
+        ),
       );
     }
 
@@ -399,7 +431,8 @@ class _DtrScreenState extends ConsumerState<DtrScreen> {
 
     final bool isSegmentComplete = state.status!['isSegmentComplete'] == true;
     final bool hasSelfie = state.capturedPhoto != null;
-    final bool hasLocation = state.currentPosition != null && (state.accuracy ?? 1000) < 100;
+    final bool hasLocation =
+        state.currentPosition != null && (state.accuracy ?? 1000) < 100;
 
     // Geofence check — skipped for WFH schedules
     final scheduleType = schedule['status'] as String? ?? '';
@@ -426,7 +459,8 @@ class _DtrScreenState extends ConsumerState<DtrScreen> {
       }
     }
 
-    final bool isReady = hasSelfie && hasLocation && isWithinVicinity && !isSegmentComplete;
+    final bool isReady =
+        hasSelfie && hasLocation && isWithinVicinity && !isSegmentComplete;
 
     String btnLabel = 'Time In';
     String message = 'Please ensure all requirements are met.';
@@ -448,17 +482,18 @@ class _DtrScreenState extends ConsumerState<DtrScreen> {
         children: [
           _buildScheduleBanner(schedule),
           const SizedBox(height: 12),
-          Text(message, textAlign: TextAlign.center, style: AppTextStyles.bodySmall),
+          Text(message,
+              textAlign: TextAlign.center, style: AppTextStyles.bodySmall),
           const SizedBox(height: 16),
-
           BmsButton(
             label: btnLabel,
             isFullWidth: true,
             isLoading: state.isLoading,
             onPressed: isReady
                 ? () async {
-                    final storeName = (schedule['store'] as Map<String, dynamic>?)?['name']
-                        as String? ?? 'your assigned location';
+                    final storeName = (schedule['store']
+                            as Map<String, dynamic>?)?['name'] as String? ??
+                        'your assigned location';
                     final confirmed = await showDialog<bool>(
                       context: context,
                       builder: (ctx) => AlertDialog(
@@ -480,11 +515,19 @@ class _DtrScreenState extends ConsumerState<DtrScreen> {
                     );
                     if (confirmed != true || !mounted) return;
                     final device = await DeviceInfoUtil.getDeviceInfo();
-                    final error = await notifier.submit(device, true);
+                    final error = await notifier.submit(device, !isOffline);
                     if (!mounted) return;
                     if (error == null) {
+                      final wasQueued =
+                          ref.read(dtrProvider).lastSubmitWasQueued;
                       ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('$btnLabel recorded successfully!')),
+                        SnackBar(
+                          content: Text(wasQueued
+                              ? '$btnLabel saved offline. It will sync when you reconnect.'
+                              : '$btnLabel recorded successfully!'),
+                          backgroundColor:
+                              wasQueued ? Colors.orange.shade700 : null,
+                        ),
                       );
                     } else {
                       ScaffoldMessenger.of(context).showSnackBar(
@@ -497,9 +540,7 @@ class _DtrScreenState extends ConsumerState<DtrScreen> {
                   }
                 : null,
           ),
-
           const SizedBox(height: 16),
-
           if (!isSegmentComplete)
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -534,13 +575,15 @@ class _DtrScreenState extends ConsumerState<DtrScreen> {
                 const SizedBox(height: 8),
                 Text(
                   'No Active Schedule',
-                  style: AppTextStyles.h3.copyWith(color: Colors.orange.shade800),
+                  style:
+                      AppTextStyles.h3.copyWith(color: Colors.orange.shade800),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 6),
                 Text(
                   'No On-site, Off-site, or WFH schedule found for your current time. Attendance logging is disabled.',
-                  style: AppTextStyles.bodySmall.copyWith(color: Colors.orange.shade700),
+                  style: AppTextStyles.bodySmall
+                      .copyWith(color: Colors.orange.shade700),
                   textAlign: TextAlign.center,
                 ),
               ],
@@ -567,7 +610,8 @@ class _DtrScreenState extends ConsumerState<DtrScreen> {
       try {
         final start = DateTime.parse(startRaw).toLocal();
         final end = DateTime.parse(endRaw).toLocal();
-        timeRange = '${DateFormat('h:mm a').format(start)} – ${DateFormat('h:mm a').format(end)}';
+        timeRange =
+            '${DateFormat('h:mm a').format(start)} – ${DateFormat('h:mm a').format(end)}';
       } catch (_) {}
     }
 
@@ -604,12 +648,14 @@ class _DtrScreenState extends ConsumerState<DtrScreen> {
             children: [
               Text(
                 type.isEmpty ? 'Scheduled' : type,
-                style: TextStyle(fontWeight: FontWeight.bold, color: color, fontSize: 13),
+                style: TextStyle(
+                    fontWeight: FontWeight.bold, color: color, fontSize: 13),
               ),
               if (timeRange.isNotEmpty)
                 Text(
                   timeRange,
-                  style: TextStyle(color: color.withValues(alpha: 0.8), fontSize: 12),
+                  style: TextStyle(
+                      color: color.withValues(alpha: 0.8), fontSize: 12),
                 ),
             ],
           ),
@@ -625,7 +671,9 @@ class _DtrScreenState extends ConsumerState<DtrScreen> {
           isDone ? Icons.check_circle : Icons.circle_outlined,
           color: isDone ? Colors.green : Colors.grey,
         ),
-        Text(label, style: TextStyle(color: isDone ? Colors.black : Colors.grey, fontSize: 12)),
+        Text(label,
+            style: TextStyle(
+                color: isDone ? Colors.black : Colors.grey, fontSize: 12)),
       ],
     );
   }

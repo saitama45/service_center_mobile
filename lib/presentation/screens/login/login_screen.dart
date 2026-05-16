@@ -11,6 +11,7 @@ import '../../../core/widgets/bms_loading_overlay.dart';
 import '../../../core/errors/failures.dart';
 import '../../../domain/usecases/auth/login_usecase.dart';
 import '../../providers/auth_provider.dart';
+import '../../providers/app_providers.dart';
 import '../../../routing/route_names.dart';
 import '../../../core/utils/date_format_util.dart';
 
@@ -60,6 +61,21 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     setState(() => _isLoading = false);
 
     if (result is LoginSuccess) {
+      if (result.isOffline) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Row(
+              children: [
+                Icon(Icons.cloud_off, color: Colors.white, size: 18),
+                SizedBox(width: 8),
+                Expanded(child: Text('Signed in offline. Changes will sync when you reconnect.')),
+              ],
+            ),
+            backgroundColor: AppColors.warning,
+            duration: const Duration(seconds: 4),
+          ),
+        );
+      }
       context.go(RouteName.dashboard);
       return;
     }
@@ -75,6 +91,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         });
       } else if (failure is AccountDisabledFailure) {
         setState(() => _errorMessage = AppStrings.accountDisabled);
+      } else if (failure is OfflineSessionExpiredFailure) {
+        setState(() => _errorMessage =
+            'Your offline session has expired. Please connect to the internet and sign in once to continue working offline.');
       } else if (failure is NetworkFailure) {
         setState(() => _errorMessage = 'Could not connect to the server. Check your internet connection and try again.');
       } else {
@@ -126,24 +145,61 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   }
 
   Widget _buildHeader() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Image.asset(
-            'assets/images/app_logo_v2.png',
-            height: 100,
+    final isOfflineAsync = ref.watch(isOfflineProvider);
+    final isOffline = isOfflineAsync.maybeWhen(
+      data: (v) => v,
+      orElse: () => false,
+    );
+
+    return Stack(
+      children: [
+        Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Image.asset(
+                'assets/images/app_logo_v2.png',
+                height: 100,
+              ),
+              const SizedBox(height: 16),
+              const Text(AppStrings.appName, style: AppTextStyles.displayLarge),
+              const SizedBox(height: 4),
+              Text(
+                AppStrings.appFullName,
+                style: AppTextStyles.bodyLarge
+                    .copyWith(color: AppColors.white),
+              ),
+            ],
           ),
-          const SizedBox(height: 16),
-          const Text(AppStrings.appName, style: AppTextStyles.displayLarge),
-          const SizedBox(height: 4),
-          Text(
-            AppStrings.appFullName,
-            style: AppTextStyles.bodyLarge
-                .copyWith(color: AppColors.white),
+        ),
+        if (isOffline)
+          Positioned(
+            top: 12,
+            right: 12,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              decoration: BoxDecoration(
+                color: AppColors.warning,
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: const Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.cloud_off, color: Colors.white, size: 14),
+                  SizedBox(width: 6),
+                  Text(
+                    'Offline',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
-        ],
-      ),
+      ],
     );
   }
 

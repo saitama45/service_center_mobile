@@ -28,6 +28,12 @@ class AccountDisabledFailure extends AuthFailure {
   const AccountDisabledFailure() : super('Account is disabled.');
 }
 
+class OfflineSessionExpiredFailure extends AuthFailure {
+  const OfflineSessionExpiredFailure(this.lastOnlineLoginAt)
+      : super('Offline session has expired.');
+  final DateTime? lastOnlineLoginAt;
+}
+
 class PermissionDeniedFailure extends Failure {
   const PermissionDeniedFailure() : super('Permission denied.');
 }

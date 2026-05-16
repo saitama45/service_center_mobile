@@ -1,12 +1,9 @@
 import 'package:connectivity_plus/connectivity_plus.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
 /// Phase 1 stub — wires Supabase client and checks connectivity.
 /// Phase 2 will activate actual upload/download flows here.
 class SupabaseSyncDatasource {
   const SupabaseSyncDatasource();
-
-  SupabaseClient get _client => Supabase.instance.client;
 
   /// Returns true if device has network connectivity.
   Future<bool> isOnline() async {
@@ -31,5 +28,5 @@ class SupabaseSyncDatasource {
   }
 
   /// Check if the user's Supabase session is valid.
-  bool get isAuthenticated => _client.auth.currentSession != null;
+  bool get isAuthenticated => false;
 }

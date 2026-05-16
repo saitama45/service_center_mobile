@@ -30,6 +30,8 @@ part 'app_database.g.dart';
     SyncLog,
     AppSettings,
     OfflineDtrLogs,
+    CachedDtrSchedules,
+    CachedAttendanceLogs,
   ],
   daos: [
     RoleDao,
@@ -48,7 +50,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.executor);
 
   @override
-  int get schemaVersion => 2; // Incremented for schema change
+  int get schemaVersion => 3;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -56,7 +58,16 @@ class AppDatabase extends _$AppDatabase {
           await m.createAll();
         },
         onUpgrade: (m, from, to) async {
-          // Migration logic if needed
+          if (from < 3) {
+            await m.addColumn(offlineDtrLogs, offlineDtrLogs.clientRequestId);
+            await m.addColumn(offlineDtrLogs, offlineDtrLogs.scheduleId);
+            await m.addColumn(offlineDtrLogs, offlineDtrLogs.actionType);
+            await m.addColumn(offlineDtrLogs, offlineDtrLogs.serverMessage);
+            await m.addColumn(offlineDtrLogs, offlineDtrLogs.createdAt);
+            await m.addColumn(offlineDtrLogs, offlineDtrLogs.updatedAt);
+            await m.createTable(cachedDtrSchedules);
+            await m.createTable(cachedAttendanceLogs);
+          }
         },
       );
 }

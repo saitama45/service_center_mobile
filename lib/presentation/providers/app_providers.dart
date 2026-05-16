@@ -1,3 +1,4 @@
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../../database/app_database.dart';
@@ -25,13 +26,6 @@ final apiClientProvider = Provider<ApiClient>((ref) {
   return ApiClient(ref.read(secureStorageProvider));
 });
 
-final syncManagerProvider = Provider<SyncManager>((ref) {
-  return SyncManager(
-    ref.read(appDatabaseProvider),
-    ref.read(apiClientProvider),
-  );
-});
-
 final dtrRepositoryProvider = Provider<DtrRepository>((ref) {
   return DtrRepository(
     ref.read(appDatabaseProvider),
@@ -39,9 +33,41 @@ final dtrRepositoryProvider = Provider<DtrRepository>((ref) {
   );
 });
 
+final syncManagerProvider = Provider<SyncManager>((ref) {
+  return SyncManager(
+    ref.read(appDatabaseProvider),
+    ref.read(apiClientProvider),
+    ref.read(dtrRepositoryProvider),
+  );
+});
+
 final seedRunnerProvider = Provider<SeedRunner>((ref) {
   return SeedRunner(ref.read(appDatabaseProvider));
 });
+
+/// Live connectivity stream. Emits `true` when offline (no network),
+/// `false` when at least one transport is available.
+final isOfflineProvider = StreamProvider<bool>((ref) async* {
+  final conn = Connectivity();
+  final initial = await conn.checkConnectivity();
+  var wasOffline = _isOffline(initial);
+  yield wasOffline;
+
+  await for (final result in conn.onConnectivityChanged) {
+    final isOffline = _isOffline(result);
+    if (wasOffline && !isOffline) {
+      ref.read(dtrRepositoryProvider).refreshOfflineBootstrap();
+      ref.read(syncManagerProvider).sync();
+    }
+    wasOffline = isOffline;
+    yield isOffline;
+  }
+});
+
+bool _isOffline(List<ConnectivityResult> results) {
+  if (results.isEmpty) return true;
+  return results.every((r) => r == ConnectivityResult.none);
+}
 
 /// All active modules ordered by displayOrder.
 /// Used by AppDrawer (sidebar) and PermissionMatrixScreen to stay in sync
