@@ -1,0 +1,74 @@
+# Miscellaneous
+*.class
+*.log
+*.pyc
+*.swp
+.DS_Store
+.atom/
+.buildlog/
+.history
+.svn/
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+.metadata
+
+# Project-specific
+.dart_tool/
+.packages
+.flutter-plugins
+.flutter-plugins-dependencies
+.pub-cache/
+.pub/
+/build/
+
+# Android-specific
+android/**/generated/
+android/app/src/main/res/values/generated.xml
+android/local.properties
+android/key.properties
+android/app/google-services.json
+.gradle/
+build/
+captures/
+*.keystore
+*.jks
+
+# iOS-specific
+ios/Flutter/Generated.xcconfig
+ios/Flutter/flutter_export_environment.sh
+ios/Flutter/App.framework
+ios/Flutter/App.podspec
+ios/Flutter/App.framework.dSYM
+ios/ServiceDefinitions.json
+Runner/GeneratedPluginRegistrant.h
+Runner/GeneratedPluginRegistrant.m
+DerivedData/
+*.moved-aside
+*.pbxuser
+*.mode1v3
+*.mode2v3
+*.perspectivev3
+!default.mode1v3
+!default.mode2v3
+!default.perspectivev3
+xcuserdata/
+Pods/
+Podfile.lock
+.pvm/
+
+# Web-specific
+doc/api/
+/build/
+
+# macOS-specific
+macos/Flutter/ephemeral/
+DerivedData/
+
+# Windows-specific
+windows/flutter/ephemeral/
+
+# Linux-specific
+linux/flutter/ephemeral/
