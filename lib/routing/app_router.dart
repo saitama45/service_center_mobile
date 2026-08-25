@@ -3,24 +3,29 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../core/constants/module_codes.dart';
 import '../core/constants/permission_codes.dart';
+import '../presentation/providers/auth_flow_provider.dart';
 import '../presentation/providers/auth_provider.dart';
 import '../presentation/providers/permission_provider.dart';
 import '../presentation/screens/audit_log/audit_log_screen.dart';
-import '../presentation/screens/dashboard/dashboard_screen.dart';
+import '../presentation/screens/auth/authenticator_setup_screen.dart';
+import '../presentation/screens/auth/biometric_screen.dart';
+import '../presentation/screens/auth/otp_screen.dart';
+import '../presentation/screens/campaigns/campaigns_screen.dart';
+import '../presentation/screens/home/home_screen.dart';
+import '../presentation/screens/ledger/ledger_screen.dart';
 import '../presentation/screens/login/login_screen.dart';
+import '../presentation/screens/login/register_screen.dart';
 import '../presentation/screens/main_shell.dart';
 import '../presentation/screens/profile/change_password_screen.dart';
 import '../presentation/screens/profile/profile_screen.dart';
 import '../presentation/screens/role_management/permission_matrix_screen.dart';
 import '../presentation/screens/role_management/role_form_screen.dart';
 import '../presentation/screens/role_management/role_list_screen.dart';
+import '../presentation/screens/scan/scan_screen.dart';
 import '../presentation/screens/splash/splash_screen.dart';
 import '../presentation/screens/user_management/user_form_screen.dart';
 import '../presentation/screens/user_management/user_list_screen.dart';
-import '../presentation/screens/dtr/dtr_screen.dart';
-import '../presentation/screens/attendance/attendance_screen.dart';
 import 'route_names.dart';
-
 
 // ── Route → module/permission guard mapping ──────────────────────────────────
 
@@ -32,6 +37,9 @@ const _routeGuards = <String, ({String module, String permission})>{
   '/dashboard/audit-log': (module: ModuleCodes.auditLog, permission: PermissionCodes.viewAuditLog),
 };
 
+/// Screens reachable while the post-login steps are still outstanding.
+const _verificationRoutes = {RouteName.otp, RouteName.biometric};
+
 final appRouterProvider = Provider<GoRouter>((ref) {
   return GoRouter(
     initialLocation: RouteName.splash,
@@ -40,19 +48,30 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       final authState = ref.read(authProvider);
       final isAuthenticated = authState is AuthAuthenticated;
       final location = state.matchedLocation;
+      final step = ref.read(postLoginStepProvider);
 
-      // Allow splash and login without auth
-      if (location == RouteName.splash || location == RouteName.login) {
-        if (isAuthenticated && location == RouteName.login) {
+      // Splash, login and sign-up need no session.
+      if (location == RouteName.splash ||
+          location == RouteName.login ||
+          location == RouteName.register) {
+        if (isAuthenticated &&
+            (location == RouteName.login || location == RouteName.register)) {
           return RouteName.dashboard;
         }
         return null;
       }
 
-      // All other routes require authentication
-      if (!isAuthenticated) {
-        return RouteName.login;
+      if (!isAuthenticated) return RouteName.login;
+
+      // A password-only session may not wander past the verification steps.
+      if (step != PostLoginStep.done) {
+        final target =
+            step == PostLoginStep.otp ? RouteName.otp : RouteName.biometric;
+        return location == target ? null : target;
       }
+
+      // Verification finished — those screens are no longer revisitable.
+      if (_verificationRoutes.contains(location)) return RouteName.dashboard;
 
       // Module-level permission guard (static routes)
       final guard = _routeGuards[location];
@@ -64,17 +83,21 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       }
 
       // Guard edit-user route: /dashboard/users/<id>  (not /users/new)
-      if (RegExp(r'^/dashboard/users/[a-zA-Z0-9-]+$').hasMatch(location) && !location.endsWith('/new')) {
+      if (RegExp(r'^/dashboard/users/[a-zA-Z0-9-]+$').hasMatch(location) &&
+          !location.endsWith('/new')) {
         final cache = ref.read(userPermissionsProvider).valueOrNull;
-        if (cache != null && !cache.check(ModuleCodes.userManagement, PermissionCodes.edit)) {
+        if (cache != null &&
+            !cache.check(ModuleCodes.userManagement, PermissionCodes.edit)) {
           return RouteName.dashboard;
         }
       }
 
       // Guard edit-role route: /dashboard/roles/<id>  (not /roles/new)
-      if (RegExp(r'^/dashboard/roles/[a-zA-Z0-9-]+$').hasMatch(location) && !location.endsWith('/new')) {
+      if (RegExp(r'^/dashboard/roles/[a-zA-Z0-9-]+$').hasMatch(location) &&
+          !location.endsWith('/new')) {
         final cache = ref.read(userPermissionsProvider).valueOrNull;
-        if (cache != null && !cache.check(ModuleCodes.roleManagement, PermissionCodes.edit)) {
+        if (cache != null &&
+            !cache.check(ModuleCodes.roleManagement, PermissionCodes.edit)) {
           return RouteName.dashboard;
         }
       }
@@ -90,19 +113,41 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: RouteName.login,
         builder: (ctx, state) => const LoginScreen(),
       ),
+      GoRoute(
+        path: RouteName.register,
+        builder: (ctx, state) => const RegisterScreen(),
+      ),
+      GoRoute(
+        path: RouteName.otp,
+        builder: (ctx, state) => const OtpScreen(),
+      ),
+      GoRoute(
+        path: RouteName.biometric,
+        builder: (ctx, state) => const BiometricScreen(),
+      ),
+
+      // ── Scan flow — above the shell so the nav bar stays hidden ──────────
+      // Note: earning a stamp is now server-authoritative (ghelpdesk staff
+      // scan the member's QR on the Stamps module's "Scan Customer" flow),
+      // not an on-device action, so there's no local "claim succeeded"
+      // screen to route to anymore — this member-facing screen just displays
+      // the code (see scan_screen.dart's doc comment).
+      GoRoute(
+        path: RouteName.scan,
+        builder: (ctx, state) => const ScanScreen(),
+      ),
+
       StatefulShellRoute.indexedStack(
-        builder: (context, state, navigationShell) {
-          return MainShellScreen(navigationShell: navigationShell);
-        },
+        builder: (context, state, navigationShell) =>
+            MainShellScreen(navigationShell: navigationShell),
         branches: [
-          // ── Branch 0: Dashboard (Home) ─────────────────────────────────
+          // ── Branch 0: Home (+ admin sub-routes) ─────────────────────────
           StatefulShellBranch(
             routes: [
               GoRoute(
                 path: RouteName.dashboard,
-                builder: (ctx, state) => const DashboardScreen(),
+                builder: (ctx, state) => const HomeScreen(),
                 routes: [
-                  // ── User management ────────────────────────────────────────────
                   GoRoute(
                     path: 'users',
                     builder: (ctx, state) => const UserListScreen(),
@@ -113,14 +158,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                       ),
                       GoRoute(
                         path: ':id',
-                        builder: (ctx, state) {
-                          final id = state.pathParameters['id']!;
-                          return UserFormScreen(userId: id);
-                        },
+                        builder: (ctx, state) => UserFormScreen(
+                          userId: state.pathParameters['id']!,
+                        ),
                       ),
                     ],
                   ),
-                  // ── Role management ────────────────────────────────────────────
                   GoRoute(
                     path: 'roles',
                     builder: (ctx, state) => const RoleListScreen(),
@@ -131,50 +174,63 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                       ),
                       GoRoute(
                         path: ':id',
-                        builder: (ctx, state) {
-                          final id = state.pathParameters['id']!;
-                          return RoleFormScreen(roleId: id);
-                        },
+                        builder: (ctx, state) => RoleFormScreen(
+                          roleId: state.pathParameters['id']!,
+                        ),
                         routes: [
                           GoRoute(
                             path: 'permissions',
-                            builder: (ctx, state) {
-                              final id = state.pathParameters['id']!;
-                              return PermissionMatrixScreen(roleId: id);
-                            },
+                            builder: (ctx, state) => PermissionMatrixScreen(
+                              roleId: state.pathParameters['id']!,
+                            ),
                           ),
                         ],
                       ),
                     ],
                   ),
-                  // ── Audit log ──────────────────────────────────────────────────
                   GoRoute(
                     path: 'audit-log',
                     builder: (ctx, state) => const AuditLogScreen(),
-                  ),
-                  // ── DTR & Attendance ───────────────────────────────────────────
-                  GoRoute(
-                    path: 'dtr',
-                    builder: (ctx, state) => const DtrScreen(),
-                  ),
-                  GoRoute(
-                    path: 'attendance',
-                    builder: (ctx, state) => const AttendanceScreen(),
                   ),
                 ],
               ),
             ],
           ),
-          // ── Branch 1: Profile ──────────────────────────────────────────
+
+          // ── Branch 1: Rewards ───────────────────────────────────────────
           StatefulShellBranch(
             routes: [
               GoRoute(
-                path: '/dashboard/profile',
+                path: RouteName.campaigns,
+                builder: (ctx, state) => const CampaignsScreen(),
+              ),
+            ],
+          ),
+
+          // ── Branch 2: History ───────────────────────────────────────────
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: RouteName.ledger,
+                builder: (ctx, state) => const LedgerScreen(),
+              ),
+            ],
+          ),
+
+          // ── Branch 3: Profile ───────────────────────────────────────────
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: RouteName.profile,
                 builder: (ctx, state) => const ProfileScreen(),
                 routes: [
                   GoRoute(
                     path: 'change-password',
                     builder: (ctx, state) => const ChangePasswordScreen(),
+                  ),
+                  GoRoute(
+                    path: 'authenticator',
+                    builder: (ctx, state) => const AuthenticatorSetupScreen(),
                   ),
                 ],
               ),
@@ -189,9 +245,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
   );
 });
 
-/// Notifies GoRouter when auth state changes so it re-evaluates redirects.
+/// Notifies GoRouter when auth or verification state changes.
 class _AuthStateListenable extends ChangeNotifier {
   _AuthStateListenable(Ref ref) {
     ref.listen<AuthState>(authProvider, (_, __) => notifyListeners());
+    ref.listen<PostLoginStep>(
+        postLoginStepProvider, (_, __) => notifyListeners());
   }
 }

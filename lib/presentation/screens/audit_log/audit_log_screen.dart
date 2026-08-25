@@ -176,7 +176,7 @@ class AuditLogScreen extends ConsumerWidget {
     final filter = ref.watch(_auditFilterProvider);
 
     return Scaffold(
-      backgroundColor: AppColors.white,
+      backgroundColor: AppColors.cream,
       drawer: const AppDrawer(),
       appBar: BmsAppBar(
         title: AppStrings.auditLog,
@@ -571,14 +571,20 @@ class _AuditLogTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
-      elevation: 1,
       child: ExpansionTile(
-        leading: CircleAvatar(
-          radius: 18,
-          backgroundColor: AppColors.primaryBlue.withValues(alpha: 0.1),
+        // Squircle icon chip — consistent with lists elsewhere in the app.
+        leading: Container(
+          width: 38,
+          height: 38,
+          decoration: BoxDecoration(
+            color: AppColors.latteLight,
+            borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
+          ),
           child: const Icon(Icons.history,
-              color: AppColors.primaryBlue, size: 18),
+              color: AppColors.caramel, size: 18),
         ),
+        shape: const Border(),
+        collapsedShape: const Border(),
         title: Text(
           entry.actionDetail ?? 'Action #${entry.id}',
           style: AppTextStyles.h3,

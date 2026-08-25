@@ -5194,12 +5194,11 @@ class AppSettingsCompanion extends UpdateCompanion<AppSetting> {
   }
 }
 
-class $OfflineDtrLogsTable extends OfflineDtrLogs
-    with TableInfo<$OfflineDtrLogsTable, OfflineDtrLog> {
+class $ProductsTable extends Products with TableInfo<$ProductsTable, Product> {
   @override
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
-  $OfflineDtrLogsTable(this.attachedDatabase, [this._alias]);
+  $ProductsTable(this.attachedDatabase, [this._alias]);
   static const VerificationMeta _idMeta = const VerificationMeta('id');
   @override
   late final GeneratedColumn<String> id = GeneratedColumn<String>(
@@ -5207,60 +5206,563 @@ class $OfflineDtrLogsTable extends OfflineDtrLogs
       type: DriftSqlType.string,
       requiredDuringInsert: false,
       clientDefault: () => const Uuid().v4());
-  static const VerificationMeta _clientRequestIdMeta =
-      const VerificationMeta('clientRequestId');
+  static const VerificationMeta _codeMeta = const VerificationMeta('code');
   @override
-  late final GeneratedColumn<String> clientRequestId = GeneratedColumn<String>(
-      'client_request_id', aliasedName, true,
+  late final GeneratedColumn<String> code = GeneratedColumn<String>(
+      'code', aliasedName, false,
+      additionalChecks: GeneratedColumn.checkTextLength(maxTextLength: 40),
+      type: DriftSqlType.string,
+      requiredDuringInsert: true);
+  static const VerificationMeta _nameMeta = const VerificationMeta('name');
+  @override
+  late final GeneratedColumn<String> name = GeneratedColumn<String>(
+      'name', aliasedName, false,
+      additionalChecks: GeneratedColumn.checkTextLength(maxTextLength: 120),
+      type: DriftSqlType.string,
+      requiredDuringInsert: true);
+  static const VerificationMeta _categoryMeta =
+      const VerificationMeta('category');
+  @override
+  late final GeneratedColumn<String> category = GeneratedColumn<String>(
+      'category', aliasedName, true,
+      additionalChecks: GeneratedColumn.checkTextLength(maxTextLength: 60),
+      type: DriftSqlType.string,
+      requiredDuringInsert: false);
+  static const VerificationMeta _emojiMeta = const VerificationMeta('emoji');
+  @override
+  late final GeneratedColumn<String> emoji = GeneratedColumn<String>(
+      'emoji', aliasedName, true,
+      additionalChecks: GeneratedColumn.checkTextLength(maxTextLength: 8),
+      type: DriftSqlType.string,
+      requiredDuringInsert: false);
+  static const VerificationMeta _priceMeta = const VerificationMeta('price');
+  @override
+  late final GeneratedColumn<double> price = GeneratedColumn<double>(
+      'price', aliasedName, false,
+      type: DriftSqlType.double,
+      requiredDuringInsert: false,
+      defaultValue: const Constant(0));
+  static const VerificationMeta _isActiveMeta =
+      const VerificationMeta('isActive');
+  @override
+  late final GeneratedColumn<bool> isActive = GeneratedColumn<bool>(
+      'is_active', aliasedName, false,
+      type: DriftSqlType.bool,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('CHECK ("is_active" IN (0, 1))'),
+      defaultValue: const Constant(true));
+  static const VerificationMeta _createdAtMeta =
+      const VerificationMeta('createdAt');
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+      'created_at', aliasedName, false,
+      type: DriftSqlType.dateTime,
+      requiredDuringInsert: false,
+      defaultValue: currentDateAndTime);
+  static const VerificationMeta _updatedAtMeta =
+      const VerificationMeta('updatedAt');
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+      'updated_at', aliasedName, false,
+      type: DriftSqlType.dateTime,
+      requiredDuringInsert: false,
+      defaultValue: currentDateAndTime);
+  @override
+  List<GeneratedColumn> get $columns =>
+      [id, code, name, category, emoji, price, isActive, createdAt, updatedAt];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'products';
+  @override
+  VerificationContext validateIntegrity(Insertable<Product> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('code')) {
+      context.handle(
+          _codeMeta, code.isAcceptableOrUnknown(data['code']!, _codeMeta));
+    } else if (isInserting) {
+      context.missing(_codeMeta);
+    }
+    if (data.containsKey('name')) {
+      context.handle(
+          _nameMeta, name.isAcceptableOrUnknown(data['name']!, _nameMeta));
+    } else if (isInserting) {
+      context.missing(_nameMeta);
+    }
+    if (data.containsKey('category')) {
+      context.handle(_categoryMeta,
+          category.isAcceptableOrUnknown(data['category']!, _categoryMeta));
+    }
+    if (data.containsKey('emoji')) {
+      context.handle(
+          _emojiMeta, emoji.isAcceptableOrUnknown(data['emoji']!, _emojiMeta));
+    }
+    if (data.containsKey('price')) {
+      context.handle(
+          _priceMeta, price.isAcceptableOrUnknown(data['price']!, _priceMeta));
+    }
+    if (data.containsKey('is_active')) {
+      context.handle(_isActiveMeta,
+          isActive.isAcceptableOrUnknown(data['is_active']!, _isActiveMeta));
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(_createdAtMeta,
+          createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta));
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(_updatedAtMeta,
+          updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta));
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  List<Set<GeneratedColumn>> get uniqueKeys => [
+        {code},
+      ];
+  @override
+  Product map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return Product(
+      id: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}id'])!,
+      code: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}code'])!,
+      name: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}name'])!,
+      category: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}category']),
+      emoji: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}emoji']),
+      price: attachedDatabase.typeMapping
+          .read(DriftSqlType.double, data['${effectivePrefix}price'])!,
+      isActive: attachedDatabase.typeMapping
+          .read(DriftSqlType.bool, data['${effectivePrefix}is_active'])!,
+      createdAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}created_at'])!,
+      updatedAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}updated_at'])!,
+    );
+  }
+
+  @override
+  $ProductsTable createAlias(String alias) {
+    return $ProductsTable(attachedDatabase, alias);
+  }
+}
+
+class Product extends DataClass implements Insertable<Product> {
+  final String id;
+
+  /// Stable external identifier (e.g. PROD-001) used by campaign rules.
+  final String code;
+  final String name;
+  final String? category;
+  final String? emoji;
+  final double price;
+  final bool isActive;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  const Product(
+      {required this.id,
+      required this.code,
+      required this.name,
+      this.category,
+      this.emoji,
+      required this.price,
+      required this.isActive,
+      required this.createdAt,
+      required this.updatedAt});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['code'] = Variable<String>(code);
+    map['name'] = Variable<String>(name);
+    if (!nullToAbsent || category != null) {
+      map['category'] = Variable<String>(category);
+    }
+    if (!nullToAbsent || emoji != null) {
+      map['emoji'] = Variable<String>(emoji);
+    }
+    map['price'] = Variable<double>(price);
+    map['is_active'] = Variable<bool>(isActive);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    return map;
+  }
+
+  ProductsCompanion toCompanion(bool nullToAbsent) {
+    return ProductsCompanion(
+      id: Value(id),
+      code: Value(code),
+      name: Value(name),
+      category: category == null && nullToAbsent
+          ? const Value.absent()
+          : Value(category),
+      emoji:
+          emoji == null && nullToAbsent ? const Value.absent() : Value(emoji),
+      price: Value(price),
+      isActive: Value(isActive),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+    );
+  }
+
+  factory Product.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return Product(
+      id: serializer.fromJson<String>(json['id']),
+      code: serializer.fromJson<String>(json['code']),
+      name: serializer.fromJson<String>(json['name']),
+      category: serializer.fromJson<String?>(json['category']),
+      emoji: serializer.fromJson<String?>(json['emoji']),
+      price: serializer.fromJson<double>(json['price']),
+      isActive: serializer.fromJson<bool>(json['isActive']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'code': serializer.toJson<String>(code),
+      'name': serializer.toJson<String>(name),
+      'category': serializer.toJson<String?>(category),
+      'emoji': serializer.toJson<String?>(emoji),
+      'price': serializer.toJson<double>(price),
+      'isActive': serializer.toJson<bool>(isActive),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+    };
+  }
+
+  Product copyWith(
+          {String? id,
+          String? code,
+          String? name,
+          Value<String?> category = const Value.absent(),
+          Value<String?> emoji = const Value.absent(),
+          double? price,
+          bool? isActive,
+          DateTime? createdAt,
+          DateTime? updatedAt}) =>
+      Product(
+        id: id ?? this.id,
+        code: code ?? this.code,
+        name: name ?? this.name,
+        category: category.present ? category.value : this.category,
+        emoji: emoji.present ? emoji.value : this.emoji,
+        price: price ?? this.price,
+        isActive: isActive ?? this.isActive,
+        createdAt: createdAt ?? this.createdAt,
+        updatedAt: updatedAt ?? this.updatedAt,
+      );
+  Product copyWithCompanion(ProductsCompanion data) {
+    return Product(
+      id: data.id.present ? data.id.value : this.id,
+      code: data.code.present ? data.code.value : this.code,
+      name: data.name.present ? data.name.value : this.name,
+      category: data.category.present ? data.category.value : this.category,
+      emoji: data.emoji.present ? data.emoji.value : this.emoji,
+      price: data.price.present ? data.price.value : this.price,
+      isActive: data.isActive.present ? data.isActive.value : this.isActive,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('Product(')
+          ..write('id: $id, ')
+          ..write('code: $code, ')
+          ..write('name: $name, ')
+          ..write('category: $category, ')
+          ..write('emoji: $emoji, ')
+          ..write('price: $price, ')
+          ..write('isActive: $isActive, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+      id, code, name, category, emoji, price, isActive, createdAt, updatedAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is Product &&
+          other.id == this.id &&
+          other.code == this.code &&
+          other.name == this.name &&
+          other.category == this.category &&
+          other.emoji == this.emoji &&
+          other.price == this.price &&
+          other.isActive == this.isActive &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt);
+}
+
+class ProductsCompanion extends UpdateCompanion<Product> {
+  final Value<String> id;
+  final Value<String> code;
+  final Value<String> name;
+  final Value<String?> category;
+  final Value<String?> emoji;
+  final Value<double> price;
+  final Value<bool> isActive;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  final Value<int> rowid;
+  const ProductsCompanion({
+    this.id = const Value.absent(),
+    this.code = const Value.absent(),
+    this.name = const Value.absent(),
+    this.category = const Value.absent(),
+    this.emoji = const Value.absent(),
+    this.price = const Value.absent(),
+    this.isActive = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  ProductsCompanion.insert({
+    this.id = const Value.absent(),
+    required String code,
+    required String name,
+    this.category = const Value.absent(),
+    this.emoji = const Value.absent(),
+    this.price = const Value.absent(),
+    this.isActive = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  })  : code = Value(code),
+        name = Value(name);
+  static Insertable<Product> custom({
+    Expression<String>? id,
+    Expression<String>? code,
+    Expression<String>? name,
+    Expression<String>? category,
+    Expression<String>? emoji,
+    Expression<double>? price,
+    Expression<bool>? isActive,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (code != null) 'code': code,
+      if (name != null) 'name': name,
+      if (category != null) 'category': category,
+      if (emoji != null) 'emoji': emoji,
+      if (price != null) 'price': price,
+      if (isActive != null) 'is_active': isActive,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  ProductsCompanion copyWith(
+      {Value<String>? id,
+      Value<String>? code,
+      Value<String>? name,
+      Value<String?>? category,
+      Value<String?>? emoji,
+      Value<double>? price,
+      Value<bool>? isActive,
+      Value<DateTime>? createdAt,
+      Value<DateTime>? updatedAt,
+      Value<int>? rowid}) {
+    return ProductsCompanion(
+      id: id ?? this.id,
+      code: code ?? this.code,
+      name: name ?? this.name,
+      category: category ?? this.category,
+      emoji: emoji ?? this.emoji,
+      price: price ?? this.price,
+      isActive: isActive ?? this.isActive,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (code.present) {
+      map['code'] = Variable<String>(code.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (category.present) {
+      map['category'] = Variable<String>(category.value);
+    }
+    if (emoji.present) {
+      map['emoji'] = Variable<String>(emoji.value);
+    }
+    if (price.present) {
+      map['price'] = Variable<double>(price.value);
+    }
+    if (isActive.present) {
+      map['is_active'] = Variable<bool>(isActive.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ProductsCompanion(')
+          ..write('id: $id, ')
+          ..write('code: $code, ')
+          ..write('name: $name, ')
+          ..write('category: $category, ')
+          ..write('emoji: $emoji, ')
+          ..write('price: $price, ')
+          ..write('isActive: $isActive, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $CampaignsTable extends Campaigns
+    with TableInfo<$CampaignsTable, Campaign> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $CampaignsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+      'id', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      clientDefault: () => const Uuid().v4());
+  static const VerificationMeta _codeMeta = const VerificationMeta('code');
+  @override
+  late final GeneratedColumn<String> code = GeneratedColumn<String>(
+      'code', aliasedName, false,
+      additionalChecks: GeneratedColumn.checkTextLength(maxTextLength: 40),
+      type: DriftSqlType.string,
+      requiredDuringInsert: true);
+  static const VerificationMeta _nameMeta = const VerificationMeta('name');
+  @override
+  late final GeneratedColumn<String> name = GeneratedColumn<String>(
+      'name', aliasedName, false,
+      additionalChecks: GeneratedColumn.checkTextLength(maxTextLength: 120),
+      type: DriftSqlType.string,
+      requiredDuringInsert: true);
+  static const VerificationMeta _descriptionMeta =
+      const VerificationMeta('description');
+  @override
+  late final GeneratedColumn<String> description = GeneratedColumn<String>(
+      'description', aliasedName, true,
       type: DriftSqlType.string, requiredDuringInsert: false);
-  static const VerificationMeta _scheduleIdMeta =
-      const VerificationMeta('scheduleId');
+  static const VerificationMeta _emojiMeta = const VerificationMeta('emoji');
   @override
-  late final GeneratedColumn<String> scheduleId = GeneratedColumn<String>(
-      'schedule_id', aliasedName, true,
-      type: DriftSqlType.string, requiredDuringInsert: false);
-  static const VerificationMeta _actionTypeMeta =
-      const VerificationMeta('actionType');
+  late final GeneratedColumn<String> emoji = GeneratedColumn<String>(
+      'emoji', aliasedName, true,
+      additionalChecks: GeneratedColumn.checkTextLength(maxTextLength: 8),
+      type: DriftSqlType.string,
+      requiredDuringInsert: false);
+  static const VerificationMeta _tagMeta = const VerificationMeta('tag');
   @override
-  late final GeneratedColumn<String> actionType = GeneratedColumn<String>(
-      'action_type', aliasedName, true,
-      type: DriftSqlType.string, requiredDuringInsert: false);
-  static const VerificationMeta _latitudeMeta =
-      const VerificationMeta('latitude');
+  late final GeneratedColumn<String> tag = GeneratedColumn<String>(
+      'tag', aliasedName, true,
+      additionalChecks: GeneratedColumn.checkTextLength(maxTextLength: 40),
+      type: DriftSqlType.string,
+      requiredDuringInsert: false);
+  static const VerificationMeta _requiredStampsMeta =
+      const VerificationMeta('requiredStamps');
   @override
-  late final GeneratedColumn<double> latitude = GeneratedColumn<double>(
-      'latitude', aliasedName, false,
-      type: DriftSqlType.double, requiredDuringInsert: true);
-  static const VerificationMeta _longitudeMeta =
-      const VerificationMeta('longitude');
+  late final GeneratedColumn<int> requiredStamps = GeneratedColumn<int>(
+      'required_stamps', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultValue: const Constant(10));
+  static const VerificationMeta _eligibleProductCodesMeta =
+      const VerificationMeta('eligibleProductCodes');
   @override
-  late final GeneratedColumn<double> longitude = GeneratedColumn<double>(
-      'longitude', aliasedName, false,
-      type: DriftSqlType.double, requiredDuringInsert: true);
-  static const VerificationMeta _accuracyMeta =
-      const VerificationMeta('accuracy');
+  late final GeneratedColumn<String> eligibleProductCodes =
+      GeneratedColumn<String>('eligible_product_codes', aliasedName, false,
+          type: DriftSqlType.string,
+          requiredDuringInsert: false,
+          defaultValue: const Constant(''));
+  static const VerificationMeta _rewardDescriptionMeta =
+      const VerificationMeta('rewardDescription');
   @override
-  late final GeneratedColumn<double> accuracy = GeneratedColumn<double>(
-      'accuracy', aliasedName, false,
-      type: DriftSqlType.double, requiredDuringInsert: true);
-  static const VerificationMeta _capturedAtMeta =
-      const VerificationMeta('capturedAt');
+  late final GeneratedColumn<String> rewardDescription =
+      GeneratedColumn<String>('reward_description', aliasedName, true,
+          type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _termsAndConditionsMeta =
+      const VerificationMeta('termsAndConditions');
   @override
-  late final GeneratedColumn<DateTime> capturedAt = GeneratedColumn<DateTime>(
-      'captured_at', aliasedName, false,
-      type: DriftSqlType.dateTime, requiredDuringInsert: true);
-  static const VerificationMeta _photoPathMeta =
-      const VerificationMeta('photoPath');
+  late final GeneratedColumn<String> termsAndConditions =
+      GeneratedColumn<String>('terms_and_conditions', aliasedName, true,
+          type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _startsAtMeta =
+      const VerificationMeta('startsAt');
   @override
-  late final GeneratedColumn<String> photoPath = GeneratedColumn<String>(
-      'photo_path', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _deviceInfoMeta =
-      const VerificationMeta('deviceInfo');
+  late final GeneratedColumn<DateTime> startsAt = GeneratedColumn<DateTime>(
+      'starts_at', aliasedName, true,
+      type: DriftSqlType.dateTime, requiredDuringInsert: false);
+  static const VerificationMeta _endsAtMeta = const VerificationMeta('endsAt');
   @override
-  late final GeneratedColumn<String> deviceInfo = GeneratedColumn<String>(
-      'device_info', aliasedName, true,
-      type: DriftSqlType.string, requiredDuringInsert: false);
+  late final GeneratedColumn<DateTime> endsAt = GeneratedColumn<DateTime>(
+      'ends_at', aliasedName, true,
+      type: DriftSqlType.dateTime, requiredDuringInsert: false);
+  static const VerificationMeta _isActiveMeta =
+      const VerificationMeta('isActive');
+  @override
+  late final GeneratedColumn<bool> isActive = GeneratedColumn<bool>(
+      'is_active', aliasedName, false,
+      type: DriftSqlType.bool,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('CHECK ("is_active" IN (0, 1))'),
+      defaultValue: const Constant(true));
+  static const VerificationMeta _displayOrderMeta =
+      const VerificationMeta('displayOrder');
+  @override
+  late final GeneratedColumn<int> displayOrder = GeneratedColumn<int>(
+      'display_order', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultValue: const Constant(0));
   static const VerificationMeta _syncStatusMeta =
       const VerificationMeta('syncStatus');
   @override
@@ -5268,13 +5770,7 @@ class $OfflineDtrLogsTable extends OfflineDtrLogs
       'sync_status', aliasedName, false,
       type: DriftSqlType.int,
       requiredDuringInsert: false,
-      defaultValue: const Constant(0));
-  static const VerificationMeta _serverMessageMeta =
-      const VerificationMeta('serverMessage');
-  @override
-  late final GeneratedColumn<String> serverMessage = GeneratedColumn<String>(
-      'server_message', aliasedName, true,
-      type: DriftSqlType.string, requiredDuringInsert: false);
+      defaultValue: const Constant(loyaltySyncPending));
   static const VerificationMeta _createdAtMeta =
       const VerificationMeta('createdAt');
   @override
@@ -5294,17 +5790,20 @@ class $OfflineDtrLogsTable extends OfflineDtrLogs
   @override
   List<GeneratedColumn> get $columns => [
         id,
-        clientRequestId,
-        scheduleId,
-        actionType,
-        latitude,
-        longitude,
-        accuracy,
-        capturedAt,
-        photoPath,
-        deviceInfo,
+        code,
+        name,
+        description,
+        emoji,
+        tag,
+        requiredStamps,
+        eligibleProductCodes,
+        rewardDescription,
+        termsAndConditions,
+        startsAt,
+        endsAt,
+        isActive,
+        displayOrder,
         syncStatus,
-        serverMessage,
         createdAt,
         updatedAt
       ];
@@ -5312,82 +5811,88 @@ class $OfflineDtrLogsTable extends OfflineDtrLogs
   String get aliasedName => _alias ?? actualTableName;
   @override
   String get actualTableName => $name;
-  static const String $name = 'offline_dtr_logs';
+  static const String $name = 'campaigns';
   @override
-  VerificationContext validateIntegrity(Insertable<OfflineDtrLog> instance,
+  VerificationContext validateIntegrity(Insertable<Campaign> instance,
       {bool isInserting = false}) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
     if (data.containsKey('id')) {
       context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
     }
-    if (data.containsKey('client_request_id')) {
+    if (data.containsKey('code')) {
       context.handle(
-          _clientRequestIdMeta,
-          clientRequestId.isAcceptableOrUnknown(
-              data['client_request_id']!, _clientRequestIdMeta));
+          _codeMeta, code.isAcceptableOrUnknown(data['code']!, _codeMeta));
+    } else if (isInserting) {
+      context.missing(_codeMeta);
     }
-    if (data.containsKey('schedule_id')) {
+    if (data.containsKey('name')) {
       context.handle(
-          _scheduleIdMeta,
-          scheduleId.isAcceptableOrUnknown(
-              data['schedule_id']!, _scheduleIdMeta));
+          _nameMeta, name.isAcceptableOrUnknown(data['name']!, _nameMeta));
+    } else if (isInserting) {
+      context.missing(_nameMeta);
     }
-    if (data.containsKey('action_type')) {
+    if (data.containsKey('description')) {
       context.handle(
-          _actionTypeMeta,
-          actionType.isAcceptableOrUnknown(
-              data['action_type']!, _actionTypeMeta));
+          _descriptionMeta,
+          description.isAcceptableOrUnknown(
+              data['description']!, _descriptionMeta));
     }
-    if (data.containsKey('latitude')) {
-      context.handle(_latitudeMeta,
-          latitude.isAcceptableOrUnknown(data['latitude']!, _latitudeMeta));
-    } else if (isInserting) {
-      context.missing(_latitudeMeta);
-    }
-    if (data.containsKey('longitude')) {
-      context.handle(_longitudeMeta,
-          longitude.isAcceptableOrUnknown(data['longitude']!, _longitudeMeta));
-    } else if (isInserting) {
-      context.missing(_longitudeMeta);
-    }
-    if (data.containsKey('accuracy')) {
-      context.handle(_accuracyMeta,
-          accuracy.isAcceptableOrUnknown(data['accuracy']!, _accuracyMeta));
-    } else if (isInserting) {
-      context.missing(_accuracyMeta);
-    }
-    if (data.containsKey('captured_at')) {
+    if (data.containsKey('emoji')) {
       context.handle(
-          _capturedAtMeta,
-          capturedAt.isAcceptableOrUnknown(
-              data['captured_at']!, _capturedAtMeta));
-    } else if (isInserting) {
-      context.missing(_capturedAtMeta);
+          _emojiMeta, emoji.isAcceptableOrUnknown(data['emoji']!, _emojiMeta));
     }
-    if (data.containsKey('photo_path')) {
-      context.handle(_photoPathMeta,
-          photoPath.isAcceptableOrUnknown(data['photo_path']!, _photoPathMeta));
-    } else if (isInserting) {
-      context.missing(_photoPathMeta);
-    }
-    if (data.containsKey('device_info')) {
+    if (data.containsKey('tag')) {
       context.handle(
-          _deviceInfoMeta,
-          deviceInfo.isAcceptableOrUnknown(
-              data['device_info']!, _deviceInfoMeta));
+          _tagMeta, tag.isAcceptableOrUnknown(data['tag']!, _tagMeta));
+    }
+    if (data.containsKey('required_stamps')) {
+      context.handle(
+          _requiredStampsMeta,
+          requiredStamps.isAcceptableOrUnknown(
+              data['required_stamps']!, _requiredStampsMeta));
+    }
+    if (data.containsKey('eligible_product_codes')) {
+      context.handle(
+          _eligibleProductCodesMeta,
+          eligibleProductCodes.isAcceptableOrUnknown(
+              data['eligible_product_codes']!, _eligibleProductCodesMeta));
+    }
+    if (data.containsKey('reward_description')) {
+      context.handle(
+          _rewardDescriptionMeta,
+          rewardDescription.isAcceptableOrUnknown(
+              data['reward_description']!, _rewardDescriptionMeta));
+    }
+    if (data.containsKey('terms_and_conditions')) {
+      context.handle(
+          _termsAndConditionsMeta,
+          termsAndConditions.isAcceptableOrUnknown(
+              data['terms_and_conditions']!, _termsAndConditionsMeta));
+    }
+    if (data.containsKey('starts_at')) {
+      context.handle(_startsAtMeta,
+          startsAt.isAcceptableOrUnknown(data['starts_at']!, _startsAtMeta));
+    }
+    if (data.containsKey('ends_at')) {
+      context.handle(_endsAtMeta,
+          endsAt.isAcceptableOrUnknown(data['ends_at']!, _endsAtMeta));
+    }
+    if (data.containsKey('is_active')) {
+      context.handle(_isActiveMeta,
+          isActive.isAcceptableOrUnknown(data['is_active']!, _isActiveMeta));
+    }
+    if (data.containsKey('display_order')) {
+      context.handle(
+          _displayOrderMeta,
+          displayOrder.isAcceptableOrUnknown(
+              data['display_order']!, _displayOrderMeta));
     }
     if (data.containsKey('sync_status')) {
       context.handle(
           _syncStatusMeta,
           syncStatus.isAcceptableOrUnknown(
               data['sync_status']!, _syncStatusMeta));
-    }
-    if (data.containsKey('server_message')) {
-      context.handle(
-          _serverMessageMeta,
-          serverMessage.isAcceptableOrUnknown(
-              data['server_message']!, _serverMessageMeta));
     }
     if (data.containsKey('created_at')) {
       context.handle(_createdAtMeta,
@@ -5404,36 +5909,43 @@ class $OfflineDtrLogsTable extends OfflineDtrLogs
   Set<GeneratedColumn> get $primaryKey => {id};
   @override
   List<Set<GeneratedColumn>> get uniqueKeys => [
-        {clientRequestId},
+        {code},
       ];
   @override
-  OfflineDtrLog map(Map<String, dynamic> data, {String? tablePrefix}) {
+  Campaign map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return OfflineDtrLog(
+    return Campaign(
       id: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}id'])!,
-      clientRequestId: attachedDatabase.typeMapping.read(
-          DriftSqlType.string, data['${effectivePrefix}client_request_id']),
-      scheduleId: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}schedule_id']),
-      actionType: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}action_type']),
-      latitude: attachedDatabase.typeMapping
-          .read(DriftSqlType.double, data['${effectivePrefix}latitude'])!,
-      longitude: attachedDatabase.typeMapping
-          .read(DriftSqlType.double, data['${effectivePrefix}longitude'])!,
-      accuracy: attachedDatabase.typeMapping
-          .read(DriftSqlType.double, data['${effectivePrefix}accuracy'])!,
-      capturedAt: attachedDatabase.typeMapping
-          .read(DriftSqlType.dateTime, data['${effectivePrefix}captured_at'])!,
-      photoPath: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}photo_path'])!,
-      deviceInfo: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}device_info']),
+      code: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}code'])!,
+      name: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}name'])!,
+      description: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}description']),
+      emoji: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}emoji']),
+      tag: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}tag']),
+      requiredStamps: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}required_stamps'])!,
+      eligibleProductCodes: attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}eligible_product_codes'])!,
+      rewardDescription: attachedDatabase.typeMapping.read(
+          DriftSqlType.string, data['${effectivePrefix}reward_description']),
+      termsAndConditions: attachedDatabase.typeMapping.read(
+          DriftSqlType.string, data['${effectivePrefix}terms_and_conditions']),
+      startsAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}starts_at']),
+      endsAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}ends_at']),
+      isActive: attachedDatabase.typeMapping
+          .read(DriftSqlType.bool, data['${effectivePrefix}is_active'])!,
+      displayOrder: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}display_order'])!,
       syncStatus: attachedDatabase.typeMapping
           .read(DriftSqlType.int, data['${effectivePrefix}sync_status'])!,
-      serverMessage: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}server_message']),
       createdAt: attachedDatabase.typeMapping
           .read(DriftSqlType.dateTime, data['${effectivePrefix}created_at'])!,
       updatedAt: attachedDatabase.typeMapping
@@ -5442,116 +5954,142 @@ class $OfflineDtrLogsTable extends OfflineDtrLogs
   }
 
   @override
-  $OfflineDtrLogsTable createAlias(String alias) {
-    return $OfflineDtrLogsTable(attachedDatabase, alias);
+  $CampaignsTable createAlias(String alias) {
+    return $CampaignsTable(attachedDatabase, alias);
   }
 }
 
-class OfflineDtrLog extends DataClass implements Insertable<OfflineDtrLog> {
+class Campaign extends DataClass implements Insertable<Campaign> {
   final String id;
-  final String? clientRequestId;
-  final String? scheduleId;
-  final String? actionType;
-  final double latitude;
-  final double longitude;
-  final double accuracy;
-  final DateTime capturedAt;
-  final String photoPath;
-  final String? deviceInfo;
+  final String code;
+  final String name;
+  final String? description;
+  final String? emoji;
+
+  /// Display grouping — drives the filter chips on the campaigns screen.
+  final String? tag;
+  final int requiredStamps;
+
+  /// Comma-separated product codes. Empty means every product qualifies.
+  final String eligibleProductCodes;
+  final String? rewardDescription;
+  final String? termsAndConditions;
+  final DateTime? startsAt;
+  final DateTime? endsAt;
+  final bool isActive;
+  final int displayOrder;
   final int syncStatus;
-  final String? serverMessage;
   final DateTime createdAt;
   final DateTime updatedAt;
-  const OfflineDtrLog(
+  const Campaign(
       {required this.id,
-      this.clientRequestId,
-      this.scheduleId,
-      this.actionType,
-      required this.latitude,
-      required this.longitude,
-      required this.accuracy,
-      required this.capturedAt,
-      required this.photoPath,
-      this.deviceInfo,
+      required this.code,
+      required this.name,
+      this.description,
+      this.emoji,
+      this.tag,
+      required this.requiredStamps,
+      required this.eligibleProductCodes,
+      this.rewardDescription,
+      this.termsAndConditions,
+      this.startsAt,
+      this.endsAt,
+      required this.isActive,
+      required this.displayOrder,
       required this.syncStatus,
-      this.serverMessage,
       required this.createdAt,
       required this.updatedAt});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['id'] = Variable<String>(id);
-    if (!nullToAbsent || clientRequestId != null) {
-      map['client_request_id'] = Variable<String>(clientRequestId);
+    map['code'] = Variable<String>(code);
+    map['name'] = Variable<String>(name);
+    if (!nullToAbsent || description != null) {
+      map['description'] = Variable<String>(description);
     }
-    if (!nullToAbsent || scheduleId != null) {
-      map['schedule_id'] = Variable<String>(scheduleId);
+    if (!nullToAbsent || emoji != null) {
+      map['emoji'] = Variable<String>(emoji);
     }
-    if (!nullToAbsent || actionType != null) {
-      map['action_type'] = Variable<String>(actionType);
+    if (!nullToAbsent || tag != null) {
+      map['tag'] = Variable<String>(tag);
     }
-    map['latitude'] = Variable<double>(latitude);
-    map['longitude'] = Variable<double>(longitude);
-    map['accuracy'] = Variable<double>(accuracy);
-    map['captured_at'] = Variable<DateTime>(capturedAt);
-    map['photo_path'] = Variable<String>(photoPath);
-    if (!nullToAbsent || deviceInfo != null) {
-      map['device_info'] = Variable<String>(deviceInfo);
+    map['required_stamps'] = Variable<int>(requiredStamps);
+    map['eligible_product_codes'] = Variable<String>(eligibleProductCodes);
+    if (!nullToAbsent || rewardDescription != null) {
+      map['reward_description'] = Variable<String>(rewardDescription);
     }
+    if (!nullToAbsent || termsAndConditions != null) {
+      map['terms_and_conditions'] = Variable<String>(termsAndConditions);
+    }
+    if (!nullToAbsent || startsAt != null) {
+      map['starts_at'] = Variable<DateTime>(startsAt);
+    }
+    if (!nullToAbsent || endsAt != null) {
+      map['ends_at'] = Variable<DateTime>(endsAt);
+    }
+    map['is_active'] = Variable<bool>(isActive);
+    map['display_order'] = Variable<int>(displayOrder);
     map['sync_status'] = Variable<int>(syncStatus);
-    if (!nullToAbsent || serverMessage != null) {
-      map['server_message'] = Variable<String>(serverMessage);
-    }
     map['created_at'] = Variable<DateTime>(createdAt);
     map['updated_at'] = Variable<DateTime>(updatedAt);
     return map;
   }
 
-  OfflineDtrLogsCompanion toCompanion(bool nullToAbsent) {
-    return OfflineDtrLogsCompanion(
+  CampaignsCompanion toCompanion(bool nullToAbsent) {
+    return CampaignsCompanion(
       id: Value(id),
-      clientRequestId: clientRequestId == null && nullToAbsent
+      code: Value(code),
+      name: Value(name),
+      description: description == null && nullToAbsent
           ? const Value.absent()
-          : Value(clientRequestId),
-      scheduleId: scheduleId == null && nullToAbsent
+          : Value(description),
+      emoji:
+          emoji == null && nullToAbsent ? const Value.absent() : Value(emoji),
+      tag: tag == null && nullToAbsent ? const Value.absent() : Value(tag),
+      requiredStamps: Value(requiredStamps),
+      eligibleProductCodes: Value(eligibleProductCodes),
+      rewardDescription: rewardDescription == null && nullToAbsent
           ? const Value.absent()
-          : Value(scheduleId),
-      actionType: actionType == null && nullToAbsent
+          : Value(rewardDescription),
+      termsAndConditions: termsAndConditions == null && nullToAbsent
           ? const Value.absent()
-          : Value(actionType),
-      latitude: Value(latitude),
-      longitude: Value(longitude),
-      accuracy: Value(accuracy),
-      capturedAt: Value(capturedAt),
-      photoPath: Value(photoPath),
-      deviceInfo: deviceInfo == null && nullToAbsent
+          : Value(termsAndConditions),
+      startsAt: startsAt == null && nullToAbsent
           ? const Value.absent()
-          : Value(deviceInfo),
+          : Value(startsAt),
+      endsAt:
+          endsAt == null && nullToAbsent ? const Value.absent() : Value(endsAt),
+      isActive: Value(isActive),
+      displayOrder: Value(displayOrder),
       syncStatus: Value(syncStatus),
-      serverMessage: serverMessage == null && nullToAbsent
-          ? const Value.absent()
-          : Value(serverMessage),
       createdAt: Value(createdAt),
       updatedAt: Value(updatedAt),
     );
   }
 
-  factory OfflineDtrLog.fromJson(Map<String, dynamic> json,
+  factory Campaign.fromJson(Map<String, dynamic> json,
       {ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
-    return OfflineDtrLog(
+    return Campaign(
       id: serializer.fromJson<String>(json['id']),
-      clientRequestId: serializer.fromJson<String?>(json['clientRequestId']),
-      scheduleId: serializer.fromJson<String?>(json['scheduleId']),
-      actionType: serializer.fromJson<String?>(json['actionType']),
-      latitude: serializer.fromJson<double>(json['latitude']),
-      longitude: serializer.fromJson<double>(json['longitude']),
-      accuracy: serializer.fromJson<double>(json['accuracy']),
-      capturedAt: serializer.fromJson<DateTime>(json['capturedAt']),
-      photoPath: serializer.fromJson<String>(json['photoPath']),
-      deviceInfo: serializer.fromJson<String?>(json['deviceInfo']),
+      code: serializer.fromJson<String>(json['code']),
+      name: serializer.fromJson<String>(json['name']),
+      description: serializer.fromJson<String?>(json['description']),
+      emoji: serializer.fromJson<String?>(json['emoji']),
+      tag: serializer.fromJson<String?>(json['tag']),
+      requiredStamps: serializer.fromJson<int>(json['requiredStamps']),
+      eligibleProductCodes:
+          serializer.fromJson<String>(json['eligibleProductCodes']),
+      rewardDescription:
+          serializer.fromJson<String?>(json['rewardDescription']),
+      termsAndConditions:
+          serializer.fromJson<String?>(json['termsAndConditions']),
+      startsAt: serializer.fromJson<DateTime?>(json['startsAt']),
+      endsAt: serializer.fromJson<DateTime?>(json['endsAt']),
+      isActive: serializer.fromJson<bool>(json['isActive']),
+      displayOrder: serializer.fromJson<int>(json['displayOrder']),
       syncStatus: serializer.fromJson<int>(json['syncStatus']),
-      serverMessage: serializer.fromJson<String?>(json['serverMessage']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
     );
@@ -5561,79 +6099,95 @@ class OfflineDtrLog extends DataClass implements Insertable<OfflineDtrLog> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'id': serializer.toJson<String>(id),
-      'clientRequestId': serializer.toJson<String?>(clientRequestId),
-      'scheduleId': serializer.toJson<String?>(scheduleId),
-      'actionType': serializer.toJson<String?>(actionType),
-      'latitude': serializer.toJson<double>(latitude),
-      'longitude': serializer.toJson<double>(longitude),
-      'accuracy': serializer.toJson<double>(accuracy),
-      'capturedAt': serializer.toJson<DateTime>(capturedAt),
-      'photoPath': serializer.toJson<String>(photoPath),
-      'deviceInfo': serializer.toJson<String?>(deviceInfo),
+      'code': serializer.toJson<String>(code),
+      'name': serializer.toJson<String>(name),
+      'description': serializer.toJson<String?>(description),
+      'emoji': serializer.toJson<String?>(emoji),
+      'tag': serializer.toJson<String?>(tag),
+      'requiredStamps': serializer.toJson<int>(requiredStamps),
+      'eligibleProductCodes': serializer.toJson<String>(eligibleProductCodes),
+      'rewardDescription': serializer.toJson<String?>(rewardDescription),
+      'termsAndConditions': serializer.toJson<String?>(termsAndConditions),
+      'startsAt': serializer.toJson<DateTime?>(startsAt),
+      'endsAt': serializer.toJson<DateTime?>(endsAt),
+      'isActive': serializer.toJson<bool>(isActive),
+      'displayOrder': serializer.toJson<int>(displayOrder),
       'syncStatus': serializer.toJson<int>(syncStatus),
-      'serverMessage': serializer.toJson<String?>(serverMessage),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
     };
   }
 
-  OfflineDtrLog copyWith(
+  Campaign copyWith(
           {String? id,
-          Value<String?> clientRequestId = const Value.absent(),
-          Value<String?> scheduleId = const Value.absent(),
-          Value<String?> actionType = const Value.absent(),
-          double? latitude,
-          double? longitude,
-          double? accuracy,
-          DateTime? capturedAt,
-          String? photoPath,
-          Value<String?> deviceInfo = const Value.absent(),
+          String? code,
+          String? name,
+          Value<String?> description = const Value.absent(),
+          Value<String?> emoji = const Value.absent(),
+          Value<String?> tag = const Value.absent(),
+          int? requiredStamps,
+          String? eligibleProductCodes,
+          Value<String?> rewardDescription = const Value.absent(),
+          Value<String?> termsAndConditions = const Value.absent(),
+          Value<DateTime?> startsAt = const Value.absent(),
+          Value<DateTime?> endsAt = const Value.absent(),
+          bool? isActive,
+          int? displayOrder,
           int? syncStatus,
-          Value<String?> serverMessage = const Value.absent(),
           DateTime? createdAt,
           DateTime? updatedAt}) =>
-      OfflineDtrLog(
+      Campaign(
         id: id ?? this.id,
-        clientRequestId: clientRequestId.present
-            ? clientRequestId.value
-            : this.clientRequestId,
-        scheduleId: scheduleId.present ? scheduleId.value : this.scheduleId,
-        actionType: actionType.present ? actionType.value : this.actionType,
-        latitude: latitude ?? this.latitude,
-        longitude: longitude ?? this.longitude,
-        accuracy: accuracy ?? this.accuracy,
-        capturedAt: capturedAt ?? this.capturedAt,
-        photoPath: photoPath ?? this.photoPath,
-        deviceInfo: deviceInfo.present ? deviceInfo.value : this.deviceInfo,
+        code: code ?? this.code,
+        name: name ?? this.name,
+        description: description.present ? description.value : this.description,
+        emoji: emoji.present ? emoji.value : this.emoji,
+        tag: tag.present ? tag.value : this.tag,
+        requiredStamps: requiredStamps ?? this.requiredStamps,
+        eligibleProductCodes: eligibleProductCodes ?? this.eligibleProductCodes,
+        rewardDescription: rewardDescription.present
+            ? rewardDescription.value
+            : this.rewardDescription,
+        termsAndConditions: termsAndConditions.present
+            ? termsAndConditions.value
+            : this.termsAndConditions,
+        startsAt: startsAt.present ? startsAt.value : this.startsAt,
+        endsAt: endsAt.present ? endsAt.value : this.endsAt,
+        isActive: isActive ?? this.isActive,
+        displayOrder: displayOrder ?? this.displayOrder,
         syncStatus: syncStatus ?? this.syncStatus,
-        serverMessage:
-            serverMessage.present ? serverMessage.value : this.serverMessage,
         createdAt: createdAt ?? this.createdAt,
         updatedAt: updatedAt ?? this.updatedAt,
       );
-  OfflineDtrLog copyWithCompanion(OfflineDtrLogsCompanion data) {
-    return OfflineDtrLog(
+  Campaign copyWithCompanion(CampaignsCompanion data) {
+    return Campaign(
       id: data.id.present ? data.id.value : this.id,
-      clientRequestId: data.clientRequestId.present
-          ? data.clientRequestId.value
-          : this.clientRequestId,
-      scheduleId:
-          data.scheduleId.present ? data.scheduleId.value : this.scheduleId,
-      actionType:
-          data.actionType.present ? data.actionType.value : this.actionType,
-      latitude: data.latitude.present ? data.latitude.value : this.latitude,
-      longitude: data.longitude.present ? data.longitude.value : this.longitude,
-      accuracy: data.accuracy.present ? data.accuracy.value : this.accuracy,
-      capturedAt:
-          data.capturedAt.present ? data.capturedAt.value : this.capturedAt,
-      photoPath: data.photoPath.present ? data.photoPath.value : this.photoPath,
-      deviceInfo:
-          data.deviceInfo.present ? data.deviceInfo.value : this.deviceInfo,
+      code: data.code.present ? data.code.value : this.code,
+      name: data.name.present ? data.name.value : this.name,
+      description:
+          data.description.present ? data.description.value : this.description,
+      emoji: data.emoji.present ? data.emoji.value : this.emoji,
+      tag: data.tag.present ? data.tag.value : this.tag,
+      requiredStamps: data.requiredStamps.present
+          ? data.requiredStamps.value
+          : this.requiredStamps,
+      eligibleProductCodes: data.eligibleProductCodes.present
+          ? data.eligibleProductCodes.value
+          : this.eligibleProductCodes,
+      rewardDescription: data.rewardDescription.present
+          ? data.rewardDescription.value
+          : this.rewardDescription,
+      termsAndConditions: data.termsAndConditions.present
+          ? data.termsAndConditions.value
+          : this.termsAndConditions,
+      startsAt: data.startsAt.present ? data.startsAt.value : this.startsAt,
+      endsAt: data.endsAt.present ? data.endsAt.value : this.endsAt,
+      isActive: data.isActive.present ? data.isActive.value : this.isActive,
+      displayOrder: data.displayOrder.present
+          ? data.displayOrder.value
+          : this.displayOrder,
       syncStatus:
           data.syncStatus.present ? data.syncStatus.value : this.syncStatus,
-      serverMessage: data.serverMessage.present
-          ? data.serverMessage.value
-          : this.serverMessage,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
     );
@@ -5641,19 +6195,22 @@ class OfflineDtrLog extends DataClass implements Insertable<OfflineDtrLog> {
 
   @override
   String toString() {
-    return (StringBuffer('OfflineDtrLog(')
+    return (StringBuffer('Campaign(')
           ..write('id: $id, ')
-          ..write('clientRequestId: $clientRequestId, ')
-          ..write('scheduleId: $scheduleId, ')
-          ..write('actionType: $actionType, ')
-          ..write('latitude: $latitude, ')
-          ..write('longitude: $longitude, ')
-          ..write('accuracy: $accuracy, ')
-          ..write('capturedAt: $capturedAt, ')
-          ..write('photoPath: $photoPath, ')
-          ..write('deviceInfo: $deviceInfo, ')
+          ..write('code: $code, ')
+          ..write('name: $name, ')
+          ..write('description: $description, ')
+          ..write('emoji: $emoji, ')
+          ..write('tag: $tag, ')
+          ..write('requiredStamps: $requiredStamps, ')
+          ..write('eligibleProductCodes: $eligibleProductCodes, ')
+          ..write('rewardDescription: $rewardDescription, ')
+          ..write('termsAndConditions: $termsAndConditions, ')
+          ..write('startsAt: $startsAt, ')
+          ..write('endsAt: $endsAt, ')
+          ..write('isActive: $isActive, ')
+          ..write('displayOrder: $displayOrder, ')
           ..write('syncStatus: $syncStatus, ')
-          ..write('serverMessage: $serverMessage, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt')
           ..write(')'))
@@ -5663,158 +6220,184 @@ class OfflineDtrLog extends DataClass implements Insertable<OfflineDtrLog> {
   @override
   int get hashCode => Object.hash(
       id,
-      clientRequestId,
-      scheduleId,
-      actionType,
-      latitude,
-      longitude,
-      accuracy,
-      capturedAt,
-      photoPath,
-      deviceInfo,
+      code,
+      name,
+      description,
+      emoji,
+      tag,
+      requiredStamps,
+      eligibleProductCodes,
+      rewardDescription,
+      termsAndConditions,
+      startsAt,
+      endsAt,
+      isActive,
+      displayOrder,
       syncStatus,
-      serverMessage,
       createdAt,
       updatedAt);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      (other is OfflineDtrLog &&
+      (other is Campaign &&
           other.id == this.id &&
-          other.clientRequestId == this.clientRequestId &&
-          other.scheduleId == this.scheduleId &&
-          other.actionType == this.actionType &&
-          other.latitude == this.latitude &&
-          other.longitude == this.longitude &&
-          other.accuracy == this.accuracy &&
-          other.capturedAt == this.capturedAt &&
-          other.photoPath == this.photoPath &&
-          other.deviceInfo == this.deviceInfo &&
+          other.code == this.code &&
+          other.name == this.name &&
+          other.description == this.description &&
+          other.emoji == this.emoji &&
+          other.tag == this.tag &&
+          other.requiredStamps == this.requiredStamps &&
+          other.eligibleProductCodes == this.eligibleProductCodes &&
+          other.rewardDescription == this.rewardDescription &&
+          other.termsAndConditions == this.termsAndConditions &&
+          other.startsAt == this.startsAt &&
+          other.endsAt == this.endsAt &&
+          other.isActive == this.isActive &&
+          other.displayOrder == this.displayOrder &&
           other.syncStatus == this.syncStatus &&
-          other.serverMessage == this.serverMessage &&
           other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt);
 }
 
-class OfflineDtrLogsCompanion extends UpdateCompanion<OfflineDtrLog> {
+class CampaignsCompanion extends UpdateCompanion<Campaign> {
   final Value<String> id;
-  final Value<String?> clientRequestId;
-  final Value<String?> scheduleId;
-  final Value<String?> actionType;
-  final Value<double> latitude;
-  final Value<double> longitude;
-  final Value<double> accuracy;
-  final Value<DateTime> capturedAt;
-  final Value<String> photoPath;
-  final Value<String?> deviceInfo;
+  final Value<String> code;
+  final Value<String> name;
+  final Value<String?> description;
+  final Value<String?> emoji;
+  final Value<String?> tag;
+  final Value<int> requiredStamps;
+  final Value<String> eligibleProductCodes;
+  final Value<String?> rewardDescription;
+  final Value<String?> termsAndConditions;
+  final Value<DateTime?> startsAt;
+  final Value<DateTime?> endsAt;
+  final Value<bool> isActive;
+  final Value<int> displayOrder;
   final Value<int> syncStatus;
-  final Value<String?> serverMessage;
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
   final Value<int> rowid;
-  const OfflineDtrLogsCompanion({
+  const CampaignsCompanion({
     this.id = const Value.absent(),
-    this.clientRequestId = const Value.absent(),
-    this.scheduleId = const Value.absent(),
-    this.actionType = const Value.absent(),
-    this.latitude = const Value.absent(),
-    this.longitude = const Value.absent(),
-    this.accuracy = const Value.absent(),
-    this.capturedAt = const Value.absent(),
-    this.photoPath = const Value.absent(),
-    this.deviceInfo = const Value.absent(),
+    this.code = const Value.absent(),
+    this.name = const Value.absent(),
+    this.description = const Value.absent(),
+    this.emoji = const Value.absent(),
+    this.tag = const Value.absent(),
+    this.requiredStamps = const Value.absent(),
+    this.eligibleProductCodes = const Value.absent(),
+    this.rewardDescription = const Value.absent(),
+    this.termsAndConditions = const Value.absent(),
+    this.startsAt = const Value.absent(),
+    this.endsAt = const Value.absent(),
+    this.isActive = const Value.absent(),
+    this.displayOrder = const Value.absent(),
     this.syncStatus = const Value.absent(),
-    this.serverMessage = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.rowid = const Value.absent(),
   });
-  OfflineDtrLogsCompanion.insert({
+  CampaignsCompanion.insert({
     this.id = const Value.absent(),
-    this.clientRequestId = const Value.absent(),
-    this.scheduleId = const Value.absent(),
-    this.actionType = const Value.absent(),
-    required double latitude,
-    required double longitude,
-    required double accuracy,
-    required DateTime capturedAt,
-    required String photoPath,
-    this.deviceInfo = const Value.absent(),
+    required String code,
+    required String name,
+    this.description = const Value.absent(),
+    this.emoji = const Value.absent(),
+    this.tag = const Value.absent(),
+    this.requiredStamps = const Value.absent(),
+    this.eligibleProductCodes = const Value.absent(),
+    this.rewardDescription = const Value.absent(),
+    this.termsAndConditions = const Value.absent(),
+    this.startsAt = const Value.absent(),
+    this.endsAt = const Value.absent(),
+    this.isActive = const Value.absent(),
+    this.displayOrder = const Value.absent(),
     this.syncStatus = const Value.absent(),
-    this.serverMessage = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.rowid = const Value.absent(),
-  })  : latitude = Value(latitude),
-        longitude = Value(longitude),
-        accuracy = Value(accuracy),
-        capturedAt = Value(capturedAt),
-        photoPath = Value(photoPath);
-  static Insertable<OfflineDtrLog> custom({
+  })  : code = Value(code),
+        name = Value(name);
+  static Insertable<Campaign> custom({
     Expression<String>? id,
-    Expression<String>? clientRequestId,
-    Expression<String>? scheduleId,
-    Expression<String>? actionType,
-    Expression<double>? latitude,
-    Expression<double>? longitude,
-    Expression<double>? accuracy,
-    Expression<DateTime>? capturedAt,
-    Expression<String>? photoPath,
-    Expression<String>? deviceInfo,
+    Expression<String>? code,
+    Expression<String>? name,
+    Expression<String>? description,
+    Expression<String>? emoji,
+    Expression<String>? tag,
+    Expression<int>? requiredStamps,
+    Expression<String>? eligibleProductCodes,
+    Expression<String>? rewardDescription,
+    Expression<String>? termsAndConditions,
+    Expression<DateTime>? startsAt,
+    Expression<DateTime>? endsAt,
+    Expression<bool>? isActive,
+    Expression<int>? displayOrder,
     Expression<int>? syncStatus,
-    Expression<String>? serverMessage,
     Expression<DateTime>? createdAt,
     Expression<DateTime>? updatedAt,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
-      if (clientRequestId != null) 'client_request_id': clientRequestId,
-      if (scheduleId != null) 'schedule_id': scheduleId,
-      if (actionType != null) 'action_type': actionType,
-      if (latitude != null) 'latitude': latitude,
-      if (longitude != null) 'longitude': longitude,
-      if (accuracy != null) 'accuracy': accuracy,
-      if (capturedAt != null) 'captured_at': capturedAt,
-      if (photoPath != null) 'photo_path': photoPath,
-      if (deviceInfo != null) 'device_info': deviceInfo,
+      if (code != null) 'code': code,
+      if (name != null) 'name': name,
+      if (description != null) 'description': description,
+      if (emoji != null) 'emoji': emoji,
+      if (tag != null) 'tag': tag,
+      if (requiredStamps != null) 'required_stamps': requiredStamps,
+      if (eligibleProductCodes != null)
+        'eligible_product_codes': eligibleProductCodes,
+      if (rewardDescription != null) 'reward_description': rewardDescription,
+      if (termsAndConditions != null)
+        'terms_and_conditions': termsAndConditions,
+      if (startsAt != null) 'starts_at': startsAt,
+      if (endsAt != null) 'ends_at': endsAt,
+      if (isActive != null) 'is_active': isActive,
+      if (displayOrder != null) 'display_order': displayOrder,
       if (syncStatus != null) 'sync_status': syncStatus,
-      if (serverMessage != null) 'server_message': serverMessage,
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
       if (rowid != null) 'rowid': rowid,
     });
   }
 
-  OfflineDtrLogsCompanion copyWith(
+  CampaignsCompanion copyWith(
       {Value<String>? id,
-      Value<String?>? clientRequestId,
-      Value<String?>? scheduleId,
-      Value<String?>? actionType,
-      Value<double>? latitude,
-      Value<double>? longitude,
-      Value<double>? accuracy,
-      Value<DateTime>? capturedAt,
-      Value<String>? photoPath,
-      Value<String?>? deviceInfo,
+      Value<String>? code,
+      Value<String>? name,
+      Value<String?>? description,
+      Value<String?>? emoji,
+      Value<String?>? tag,
+      Value<int>? requiredStamps,
+      Value<String>? eligibleProductCodes,
+      Value<String?>? rewardDescription,
+      Value<String?>? termsAndConditions,
+      Value<DateTime?>? startsAt,
+      Value<DateTime?>? endsAt,
+      Value<bool>? isActive,
+      Value<int>? displayOrder,
       Value<int>? syncStatus,
-      Value<String?>? serverMessage,
       Value<DateTime>? createdAt,
       Value<DateTime>? updatedAt,
       Value<int>? rowid}) {
-    return OfflineDtrLogsCompanion(
+    return CampaignsCompanion(
       id: id ?? this.id,
-      clientRequestId: clientRequestId ?? this.clientRequestId,
-      scheduleId: scheduleId ?? this.scheduleId,
-      actionType: actionType ?? this.actionType,
-      latitude: latitude ?? this.latitude,
-      longitude: longitude ?? this.longitude,
-      accuracy: accuracy ?? this.accuracy,
-      capturedAt: capturedAt ?? this.capturedAt,
-      photoPath: photoPath ?? this.photoPath,
-      deviceInfo: deviceInfo ?? this.deviceInfo,
+      code: code ?? this.code,
+      name: name ?? this.name,
+      description: description ?? this.description,
+      emoji: emoji ?? this.emoji,
+      tag: tag ?? this.tag,
+      requiredStamps: requiredStamps ?? this.requiredStamps,
+      eligibleProductCodes: eligibleProductCodes ?? this.eligibleProductCodes,
+      rewardDescription: rewardDescription ?? this.rewardDescription,
+      termsAndConditions: termsAndConditions ?? this.termsAndConditions,
+      startsAt: startsAt ?? this.startsAt,
+      endsAt: endsAt ?? this.endsAt,
+      isActive: isActive ?? this.isActive,
+      displayOrder: displayOrder ?? this.displayOrder,
       syncStatus: syncStatus ?? this.syncStatus,
-      serverMessage: serverMessage ?? this.serverMessage,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       rowid: rowid ?? this.rowid,
@@ -5827,38 +6410,48 @@ class OfflineDtrLogsCompanion extends UpdateCompanion<OfflineDtrLog> {
     if (id.present) {
       map['id'] = Variable<String>(id.value);
     }
-    if (clientRequestId.present) {
-      map['client_request_id'] = Variable<String>(clientRequestId.value);
+    if (code.present) {
+      map['code'] = Variable<String>(code.value);
     }
-    if (scheduleId.present) {
-      map['schedule_id'] = Variable<String>(scheduleId.value);
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
     }
-    if (actionType.present) {
-      map['action_type'] = Variable<String>(actionType.value);
+    if (description.present) {
+      map['description'] = Variable<String>(description.value);
     }
-    if (latitude.present) {
-      map['latitude'] = Variable<double>(latitude.value);
+    if (emoji.present) {
+      map['emoji'] = Variable<String>(emoji.value);
     }
-    if (longitude.present) {
-      map['longitude'] = Variable<double>(longitude.value);
+    if (tag.present) {
+      map['tag'] = Variable<String>(tag.value);
     }
-    if (accuracy.present) {
-      map['accuracy'] = Variable<double>(accuracy.value);
+    if (requiredStamps.present) {
+      map['required_stamps'] = Variable<int>(requiredStamps.value);
     }
-    if (capturedAt.present) {
-      map['captured_at'] = Variable<DateTime>(capturedAt.value);
+    if (eligibleProductCodes.present) {
+      map['eligible_product_codes'] =
+          Variable<String>(eligibleProductCodes.value);
     }
-    if (photoPath.present) {
-      map['photo_path'] = Variable<String>(photoPath.value);
+    if (rewardDescription.present) {
+      map['reward_description'] = Variable<String>(rewardDescription.value);
     }
-    if (deviceInfo.present) {
-      map['device_info'] = Variable<String>(deviceInfo.value);
+    if (termsAndConditions.present) {
+      map['terms_and_conditions'] = Variable<String>(termsAndConditions.value);
+    }
+    if (startsAt.present) {
+      map['starts_at'] = Variable<DateTime>(startsAt.value);
+    }
+    if (endsAt.present) {
+      map['ends_at'] = Variable<DateTime>(endsAt.value);
+    }
+    if (isActive.present) {
+      map['is_active'] = Variable<bool>(isActive.value);
+    }
+    if (displayOrder.present) {
+      map['display_order'] = Variable<int>(displayOrder.value);
     }
     if (syncStatus.present) {
       map['sync_status'] = Variable<int>(syncStatus.value);
-    }
-    if (serverMessage.present) {
-      map['server_message'] = Variable<String>(serverMessage.value);
     }
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
@@ -5874,19 +6467,22 @@ class OfflineDtrLogsCompanion extends UpdateCompanion<OfflineDtrLog> {
 
   @override
   String toString() {
-    return (StringBuffer('OfflineDtrLogsCompanion(')
+    return (StringBuffer('CampaignsCompanion(')
           ..write('id: $id, ')
-          ..write('clientRequestId: $clientRequestId, ')
-          ..write('scheduleId: $scheduleId, ')
-          ..write('actionType: $actionType, ')
-          ..write('latitude: $latitude, ')
-          ..write('longitude: $longitude, ')
-          ..write('accuracy: $accuracy, ')
-          ..write('capturedAt: $capturedAt, ')
-          ..write('photoPath: $photoPath, ')
-          ..write('deviceInfo: $deviceInfo, ')
+          ..write('code: $code, ')
+          ..write('name: $name, ')
+          ..write('description: $description, ')
+          ..write('emoji: $emoji, ')
+          ..write('tag: $tag, ')
+          ..write('requiredStamps: $requiredStamps, ')
+          ..write('eligibleProductCodes: $eligibleProductCodes, ')
+          ..write('rewardDescription: $rewardDescription, ')
+          ..write('termsAndConditions: $termsAndConditions, ')
+          ..write('startsAt: $startsAt, ')
+          ..write('endsAt: $endsAt, ')
+          ..write('isActive: $isActive, ')
+          ..write('displayOrder: $displayOrder, ')
           ..write('syncStatus: $syncStatus, ')
-          ..write('serverMessage: $serverMessage, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('rowid: $rowid')
@@ -5895,237 +6491,162 @@ class OfflineDtrLogsCompanion extends UpdateCompanion<OfflineDtrLog> {
   }
 }
 
-class $CachedDtrSchedulesTable extends CachedDtrSchedules
-    with TableInfo<$CachedDtrSchedulesTable, CachedDtrSchedule> {
+class $StampCardsTable extends StampCards
+    with TableInfo<$StampCardsTable, StampCard> {
   @override
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
-  $CachedDtrSchedulesTable(this.attachedDatabase, [this._alias]);
+  $StampCardsTable(this.attachedDatabase, [this._alias]);
   static const VerificationMeta _idMeta = const VerificationMeta('id');
   @override
   late final GeneratedColumn<String> id = GeneratedColumn<String>(
       'id', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      clientDefault: () => const Uuid().v4());
   static const VerificationMeta _userIdMeta = const VerificationMeta('userId');
   @override
   late final GeneratedColumn<String> userId = GeneratedColumn<String>(
-      'user_id', aliasedName, true,
-      type: DriftSqlType.string, requiredDuringInsert: false);
-  static const VerificationMeta _statusMeta = const VerificationMeta('status');
+      'user_id', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: true,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('REFERENCES users (id)'));
+  static const VerificationMeta _campaignIdMeta =
+      const VerificationMeta('campaignId');
   @override
-  late final GeneratedColumn<String> status = GeneratedColumn<String>(
-      'status', aliasedName, true,
-      type: DriftSqlType.string, requiredDuringInsert: false);
-  static const VerificationMeta _startTimeMeta =
-      const VerificationMeta('startTime');
+  late final GeneratedColumn<String> campaignId = GeneratedColumn<String>(
+      'campaign_id', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: true,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('REFERENCES campaigns (id)'));
+  static const VerificationMeta _stampsCollectedMeta =
+      const VerificationMeta('stampsCollected');
   @override
-  late final GeneratedColumn<DateTime> startTime = GeneratedColumn<DateTime>(
-      'start_time', aliasedName, false,
-      type: DriftSqlType.dateTime, requiredDuringInsert: true);
-  static const VerificationMeta _endTimeMeta =
-      const VerificationMeta('endTime');
-  @override
-  late final GeneratedColumn<DateTime> endTime = GeneratedColumn<DateTime>(
-      'end_time', aliasedName, false,
-      type: DriftSqlType.dateTime, requiredDuringInsert: true);
-  static const VerificationMeta _storeIdMeta =
-      const VerificationMeta('storeId');
-  @override
-  late final GeneratedColumn<String> storeId = GeneratedColumn<String>(
-      'store_id', aliasedName, true,
-      type: DriftSqlType.string, requiredDuringInsert: false);
-  static const VerificationMeta _storeCodeMeta =
-      const VerificationMeta('storeCode');
-  @override
-  late final GeneratedColumn<String> storeCode = GeneratedColumn<String>(
-      'store_code', aliasedName, true,
-      type: DriftSqlType.string, requiredDuringInsert: false);
-  static const VerificationMeta _storeNameMeta =
-      const VerificationMeta('storeName');
-  @override
-  late final GeneratedColumn<String> storeName = GeneratedColumn<String>(
-      'store_name', aliasedName, true,
-      type: DriftSqlType.string, requiredDuringInsert: false);
-  static const VerificationMeta _storeLatitudeMeta =
-      const VerificationMeta('storeLatitude');
-  @override
-  late final GeneratedColumn<double> storeLatitude = GeneratedColumn<double>(
-      'store_latitude', aliasedName, true,
-      type: DriftSqlType.double, requiredDuringInsert: false);
-  static const VerificationMeta _storeLongitudeMeta =
-      const VerificationMeta('storeLongitude');
-  @override
-  late final GeneratedColumn<double> storeLongitude = GeneratedColumn<double>(
-      'store_longitude', aliasedName, true,
-      type: DriftSqlType.double, requiredDuringInsert: false);
-  static const VerificationMeta _radiusMetersMeta =
-      const VerificationMeta('radiusMeters');
-  @override
-  late final GeneratedColumn<double> radiusMeters = GeneratedColumn<double>(
-      'radius_meters', aliasedName, true,
-      type: DriftSqlType.double, requiredDuringInsert: false);
-  static const VerificationMeta _lastLogTypeMeta =
-      const VerificationMeta('lastLogType');
-  @override
-  late final GeneratedColumn<String> lastLogType = GeneratedColumn<String>(
-      'last_log_type', aliasedName, true,
-      type: DriftSqlType.string, requiredDuringInsert: false);
-  static const VerificationMeta _lastLogAtMeta =
-      const VerificationMeta('lastLogAt');
-  @override
-  late final GeneratedColumn<DateTime> lastLogAt = GeneratedColumn<DateTime>(
-      'last_log_at', aliasedName, true,
-      type: DriftSqlType.dateTime, requiredDuringInsert: false);
-  static const VerificationMeta _isSegmentCompleteMeta =
-      const VerificationMeta('isSegmentComplete');
-  @override
-  late final GeneratedColumn<bool> isSegmentComplete = GeneratedColumn<bool>(
-      'is_segment_complete', aliasedName, false,
-      type: DriftSqlType.bool,
+  late final GeneratedColumn<int> stampsCollected = GeneratedColumn<int>(
+      'stamps_collected', aliasedName, false,
+      type: DriftSqlType.int,
       requiredDuringInsert: false,
-      defaultConstraints: GeneratedColumn.constraintIsAlways(
-          'CHECK ("is_segment_complete" IN (0, 1))'),
-      defaultValue: const Constant(false));
-  static const VerificationMeta _rawJsonMeta =
-      const VerificationMeta('rawJson');
+      defaultValue: const Constant(0));
+  static const VerificationMeta _cycleMeta = const VerificationMeta('cycle');
   @override
-  late final GeneratedColumn<String> rawJson = GeneratedColumn<String>(
-      'raw_json', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _fetchedAtMeta =
-      const VerificationMeta('fetchedAt');
+  late final GeneratedColumn<int> cycle = GeneratedColumn<int>(
+      'cycle', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultValue: const Constant(1));
+  static const VerificationMeta _completedAtMeta =
+      const VerificationMeta('completedAt');
   @override
-  late final GeneratedColumn<DateTime> fetchedAt = GeneratedColumn<DateTime>(
-      'fetched_at', aliasedName, false,
-      type: DriftSqlType.dateTime, requiredDuringInsert: true);
-  static const VerificationMeta _validUntilMeta =
-      const VerificationMeta('validUntil');
+  late final GeneratedColumn<DateTime> completedAt = GeneratedColumn<DateTime>(
+      'completed_at', aliasedName, true,
+      type: DriftSqlType.dateTime, requiredDuringInsert: false);
+  static const VerificationMeta _redeemedAtMeta =
+      const VerificationMeta('redeemedAt');
   @override
-  late final GeneratedColumn<DateTime> validUntil = GeneratedColumn<DateTime>(
-      'valid_until', aliasedName, false,
-      type: DriftSqlType.dateTime, requiredDuringInsert: true);
+  late final GeneratedColumn<DateTime> redeemedAt = GeneratedColumn<DateTime>(
+      'redeemed_at', aliasedName, true,
+      type: DriftSqlType.dateTime, requiredDuringInsert: false);
+  static const VerificationMeta _syncStatusMeta =
+      const VerificationMeta('syncStatus');
+  @override
+  late final GeneratedColumn<int> syncStatus = GeneratedColumn<int>(
+      'sync_status', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultValue: const Constant(loyaltySyncPending));
+  static const VerificationMeta _createdAtMeta =
+      const VerificationMeta('createdAt');
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+      'created_at', aliasedName, false,
+      type: DriftSqlType.dateTime,
+      requiredDuringInsert: false,
+      defaultValue: currentDateAndTime);
+  static const VerificationMeta _updatedAtMeta =
+      const VerificationMeta('updatedAt');
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+      'updated_at', aliasedName, false,
+      type: DriftSqlType.dateTime,
+      requiredDuringInsert: false,
+      defaultValue: currentDateAndTime);
   @override
   List<GeneratedColumn> get $columns => [
         id,
         userId,
-        status,
-        startTime,
-        endTime,
-        storeId,
-        storeCode,
-        storeName,
-        storeLatitude,
-        storeLongitude,
-        radiusMeters,
-        lastLogType,
-        lastLogAt,
-        isSegmentComplete,
-        rawJson,
-        fetchedAt,
-        validUntil
+        campaignId,
+        stampsCollected,
+        cycle,
+        completedAt,
+        redeemedAt,
+        syncStatus,
+        createdAt,
+        updatedAt
       ];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
   String get actualTableName => $name;
-  static const String $name = 'cached_dtr_schedules';
+  static const String $name = 'stamp_cards';
   @override
-  VerificationContext validateIntegrity(Insertable<CachedDtrSchedule> instance,
+  VerificationContext validateIntegrity(Insertable<StampCard> instance,
       {bool isInserting = false}) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
     if (data.containsKey('id')) {
       context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
-    } else if (isInserting) {
-      context.missing(_idMeta);
     }
     if (data.containsKey('user_id')) {
       context.handle(_userIdMeta,
           userId.isAcceptableOrUnknown(data['user_id']!, _userIdMeta));
-    }
-    if (data.containsKey('status')) {
-      context.handle(_statusMeta,
-          status.isAcceptableOrUnknown(data['status']!, _statusMeta));
-    }
-    if (data.containsKey('start_time')) {
-      context.handle(_startTimeMeta,
-          startTime.isAcceptableOrUnknown(data['start_time']!, _startTimeMeta));
     } else if (isInserting) {
-      context.missing(_startTimeMeta);
+      context.missing(_userIdMeta);
     }
-    if (data.containsKey('end_time')) {
-      context.handle(_endTimeMeta,
-          endTime.isAcceptableOrUnknown(data['end_time']!, _endTimeMeta));
+    if (data.containsKey('campaign_id')) {
+      context.handle(
+          _campaignIdMeta,
+          campaignId.isAcceptableOrUnknown(
+              data['campaign_id']!, _campaignIdMeta));
     } else if (isInserting) {
-      context.missing(_endTimeMeta);
+      context.missing(_campaignIdMeta);
     }
-    if (data.containsKey('store_id')) {
-      context.handle(_storeIdMeta,
-          storeId.isAcceptableOrUnknown(data['store_id']!, _storeIdMeta));
-    }
-    if (data.containsKey('store_code')) {
-      context.handle(_storeCodeMeta,
-          storeCode.isAcceptableOrUnknown(data['store_code']!, _storeCodeMeta));
-    }
-    if (data.containsKey('store_name')) {
-      context.handle(_storeNameMeta,
-          storeName.isAcceptableOrUnknown(data['store_name']!, _storeNameMeta));
-    }
-    if (data.containsKey('store_latitude')) {
+    if (data.containsKey('stamps_collected')) {
       context.handle(
-          _storeLatitudeMeta,
-          storeLatitude.isAcceptableOrUnknown(
-              data['store_latitude']!, _storeLatitudeMeta));
+          _stampsCollectedMeta,
+          stampsCollected.isAcceptableOrUnknown(
+              data['stamps_collected']!, _stampsCollectedMeta));
     }
-    if (data.containsKey('store_longitude')) {
+    if (data.containsKey('cycle')) {
       context.handle(
-          _storeLongitudeMeta,
-          storeLongitude.isAcceptableOrUnknown(
-              data['store_longitude']!, _storeLongitudeMeta));
+          _cycleMeta, cycle.isAcceptableOrUnknown(data['cycle']!, _cycleMeta));
     }
-    if (data.containsKey('radius_meters')) {
+    if (data.containsKey('completed_at')) {
       context.handle(
-          _radiusMetersMeta,
-          radiusMeters.isAcceptableOrUnknown(
-              data['radius_meters']!, _radiusMetersMeta));
+          _completedAtMeta,
+          completedAt.isAcceptableOrUnknown(
+              data['completed_at']!, _completedAtMeta));
     }
-    if (data.containsKey('last_log_type')) {
+    if (data.containsKey('redeemed_at')) {
       context.handle(
-          _lastLogTypeMeta,
-          lastLogType.isAcceptableOrUnknown(
-              data['last_log_type']!, _lastLogTypeMeta));
+          _redeemedAtMeta,
+          redeemedAt.isAcceptableOrUnknown(
+              data['redeemed_at']!, _redeemedAtMeta));
     }
-    if (data.containsKey('last_log_at')) {
+    if (data.containsKey('sync_status')) {
       context.handle(
-          _lastLogAtMeta,
-          lastLogAt.isAcceptableOrUnknown(
-              data['last_log_at']!, _lastLogAtMeta));
+          _syncStatusMeta,
+          syncStatus.isAcceptableOrUnknown(
+              data['sync_status']!, _syncStatusMeta));
     }
-    if (data.containsKey('is_segment_complete')) {
-      context.handle(
-          _isSegmentCompleteMeta,
-          isSegmentComplete.isAcceptableOrUnknown(
-              data['is_segment_complete']!, _isSegmentCompleteMeta));
+    if (data.containsKey('created_at')) {
+      context.handle(_createdAtMeta,
+          createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta));
     }
-    if (data.containsKey('raw_json')) {
-      context.handle(_rawJsonMeta,
-          rawJson.isAcceptableOrUnknown(data['raw_json']!, _rawJsonMeta));
-    } else if (isInserting) {
-      context.missing(_rawJsonMeta);
-    }
-    if (data.containsKey('fetched_at')) {
-      context.handle(_fetchedAtMeta,
-          fetchedAt.isAcceptableOrUnknown(data['fetched_at']!, _fetchedAtMeta));
-    } else if (isInserting) {
-      context.missing(_fetchedAtMeta);
-    }
-    if (data.containsKey('valid_until')) {
-      context.handle(
-          _validUntilMeta,
-          validUntil.isAcceptableOrUnknown(
-              data['valid_until']!, _validUntilMeta));
-    } else if (isInserting) {
-      context.missing(_validUntilMeta);
+    if (data.containsKey('updated_at')) {
+      context.handle(_updatedAtMeta,
+          updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta));
     }
     return context;
   }
@@ -6133,193 +6654,119 @@ class $CachedDtrSchedulesTable extends CachedDtrSchedules
   @override
   Set<GeneratedColumn> get $primaryKey => {id};
   @override
-  CachedDtrSchedule map(Map<String, dynamic> data, {String? tablePrefix}) {
+  List<Set<GeneratedColumn>> get uniqueKeys => [
+        {userId, campaignId, cycle},
+      ];
+  @override
+  StampCard map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return CachedDtrSchedule(
+    return StampCard(
       id: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}id'])!,
       userId: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}user_id']),
-      status: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}status']),
-      startTime: attachedDatabase.typeMapping
-          .read(DriftSqlType.dateTime, data['${effectivePrefix}start_time'])!,
-      endTime: attachedDatabase.typeMapping
-          .read(DriftSqlType.dateTime, data['${effectivePrefix}end_time'])!,
-      storeId: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}store_id']),
-      storeCode: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}store_code']),
-      storeName: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}store_name']),
-      storeLatitude: attachedDatabase.typeMapping
-          .read(DriftSqlType.double, data['${effectivePrefix}store_latitude']),
-      storeLongitude: attachedDatabase.typeMapping
-          .read(DriftSqlType.double, data['${effectivePrefix}store_longitude']),
-      radiusMeters: attachedDatabase.typeMapping
-          .read(DriftSqlType.double, data['${effectivePrefix}radius_meters']),
-      lastLogType: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}last_log_type']),
-      lastLogAt: attachedDatabase.typeMapping
-          .read(DriftSqlType.dateTime, data['${effectivePrefix}last_log_at']),
-      isSegmentComplete: attachedDatabase.typeMapping.read(
-          DriftSqlType.bool, data['${effectivePrefix}is_segment_complete'])!,
-      rawJson: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}raw_json'])!,
-      fetchedAt: attachedDatabase.typeMapping
-          .read(DriftSqlType.dateTime, data['${effectivePrefix}fetched_at'])!,
-      validUntil: attachedDatabase.typeMapping
-          .read(DriftSqlType.dateTime, data['${effectivePrefix}valid_until'])!,
+          .read(DriftSqlType.string, data['${effectivePrefix}user_id'])!,
+      campaignId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}campaign_id'])!,
+      stampsCollected: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}stamps_collected'])!,
+      cycle: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}cycle'])!,
+      completedAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}completed_at']),
+      redeemedAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}redeemed_at']),
+      syncStatus: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}sync_status'])!,
+      createdAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}created_at'])!,
+      updatedAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}updated_at'])!,
     );
   }
 
   @override
-  $CachedDtrSchedulesTable createAlias(String alias) {
-    return $CachedDtrSchedulesTable(attachedDatabase, alias);
+  $StampCardsTable createAlias(String alias) {
+    return $StampCardsTable(attachedDatabase, alias);
   }
 }
 
-class CachedDtrSchedule extends DataClass
-    implements Insertable<CachedDtrSchedule> {
+class StampCard extends DataClass implements Insertable<StampCard> {
   final String id;
-  final String? userId;
-  final String? status;
-  final DateTime startTime;
-  final DateTime endTime;
-  final String? storeId;
-  final String? storeCode;
-  final String? storeName;
-  final double? storeLatitude;
-  final double? storeLongitude;
-  final double? radiusMeters;
-  final String? lastLogType;
-  final DateTime? lastLogAt;
-  final bool isSegmentComplete;
-  final String rawJson;
-  final DateTime fetchedAt;
-  final DateTime validUntil;
-  const CachedDtrSchedule(
+  final String userId;
+  final String campaignId;
+  final int stampsCollected;
+  final int cycle;
+
+  /// Set once the card fills up; cleared onto a fresh card after redemption.
+  final DateTime? completedAt;
+  final DateTime? redeemedAt;
+  final int syncStatus;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  const StampCard(
       {required this.id,
-      this.userId,
-      this.status,
-      required this.startTime,
-      required this.endTime,
-      this.storeId,
-      this.storeCode,
-      this.storeName,
-      this.storeLatitude,
-      this.storeLongitude,
-      this.radiusMeters,
-      this.lastLogType,
-      this.lastLogAt,
-      required this.isSegmentComplete,
-      required this.rawJson,
-      required this.fetchedAt,
-      required this.validUntil});
+      required this.userId,
+      required this.campaignId,
+      required this.stampsCollected,
+      required this.cycle,
+      this.completedAt,
+      this.redeemedAt,
+      required this.syncStatus,
+      required this.createdAt,
+      required this.updatedAt});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['id'] = Variable<String>(id);
-    if (!nullToAbsent || userId != null) {
-      map['user_id'] = Variable<String>(userId);
+    map['user_id'] = Variable<String>(userId);
+    map['campaign_id'] = Variable<String>(campaignId);
+    map['stamps_collected'] = Variable<int>(stampsCollected);
+    map['cycle'] = Variable<int>(cycle);
+    if (!nullToAbsent || completedAt != null) {
+      map['completed_at'] = Variable<DateTime>(completedAt);
     }
-    if (!nullToAbsent || status != null) {
-      map['status'] = Variable<String>(status);
+    if (!nullToAbsent || redeemedAt != null) {
+      map['redeemed_at'] = Variable<DateTime>(redeemedAt);
     }
-    map['start_time'] = Variable<DateTime>(startTime);
-    map['end_time'] = Variable<DateTime>(endTime);
-    if (!nullToAbsent || storeId != null) {
-      map['store_id'] = Variable<String>(storeId);
-    }
-    if (!nullToAbsent || storeCode != null) {
-      map['store_code'] = Variable<String>(storeCode);
-    }
-    if (!nullToAbsent || storeName != null) {
-      map['store_name'] = Variable<String>(storeName);
-    }
-    if (!nullToAbsent || storeLatitude != null) {
-      map['store_latitude'] = Variable<double>(storeLatitude);
-    }
-    if (!nullToAbsent || storeLongitude != null) {
-      map['store_longitude'] = Variable<double>(storeLongitude);
-    }
-    if (!nullToAbsent || radiusMeters != null) {
-      map['radius_meters'] = Variable<double>(radiusMeters);
-    }
-    if (!nullToAbsent || lastLogType != null) {
-      map['last_log_type'] = Variable<String>(lastLogType);
-    }
-    if (!nullToAbsent || lastLogAt != null) {
-      map['last_log_at'] = Variable<DateTime>(lastLogAt);
-    }
-    map['is_segment_complete'] = Variable<bool>(isSegmentComplete);
-    map['raw_json'] = Variable<String>(rawJson);
-    map['fetched_at'] = Variable<DateTime>(fetchedAt);
-    map['valid_until'] = Variable<DateTime>(validUntil);
+    map['sync_status'] = Variable<int>(syncStatus);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
     return map;
   }
 
-  CachedDtrSchedulesCompanion toCompanion(bool nullToAbsent) {
-    return CachedDtrSchedulesCompanion(
+  StampCardsCompanion toCompanion(bool nullToAbsent) {
+    return StampCardsCompanion(
       id: Value(id),
-      userId:
-          userId == null && nullToAbsent ? const Value.absent() : Value(userId),
-      status:
-          status == null && nullToAbsent ? const Value.absent() : Value(status),
-      startTime: Value(startTime),
-      endTime: Value(endTime),
-      storeId: storeId == null && nullToAbsent
+      userId: Value(userId),
+      campaignId: Value(campaignId),
+      stampsCollected: Value(stampsCollected),
+      cycle: Value(cycle),
+      completedAt: completedAt == null && nullToAbsent
           ? const Value.absent()
-          : Value(storeId),
-      storeCode: storeCode == null && nullToAbsent
+          : Value(completedAt),
+      redeemedAt: redeemedAt == null && nullToAbsent
           ? const Value.absent()
-          : Value(storeCode),
-      storeName: storeName == null && nullToAbsent
-          ? const Value.absent()
-          : Value(storeName),
-      storeLatitude: storeLatitude == null && nullToAbsent
-          ? const Value.absent()
-          : Value(storeLatitude),
-      storeLongitude: storeLongitude == null && nullToAbsent
-          ? const Value.absent()
-          : Value(storeLongitude),
-      radiusMeters: radiusMeters == null && nullToAbsent
-          ? const Value.absent()
-          : Value(radiusMeters),
-      lastLogType: lastLogType == null && nullToAbsent
-          ? const Value.absent()
-          : Value(lastLogType),
-      lastLogAt: lastLogAt == null && nullToAbsent
-          ? const Value.absent()
-          : Value(lastLogAt),
-      isSegmentComplete: Value(isSegmentComplete),
-      rawJson: Value(rawJson),
-      fetchedAt: Value(fetchedAt),
-      validUntil: Value(validUntil),
+          : Value(redeemedAt),
+      syncStatus: Value(syncStatus),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
     );
   }
 
-  factory CachedDtrSchedule.fromJson(Map<String, dynamic> json,
+  factory StampCard.fromJson(Map<String, dynamic> json,
       {ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
-    return CachedDtrSchedule(
+    return StampCard(
       id: serializer.fromJson<String>(json['id']),
-      userId: serializer.fromJson<String?>(json['userId']),
-      status: serializer.fromJson<String?>(json['status']),
-      startTime: serializer.fromJson<DateTime>(json['startTime']),
-      endTime: serializer.fromJson<DateTime>(json['endTime']),
-      storeId: serializer.fromJson<String?>(json['storeId']),
-      storeCode: serializer.fromJson<String?>(json['storeCode']),
-      storeName: serializer.fromJson<String?>(json['storeName']),
-      storeLatitude: serializer.fromJson<double?>(json['storeLatitude']),
-      storeLongitude: serializer.fromJson<double?>(json['storeLongitude']),
-      radiusMeters: serializer.fromJson<double?>(json['radiusMeters']),
-      lastLogType: serializer.fromJson<String?>(json['lastLogType']),
-      lastLogAt: serializer.fromJson<DateTime?>(json['lastLogAt']),
-      isSegmentComplete: serializer.fromJson<bool>(json['isSegmentComplete']),
-      rawJson: serializer.fromJson<String>(json['rawJson']),
-      fetchedAt: serializer.fromJson<DateTime>(json['fetchedAt']),
-      validUntil: serializer.fromJson<DateTime>(json['validUntil']),
+      userId: serializer.fromJson<String>(json['userId']),
+      campaignId: serializer.fromJson<String>(json['campaignId']),
+      stampsCollected: serializer.fromJson<int>(json['stampsCollected']),
+      cycle: serializer.fromJson<int>(json['cycle']),
+      completedAt: serializer.fromJson<DateTime?>(json['completedAt']),
+      redeemedAt: serializer.fromJson<DateTime?>(json['redeemedAt']),
+      syncStatus: serializer.fromJson<int>(json['syncStatus']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
     );
   }
   @override
@@ -6327,306 +6774,188 @@ class CachedDtrSchedule extends DataClass
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'id': serializer.toJson<String>(id),
-      'userId': serializer.toJson<String?>(userId),
-      'status': serializer.toJson<String?>(status),
-      'startTime': serializer.toJson<DateTime>(startTime),
-      'endTime': serializer.toJson<DateTime>(endTime),
-      'storeId': serializer.toJson<String?>(storeId),
-      'storeCode': serializer.toJson<String?>(storeCode),
-      'storeName': serializer.toJson<String?>(storeName),
-      'storeLatitude': serializer.toJson<double?>(storeLatitude),
-      'storeLongitude': serializer.toJson<double?>(storeLongitude),
-      'radiusMeters': serializer.toJson<double?>(radiusMeters),
-      'lastLogType': serializer.toJson<String?>(lastLogType),
-      'lastLogAt': serializer.toJson<DateTime?>(lastLogAt),
-      'isSegmentComplete': serializer.toJson<bool>(isSegmentComplete),
-      'rawJson': serializer.toJson<String>(rawJson),
-      'fetchedAt': serializer.toJson<DateTime>(fetchedAt),
-      'validUntil': serializer.toJson<DateTime>(validUntil),
+      'userId': serializer.toJson<String>(userId),
+      'campaignId': serializer.toJson<String>(campaignId),
+      'stampsCollected': serializer.toJson<int>(stampsCollected),
+      'cycle': serializer.toJson<int>(cycle),
+      'completedAt': serializer.toJson<DateTime?>(completedAt),
+      'redeemedAt': serializer.toJson<DateTime?>(redeemedAt),
+      'syncStatus': serializer.toJson<int>(syncStatus),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
     };
   }
 
-  CachedDtrSchedule copyWith(
+  StampCard copyWith(
           {String? id,
-          Value<String?> userId = const Value.absent(),
-          Value<String?> status = const Value.absent(),
-          DateTime? startTime,
-          DateTime? endTime,
-          Value<String?> storeId = const Value.absent(),
-          Value<String?> storeCode = const Value.absent(),
-          Value<String?> storeName = const Value.absent(),
-          Value<double?> storeLatitude = const Value.absent(),
-          Value<double?> storeLongitude = const Value.absent(),
-          Value<double?> radiusMeters = const Value.absent(),
-          Value<String?> lastLogType = const Value.absent(),
-          Value<DateTime?> lastLogAt = const Value.absent(),
-          bool? isSegmentComplete,
-          String? rawJson,
-          DateTime? fetchedAt,
-          DateTime? validUntil}) =>
-      CachedDtrSchedule(
+          String? userId,
+          String? campaignId,
+          int? stampsCollected,
+          int? cycle,
+          Value<DateTime?> completedAt = const Value.absent(),
+          Value<DateTime?> redeemedAt = const Value.absent(),
+          int? syncStatus,
+          DateTime? createdAt,
+          DateTime? updatedAt}) =>
+      StampCard(
         id: id ?? this.id,
-        userId: userId.present ? userId.value : this.userId,
-        status: status.present ? status.value : this.status,
-        startTime: startTime ?? this.startTime,
-        endTime: endTime ?? this.endTime,
-        storeId: storeId.present ? storeId.value : this.storeId,
-        storeCode: storeCode.present ? storeCode.value : this.storeCode,
-        storeName: storeName.present ? storeName.value : this.storeName,
-        storeLatitude:
-            storeLatitude.present ? storeLatitude.value : this.storeLatitude,
-        storeLongitude:
-            storeLongitude.present ? storeLongitude.value : this.storeLongitude,
-        radiusMeters:
-            radiusMeters.present ? radiusMeters.value : this.radiusMeters,
-        lastLogType: lastLogType.present ? lastLogType.value : this.lastLogType,
-        lastLogAt: lastLogAt.present ? lastLogAt.value : this.lastLogAt,
-        isSegmentComplete: isSegmentComplete ?? this.isSegmentComplete,
-        rawJson: rawJson ?? this.rawJson,
-        fetchedAt: fetchedAt ?? this.fetchedAt,
-        validUntil: validUntil ?? this.validUntil,
+        userId: userId ?? this.userId,
+        campaignId: campaignId ?? this.campaignId,
+        stampsCollected: stampsCollected ?? this.stampsCollected,
+        cycle: cycle ?? this.cycle,
+        completedAt: completedAt.present ? completedAt.value : this.completedAt,
+        redeemedAt: redeemedAt.present ? redeemedAt.value : this.redeemedAt,
+        syncStatus: syncStatus ?? this.syncStatus,
+        createdAt: createdAt ?? this.createdAt,
+        updatedAt: updatedAt ?? this.updatedAt,
       );
-  CachedDtrSchedule copyWithCompanion(CachedDtrSchedulesCompanion data) {
-    return CachedDtrSchedule(
+  StampCard copyWithCompanion(StampCardsCompanion data) {
+    return StampCard(
       id: data.id.present ? data.id.value : this.id,
       userId: data.userId.present ? data.userId.value : this.userId,
-      status: data.status.present ? data.status.value : this.status,
-      startTime: data.startTime.present ? data.startTime.value : this.startTime,
-      endTime: data.endTime.present ? data.endTime.value : this.endTime,
-      storeId: data.storeId.present ? data.storeId.value : this.storeId,
-      storeCode: data.storeCode.present ? data.storeCode.value : this.storeCode,
-      storeName: data.storeName.present ? data.storeName.value : this.storeName,
-      storeLatitude: data.storeLatitude.present
-          ? data.storeLatitude.value
-          : this.storeLatitude,
-      storeLongitude: data.storeLongitude.present
-          ? data.storeLongitude.value
-          : this.storeLongitude,
-      radiusMeters: data.radiusMeters.present
-          ? data.radiusMeters.value
-          : this.radiusMeters,
-      lastLogType:
-          data.lastLogType.present ? data.lastLogType.value : this.lastLogType,
-      lastLogAt: data.lastLogAt.present ? data.lastLogAt.value : this.lastLogAt,
-      isSegmentComplete: data.isSegmentComplete.present
-          ? data.isSegmentComplete.value
-          : this.isSegmentComplete,
-      rawJson: data.rawJson.present ? data.rawJson.value : this.rawJson,
-      fetchedAt: data.fetchedAt.present ? data.fetchedAt.value : this.fetchedAt,
-      validUntil:
-          data.validUntil.present ? data.validUntil.value : this.validUntil,
+      campaignId:
+          data.campaignId.present ? data.campaignId.value : this.campaignId,
+      stampsCollected: data.stampsCollected.present
+          ? data.stampsCollected.value
+          : this.stampsCollected,
+      cycle: data.cycle.present ? data.cycle.value : this.cycle,
+      completedAt:
+          data.completedAt.present ? data.completedAt.value : this.completedAt,
+      redeemedAt:
+          data.redeemedAt.present ? data.redeemedAt.value : this.redeemedAt,
+      syncStatus:
+          data.syncStatus.present ? data.syncStatus.value : this.syncStatus,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
     );
   }
 
   @override
   String toString() {
-    return (StringBuffer('CachedDtrSchedule(')
+    return (StringBuffer('StampCard(')
           ..write('id: $id, ')
           ..write('userId: $userId, ')
-          ..write('status: $status, ')
-          ..write('startTime: $startTime, ')
-          ..write('endTime: $endTime, ')
-          ..write('storeId: $storeId, ')
-          ..write('storeCode: $storeCode, ')
-          ..write('storeName: $storeName, ')
-          ..write('storeLatitude: $storeLatitude, ')
-          ..write('storeLongitude: $storeLongitude, ')
-          ..write('radiusMeters: $radiusMeters, ')
-          ..write('lastLogType: $lastLogType, ')
-          ..write('lastLogAt: $lastLogAt, ')
-          ..write('isSegmentComplete: $isSegmentComplete, ')
-          ..write('rawJson: $rawJson, ')
-          ..write('fetchedAt: $fetchedAt, ')
-          ..write('validUntil: $validUntil')
+          ..write('campaignId: $campaignId, ')
+          ..write('stampsCollected: $stampsCollected, ')
+          ..write('cycle: $cycle, ')
+          ..write('completedAt: $completedAt, ')
+          ..write('redeemedAt: $redeemedAt, ')
+          ..write('syncStatus: $syncStatus, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(
-      id,
-      userId,
-      status,
-      startTime,
-      endTime,
-      storeId,
-      storeCode,
-      storeName,
-      storeLatitude,
-      storeLongitude,
-      radiusMeters,
-      lastLogType,
-      lastLogAt,
-      isSegmentComplete,
-      rawJson,
-      fetchedAt,
-      validUntil);
+  int get hashCode => Object.hash(id, userId, campaignId, stampsCollected,
+      cycle, completedAt, redeemedAt, syncStatus, createdAt, updatedAt);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      (other is CachedDtrSchedule &&
+      (other is StampCard &&
           other.id == this.id &&
           other.userId == this.userId &&
-          other.status == this.status &&
-          other.startTime == this.startTime &&
-          other.endTime == this.endTime &&
-          other.storeId == this.storeId &&
-          other.storeCode == this.storeCode &&
-          other.storeName == this.storeName &&
-          other.storeLatitude == this.storeLatitude &&
-          other.storeLongitude == this.storeLongitude &&
-          other.radiusMeters == this.radiusMeters &&
-          other.lastLogType == this.lastLogType &&
-          other.lastLogAt == this.lastLogAt &&
-          other.isSegmentComplete == this.isSegmentComplete &&
-          other.rawJson == this.rawJson &&
-          other.fetchedAt == this.fetchedAt &&
-          other.validUntil == this.validUntil);
+          other.campaignId == this.campaignId &&
+          other.stampsCollected == this.stampsCollected &&
+          other.cycle == this.cycle &&
+          other.completedAt == this.completedAt &&
+          other.redeemedAt == this.redeemedAt &&
+          other.syncStatus == this.syncStatus &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt);
 }
 
-class CachedDtrSchedulesCompanion extends UpdateCompanion<CachedDtrSchedule> {
+class StampCardsCompanion extends UpdateCompanion<StampCard> {
   final Value<String> id;
-  final Value<String?> userId;
-  final Value<String?> status;
-  final Value<DateTime> startTime;
-  final Value<DateTime> endTime;
-  final Value<String?> storeId;
-  final Value<String?> storeCode;
-  final Value<String?> storeName;
-  final Value<double?> storeLatitude;
-  final Value<double?> storeLongitude;
-  final Value<double?> radiusMeters;
-  final Value<String?> lastLogType;
-  final Value<DateTime?> lastLogAt;
-  final Value<bool> isSegmentComplete;
-  final Value<String> rawJson;
-  final Value<DateTime> fetchedAt;
-  final Value<DateTime> validUntil;
+  final Value<String> userId;
+  final Value<String> campaignId;
+  final Value<int> stampsCollected;
+  final Value<int> cycle;
+  final Value<DateTime?> completedAt;
+  final Value<DateTime?> redeemedAt;
+  final Value<int> syncStatus;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
   final Value<int> rowid;
-  const CachedDtrSchedulesCompanion({
+  const StampCardsCompanion({
     this.id = const Value.absent(),
     this.userId = const Value.absent(),
-    this.status = const Value.absent(),
-    this.startTime = const Value.absent(),
-    this.endTime = const Value.absent(),
-    this.storeId = const Value.absent(),
-    this.storeCode = const Value.absent(),
-    this.storeName = const Value.absent(),
-    this.storeLatitude = const Value.absent(),
-    this.storeLongitude = const Value.absent(),
-    this.radiusMeters = const Value.absent(),
-    this.lastLogType = const Value.absent(),
-    this.lastLogAt = const Value.absent(),
-    this.isSegmentComplete = const Value.absent(),
-    this.rawJson = const Value.absent(),
-    this.fetchedAt = const Value.absent(),
-    this.validUntil = const Value.absent(),
+    this.campaignId = const Value.absent(),
+    this.stampsCollected = const Value.absent(),
+    this.cycle = const Value.absent(),
+    this.completedAt = const Value.absent(),
+    this.redeemedAt = const Value.absent(),
+    this.syncStatus = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
     this.rowid = const Value.absent(),
   });
-  CachedDtrSchedulesCompanion.insert({
-    required String id,
-    this.userId = const Value.absent(),
-    this.status = const Value.absent(),
-    required DateTime startTime,
-    required DateTime endTime,
-    this.storeId = const Value.absent(),
-    this.storeCode = const Value.absent(),
-    this.storeName = const Value.absent(),
-    this.storeLatitude = const Value.absent(),
-    this.storeLongitude = const Value.absent(),
-    this.radiusMeters = const Value.absent(),
-    this.lastLogType = const Value.absent(),
-    this.lastLogAt = const Value.absent(),
-    this.isSegmentComplete = const Value.absent(),
-    required String rawJson,
-    required DateTime fetchedAt,
-    required DateTime validUntil,
+  StampCardsCompanion.insert({
+    this.id = const Value.absent(),
+    required String userId,
+    required String campaignId,
+    this.stampsCollected = const Value.absent(),
+    this.cycle = const Value.absent(),
+    this.completedAt = const Value.absent(),
+    this.redeemedAt = const Value.absent(),
+    this.syncStatus = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
     this.rowid = const Value.absent(),
-  })  : id = Value(id),
-        startTime = Value(startTime),
-        endTime = Value(endTime),
-        rawJson = Value(rawJson),
-        fetchedAt = Value(fetchedAt),
-        validUntil = Value(validUntil);
-  static Insertable<CachedDtrSchedule> custom({
+  })  : userId = Value(userId),
+        campaignId = Value(campaignId);
+  static Insertable<StampCard> custom({
     Expression<String>? id,
     Expression<String>? userId,
-    Expression<String>? status,
-    Expression<DateTime>? startTime,
-    Expression<DateTime>? endTime,
-    Expression<String>? storeId,
-    Expression<String>? storeCode,
-    Expression<String>? storeName,
-    Expression<double>? storeLatitude,
-    Expression<double>? storeLongitude,
-    Expression<double>? radiusMeters,
-    Expression<String>? lastLogType,
-    Expression<DateTime>? lastLogAt,
-    Expression<bool>? isSegmentComplete,
-    Expression<String>? rawJson,
-    Expression<DateTime>? fetchedAt,
-    Expression<DateTime>? validUntil,
+    Expression<String>? campaignId,
+    Expression<int>? stampsCollected,
+    Expression<int>? cycle,
+    Expression<DateTime>? completedAt,
+    Expression<DateTime>? redeemedAt,
+    Expression<int>? syncStatus,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (userId != null) 'user_id': userId,
-      if (status != null) 'status': status,
-      if (startTime != null) 'start_time': startTime,
-      if (endTime != null) 'end_time': endTime,
-      if (storeId != null) 'store_id': storeId,
-      if (storeCode != null) 'store_code': storeCode,
-      if (storeName != null) 'store_name': storeName,
-      if (storeLatitude != null) 'store_latitude': storeLatitude,
-      if (storeLongitude != null) 'store_longitude': storeLongitude,
-      if (radiusMeters != null) 'radius_meters': radiusMeters,
-      if (lastLogType != null) 'last_log_type': lastLogType,
-      if (lastLogAt != null) 'last_log_at': lastLogAt,
-      if (isSegmentComplete != null) 'is_segment_complete': isSegmentComplete,
-      if (rawJson != null) 'raw_json': rawJson,
-      if (fetchedAt != null) 'fetched_at': fetchedAt,
-      if (validUntil != null) 'valid_until': validUntil,
+      if (campaignId != null) 'campaign_id': campaignId,
+      if (stampsCollected != null) 'stamps_collected': stampsCollected,
+      if (cycle != null) 'cycle': cycle,
+      if (completedAt != null) 'completed_at': completedAt,
+      if (redeemedAt != null) 'redeemed_at': redeemedAt,
+      if (syncStatus != null) 'sync_status': syncStatus,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
       if (rowid != null) 'rowid': rowid,
     });
   }
 
-  CachedDtrSchedulesCompanion copyWith(
+  StampCardsCompanion copyWith(
       {Value<String>? id,
-      Value<String?>? userId,
-      Value<String?>? status,
-      Value<DateTime>? startTime,
-      Value<DateTime>? endTime,
-      Value<String?>? storeId,
-      Value<String?>? storeCode,
-      Value<String?>? storeName,
-      Value<double?>? storeLatitude,
-      Value<double?>? storeLongitude,
-      Value<double?>? radiusMeters,
-      Value<String?>? lastLogType,
-      Value<DateTime?>? lastLogAt,
-      Value<bool>? isSegmentComplete,
-      Value<String>? rawJson,
-      Value<DateTime>? fetchedAt,
-      Value<DateTime>? validUntil,
+      Value<String>? userId,
+      Value<String>? campaignId,
+      Value<int>? stampsCollected,
+      Value<int>? cycle,
+      Value<DateTime?>? completedAt,
+      Value<DateTime?>? redeemedAt,
+      Value<int>? syncStatus,
+      Value<DateTime>? createdAt,
+      Value<DateTime>? updatedAt,
       Value<int>? rowid}) {
-    return CachedDtrSchedulesCompanion(
+    return StampCardsCompanion(
       id: id ?? this.id,
       userId: userId ?? this.userId,
-      status: status ?? this.status,
-      startTime: startTime ?? this.startTime,
-      endTime: endTime ?? this.endTime,
-      storeId: storeId ?? this.storeId,
-      storeCode: storeCode ?? this.storeCode,
-      storeName: storeName ?? this.storeName,
-      storeLatitude: storeLatitude ?? this.storeLatitude,
-      storeLongitude: storeLongitude ?? this.storeLongitude,
-      radiusMeters: radiusMeters ?? this.radiusMeters,
-      lastLogType: lastLogType ?? this.lastLogType,
-      lastLogAt: lastLogAt ?? this.lastLogAt,
-      isSegmentComplete: isSegmentComplete ?? this.isSegmentComplete,
-      rawJson: rawJson ?? this.rawJson,
-      fetchedAt: fetchedAt ?? this.fetchedAt,
-      validUntil: validUntil ?? this.validUntil,
+      campaignId: campaignId ?? this.campaignId,
+      stampsCollected: stampsCollected ?? this.stampsCollected,
+      cycle: cycle ?? this.cycle,
+      completedAt: completedAt ?? this.completedAt,
+      redeemedAt: redeemedAt ?? this.redeemedAt,
+      syncStatus: syncStatus ?? this.syncStatus,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -6640,50 +6969,29 @@ class CachedDtrSchedulesCompanion extends UpdateCompanion<CachedDtrSchedule> {
     if (userId.present) {
       map['user_id'] = Variable<String>(userId.value);
     }
-    if (status.present) {
-      map['status'] = Variable<String>(status.value);
+    if (campaignId.present) {
+      map['campaign_id'] = Variable<String>(campaignId.value);
     }
-    if (startTime.present) {
-      map['start_time'] = Variable<DateTime>(startTime.value);
+    if (stampsCollected.present) {
+      map['stamps_collected'] = Variable<int>(stampsCollected.value);
     }
-    if (endTime.present) {
-      map['end_time'] = Variable<DateTime>(endTime.value);
+    if (cycle.present) {
+      map['cycle'] = Variable<int>(cycle.value);
     }
-    if (storeId.present) {
-      map['store_id'] = Variable<String>(storeId.value);
+    if (completedAt.present) {
+      map['completed_at'] = Variable<DateTime>(completedAt.value);
     }
-    if (storeCode.present) {
-      map['store_code'] = Variable<String>(storeCode.value);
+    if (redeemedAt.present) {
+      map['redeemed_at'] = Variable<DateTime>(redeemedAt.value);
     }
-    if (storeName.present) {
-      map['store_name'] = Variable<String>(storeName.value);
+    if (syncStatus.present) {
+      map['sync_status'] = Variable<int>(syncStatus.value);
     }
-    if (storeLatitude.present) {
-      map['store_latitude'] = Variable<double>(storeLatitude.value);
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
     }
-    if (storeLongitude.present) {
-      map['store_longitude'] = Variable<double>(storeLongitude.value);
-    }
-    if (radiusMeters.present) {
-      map['radius_meters'] = Variable<double>(radiusMeters.value);
-    }
-    if (lastLogType.present) {
-      map['last_log_type'] = Variable<String>(lastLogType.value);
-    }
-    if (lastLogAt.present) {
-      map['last_log_at'] = Variable<DateTime>(lastLogAt.value);
-    }
-    if (isSegmentComplete.present) {
-      map['is_segment_complete'] = Variable<bool>(isSegmentComplete.value);
-    }
-    if (rawJson.present) {
-      map['raw_json'] = Variable<String>(rawJson.value);
-    }
-    if (fetchedAt.present) {
-      map['fetched_at'] = Variable<DateTime>(fetchedAt.value);
-    }
-    if (validUntil.present) {
-      map['valid_until'] = Variable<DateTime>(validUntil.value);
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
     }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
@@ -6693,94 +7001,245 @@ class CachedDtrSchedulesCompanion extends UpdateCompanion<CachedDtrSchedule> {
 
   @override
   String toString() {
-    return (StringBuffer('CachedDtrSchedulesCompanion(')
+    return (StringBuffer('StampCardsCompanion(')
           ..write('id: $id, ')
           ..write('userId: $userId, ')
-          ..write('status: $status, ')
-          ..write('startTime: $startTime, ')
-          ..write('endTime: $endTime, ')
-          ..write('storeId: $storeId, ')
-          ..write('storeCode: $storeCode, ')
-          ..write('storeName: $storeName, ')
-          ..write('storeLatitude: $storeLatitude, ')
-          ..write('storeLongitude: $storeLongitude, ')
-          ..write('radiusMeters: $radiusMeters, ')
-          ..write('lastLogType: $lastLogType, ')
-          ..write('lastLogAt: $lastLogAt, ')
-          ..write('isSegmentComplete: $isSegmentComplete, ')
-          ..write('rawJson: $rawJson, ')
-          ..write('fetchedAt: $fetchedAt, ')
-          ..write('validUntil: $validUntil, ')
+          ..write('campaignId: $campaignId, ')
+          ..write('stampsCollected: $stampsCollected, ')
+          ..write('cycle: $cycle, ')
+          ..write('completedAt: $completedAt, ')
+          ..write('redeemedAt: $redeemedAt, ')
+          ..write('syncStatus: $syncStatus, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
   }
 }
 
-class $CachedAttendanceLogsTable extends CachedAttendanceLogs
-    with TableInfo<$CachedAttendanceLogsTable, CachedAttendanceLog> {
+class $LoyaltyTransactionsTable extends LoyaltyTransactions
+    with TableInfo<$LoyaltyTransactionsTable, LoyaltyTransaction> {
   @override
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
-  $CachedAttendanceLogsTable(this.attachedDatabase, [this._alias]);
+  $LoyaltyTransactionsTable(this.attachedDatabase, [this._alias]);
   static const VerificationMeta _idMeta = const VerificationMeta('id');
   @override
   late final GeneratedColumn<String> id = GeneratedColumn<String>(
       'id', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _logTimeMeta =
-      const VerificationMeta('logTime');
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      clientDefault: () => const Uuid().v4());
+  static const VerificationMeta _referenceMeta =
+      const VerificationMeta('reference');
   @override
-  late final GeneratedColumn<DateTime> logTime = GeneratedColumn<DateTime>(
-      'log_time', aliasedName, false,
-      type: DriftSqlType.dateTime, requiredDuringInsert: true);
-  static const VerificationMeta _rawJsonMeta =
-      const VerificationMeta('rawJson');
+  late final GeneratedColumn<String> reference = GeneratedColumn<String>(
+      'reference', aliasedName, false,
+      additionalChecks: GeneratedColumn.checkTextLength(maxTextLength: 40),
+      type: DriftSqlType.string,
+      requiredDuringInsert: true);
+  static const VerificationMeta _userIdMeta = const VerificationMeta('userId');
   @override
-  late final GeneratedColumn<String> rawJson = GeneratedColumn<String>(
-      'raw_json', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _fetchedAtMeta =
-      const VerificationMeta('fetchedAt');
+  late final GeneratedColumn<String> userId = GeneratedColumn<String>(
+      'user_id', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: true,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('REFERENCES users (id)'));
+  static const VerificationMeta _campaignIdMeta =
+      const VerificationMeta('campaignId');
   @override
-  late final GeneratedColumn<DateTime> fetchedAt = GeneratedColumn<DateTime>(
-      'fetched_at', aliasedName, false,
-      type: DriftSqlType.dateTime, requiredDuringInsert: true);
+  late final GeneratedColumn<String> campaignId = GeneratedColumn<String>(
+      'campaign_id', aliasedName, true,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('REFERENCES campaigns (id)'));
+  static const VerificationMeta _stampCardIdMeta =
+      const VerificationMeta('stampCardId');
   @override
-  List<GeneratedColumn> get $columns => [id, logTime, rawJson, fetchedAt];
+  late final GeneratedColumn<String> stampCardId = GeneratedColumn<String>(
+      'stamp_card_id', aliasedName, true,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('REFERENCES stamp_cards (id)'));
+  static const VerificationMeta _productIdMeta =
+      const VerificationMeta('productId');
+  @override
+  late final GeneratedColumn<String> productId = GeneratedColumn<String>(
+      'product_id', aliasedName, true,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('REFERENCES products (id)'));
+  static const VerificationMeta _typeMeta = const VerificationMeta('type');
+  @override
+  late final GeneratedColumn<String> type = GeneratedColumn<String>(
+      'type', aliasedName, false,
+      additionalChecks: GeneratedColumn.checkTextLength(maxTextLength: 12),
+      type: DriftSqlType.string,
+      requiredDuringInsert: true);
+  static const VerificationMeta _pointsMeta = const VerificationMeta('points');
+  @override
+  late final GeneratedColumn<int> points = GeneratedColumn<int>(
+      'points', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultValue: const Constant(1));
+  static const VerificationMeta _productNameMeta =
+      const VerificationMeta('productName');
+  @override
+  late final GeneratedColumn<String> productName = GeneratedColumn<String>(
+      'product_name', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _storeNameMeta =
+      const VerificationMeta('storeName');
+  @override
+  late final GeneratedColumn<String> storeName = GeneratedColumn<String>(
+      'store_name', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _scanTokenMeta =
+      const VerificationMeta('scanToken');
+  @override
+  late final GeneratedColumn<String> scanToken = GeneratedColumn<String>(
+      'scan_token', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _occurredAtMeta =
+      const VerificationMeta('occurredAt');
+  @override
+  late final GeneratedColumn<DateTime> occurredAt = GeneratedColumn<DateTime>(
+      'occurred_at', aliasedName, false,
+      type: DriftSqlType.dateTime,
+      requiredDuringInsert: false,
+      defaultValue: currentDateAndTime);
+  static const VerificationMeta _syncStatusMeta =
+      const VerificationMeta('syncStatus');
+  @override
+  late final GeneratedColumn<int> syncStatus = GeneratedColumn<int>(
+      'sync_status', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultValue: const Constant(loyaltySyncPending));
+  static const VerificationMeta _createdAtMeta =
+      const VerificationMeta('createdAt');
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+      'created_at', aliasedName, false,
+      type: DriftSqlType.dateTime,
+      requiredDuringInsert: false,
+      defaultValue: currentDateAndTime);
+  static const VerificationMeta _updatedAtMeta =
+      const VerificationMeta('updatedAt');
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+      'updated_at', aliasedName, false,
+      type: DriftSqlType.dateTime,
+      requiredDuringInsert: false,
+      defaultValue: currentDateAndTime);
+  @override
+  List<GeneratedColumn> get $columns => [
+        id,
+        reference,
+        userId,
+        campaignId,
+        stampCardId,
+        productId,
+        type,
+        points,
+        productName,
+        storeName,
+        scanToken,
+        occurredAt,
+        syncStatus,
+        createdAt,
+        updatedAt
+      ];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
   String get actualTableName => $name;
-  static const String $name = 'cached_attendance_logs';
+  static const String $name = 'loyalty_transactions';
   @override
-  VerificationContext validateIntegrity(
-      Insertable<CachedAttendanceLog> instance,
+  VerificationContext validateIntegrity(Insertable<LoyaltyTransaction> instance,
       {bool isInserting = false}) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
     if (data.containsKey('id')) {
       context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
-    } else if (isInserting) {
-      context.missing(_idMeta);
     }
-    if (data.containsKey('log_time')) {
-      context.handle(_logTimeMeta,
-          logTime.isAcceptableOrUnknown(data['log_time']!, _logTimeMeta));
+    if (data.containsKey('reference')) {
+      context.handle(_referenceMeta,
+          reference.isAcceptableOrUnknown(data['reference']!, _referenceMeta));
     } else if (isInserting) {
-      context.missing(_logTimeMeta);
+      context.missing(_referenceMeta);
     }
-    if (data.containsKey('raw_json')) {
-      context.handle(_rawJsonMeta,
-          rawJson.isAcceptableOrUnknown(data['raw_json']!, _rawJsonMeta));
+    if (data.containsKey('user_id')) {
+      context.handle(_userIdMeta,
+          userId.isAcceptableOrUnknown(data['user_id']!, _userIdMeta));
     } else if (isInserting) {
-      context.missing(_rawJsonMeta);
+      context.missing(_userIdMeta);
     }
-    if (data.containsKey('fetched_at')) {
-      context.handle(_fetchedAtMeta,
-          fetchedAt.isAcceptableOrUnknown(data['fetched_at']!, _fetchedAtMeta));
+    if (data.containsKey('campaign_id')) {
+      context.handle(
+          _campaignIdMeta,
+          campaignId.isAcceptableOrUnknown(
+              data['campaign_id']!, _campaignIdMeta));
+    }
+    if (data.containsKey('stamp_card_id')) {
+      context.handle(
+          _stampCardIdMeta,
+          stampCardId.isAcceptableOrUnknown(
+              data['stamp_card_id']!, _stampCardIdMeta));
+    }
+    if (data.containsKey('product_id')) {
+      context.handle(_productIdMeta,
+          productId.isAcceptableOrUnknown(data['product_id']!, _productIdMeta));
+    }
+    if (data.containsKey('type')) {
+      context.handle(
+          _typeMeta, type.isAcceptableOrUnknown(data['type']!, _typeMeta));
     } else if (isInserting) {
-      context.missing(_fetchedAtMeta);
+      context.missing(_typeMeta);
+    }
+    if (data.containsKey('points')) {
+      context.handle(_pointsMeta,
+          points.isAcceptableOrUnknown(data['points']!, _pointsMeta));
+    }
+    if (data.containsKey('product_name')) {
+      context.handle(
+          _productNameMeta,
+          productName.isAcceptableOrUnknown(
+              data['product_name']!, _productNameMeta));
+    }
+    if (data.containsKey('store_name')) {
+      context.handle(_storeNameMeta,
+          storeName.isAcceptableOrUnknown(data['store_name']!, _storeNameMeta));
+    }
+    if (data.containsKey('scan_token')) {
+      context.handle(_scanTokenMeta,
+          scanToken.isAcceptableOrUnknown(data['scan_token']!, _scanTokenMeta));
+    }
+    if (data.containsKey('occurred_at')) {
+      context.handle(
+          _occurredAtMeta,
+          occurredAt.isAcceptableOrUnknown(
+              data['occurred_at']!, _occurredAtMeta));
+    }
+    if (data.containsKey('sync_status')) {
+      context.handle(
+          _syncStatusMeta,
+          syncStatus.isAcceptableOrUnknown(
+              data['sync_status']!, _syncStatusMeta));
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(_createdAtMeta,
+          createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta));
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(_updatedAtMeta,
+          updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta));
     }
     return context;
   }
@@ -6788,64 +7247,179 @@ class $CachedAttendanceLogsTable extends CachedAttendanceLogs
   @override
   Set<GeneratedColumn> get $primaryKey => {id};
   @override
-  CachedAttendanceLog map(Map<String, dynamic> data, {String? tablePrefix}) {
+  List<Set<GeneratedColumn>> get uniqueKeys => [
+        {reference},
+        {scanToken},
+      ];
+  @override
+  LoyaltyTransaction map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return CachedAttendanceLog(
+    return LoyaltyTransaction(
       id: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}id'])!,
-      logTime: attachedDatabase.typeMapping
-          .read(DriftSqlType.dateTime, data['${effectivePrefix}log_time'])!,
-      rawJson: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}raw_json'])!,
-      fetchedAt: attachedDatabase.typeMapping
-          .read(DriftSqlType.dateTime, data['${effectivePrefix}fetched_at'])!,
+      reference: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}reference'])!,
+      userId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}user_id'])!,
+      campaignId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}campaign_id']),
+      stampCardId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}stamp_card_id']),
+      productId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}product_id']),
+      type: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}type'])!,
+      points: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}points'])!,
+      productName: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}product_name']),
+      storeName: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}store_name']),
+      scanToken: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}scan_token']),
+      occurredAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}occurred_at'])!,
+      syncStatus: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}sync_status'])!,
+      createdAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}created_at'])!,
+      updatedAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}updated_at'])!,
     );
   }
 
   @override
-  $CachedAttendanceLogsTable createAlias(String alias) {
-    return $CachedAttendanceLogsTable(attachedDatabase, alias);
+  $LoyaltyTransactionsTable createAlias(String alias) {
+    return $LoyaltyTransactionsTable(attachedDatabase, alias);
   }
 }
 
-class CachedAttendanceLog extends DataClass
-    implements Insertable<CachedAttendanceLog> {
+class LoyaltyTransaction extends DataClass
+    implements Insertable<LoyaltyTransaction> {
   final String id;
-  final DateTime logTime;
-  final String rawJson;
-  final DateTime fetchedAt;
-  const CachedAttendanceLog(
+
+  /// Human-facing reference shown in the ledger (e.g. TXN-8821).
+  final String reference;
+  final String userId;
+  final String? campaignId;
+  final String? stampCardId;
+  final String? productId;
+
+  /// 'earn' or 'redeem' — see [txnEarn] / [txnRedeem].
+  final String type;
+
+  /// Positive for earn, negative for redeem.
+  final int points;
+  final String? productName;
+  final String? storeName;
+
+  /// The one-time token this transaction was claimed with — the uniqueness
+  /// constraint is what makes a scanned QR code non-replayable.
+  final String? scanToken;
+  final DateTime occurredAt;
+  final int syncStatus;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  const LoyaltyTransaction(
       {required this.id,
-      required this.logTime,
-      required this.rawJson,
-      required this.fetchedAt});
+      required this.reference,
+      required this.userId,
+      this.campaignId,
+      this.stampCardId,
+      this.productId,
+      required this.type,
+      required this.points,
+      this.productName,
+      this.storeName,
+      this.scanToken,
+      required this.occurredAt,
+      required this.syncStatus,
+      required this.createdAt,
+      required this.updatedAt});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['id'] = Variable<String>(id);
-    map['log_time'] = Variable<DateTime>(logTime);
-    map['raw_json'] = Variable<String>(rawJson);
-    map['fetched_at'] = Variable<DateTime>(fetchedAt);
+    map['reference'] = Variable<String>(reference);
+    map['user_id'] = Variable<String>(userId);
+    if (!nullToAbsent || campaignId != null) {
+      map['campaign_id'] = Variable<String>(campaignId);
+    }
+    if (!nullToAbsent || stampCardId != null) {
+      map['stamp_card_id'] = Variable<String>(stampCardId);
+    }
+    if (!nullToAbsent || productId != null) {
+      map['product_id'] = Variable<String>(productId);
+    }
+    map['type'] = Variable<String>(type);
+    map['points'] = Variable<int>(points);
+    if (!nullToAbsent || productName != null) {
+      map['product_name'] = Variable<String>(productName);
+    }
+    if (!nullToAbsent || storeName != null) {
+      map['store_name'] = Variable<String>(storeName);
+    }
+    if (!nullToAbsent || scanToken != null) {
+      map['scan_token'] = Variable<String>(scanToken);
+    }
+    map['occurred_at'] = Variable<DateTime>(occurredAt);
+    map['sync_status'] = Variable<int>(syncStatus);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
     return map;
   }
 
-  CachedAttendanceLogsCompanion toCompanion(bool nullToAbsent) {
-    return CachedAttendanceLogsCompanion(
+  LoyaltyTransactionsCompanion toCompanion(bool nullToAbsent) {
+    return LoyaltyTransactionsCompanion(
       id: Value(id),
-      logTime: Value(logTime),
-      rawJson: Value(rawJson),
-      fetchedAt: Value(fetchedAt),
+      reference: Value(reference),
+      userId: Value(userId),
+      campaignId: campaignId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(campaignId),
+      stampCardId: stampCardId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(stampCardId),
+      productId: productId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(productId),
+      type: Value(type),
+      points: Value(points),
+      productName: productName == null && nullToAbsent
+          ? const Value.absent()
+          : Value(productName),
+      storeName: storeName == null && nullToAbsent
+          ? const Value.absent()
+          : Value(storeName),
+      scanToken: scanToken == null && nullToAbsent
+          ? const Value.absent()
+          : Value(scanToken),
+      occurredAt: Value(occurredAt),
+      syncStatus: Value(syncStatus),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
     );
   }
 
-  factory CachedAttendanceLog.fromJson(Map<String, dynamic> json,
+  factory LoyaltyTransaction.fromJson(Map<String, dynamic> json,
       {ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
-    return CachedAttendanceLog(
+    return LoyaltyTransaction(
       id: serializer.fromJson<String>(json['id']),
-      logTime: serializer.fromJson<DateTime>(json['logTime']),
-      rawJson: serializer.fromJson<String>(json['rawJson']),
-      fetchedAt: serializer.fromJson<DateTime>(json['fetchedAt']),
+      reference: serializer.fromJson<String>(json['reference']),
+      userId: serializer.fromJson<String>(json['userId']),
+      campaignId: serializer.fromJson<String?>(json['campaignId']),
+      stampCardId: serializer.fromJson<String?>(json['stampCardId']),
+      productId: serializer.fromJson<String?>(json['productId']),
+      type: serializer.fromJson<String>(json['type']),
+      points: serializer.fromJson<int>(json['points']),
+      productName: serializer.fromJson<String?>(json['productName']),
+      storeName: serializer.fromJson<String?>(json['storeName']),
+      scanToken: serializer.fromJson<String?>(json['scanToken']),
+      occurredAt: serializer.fromJson<DateTime>(json['occurredAt']),
+      syncStatus: serializer.fromJson<int>(json['syncStatus']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
     );
   }
   @override
@@ -6853,106 +7427,267 @@ class CachedAttendanceLog extends DataClass
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'id': serializer.toJson<String>(id),
-      'logTime': serializer.toJson<DateTime>(logTime),
-      'rawJson': serializer.toJson<String>(rawJson),
-      'fetchedAt': serializer.toJson<DateTime>(fetchedAt),
+      'reference': serializer.toJson<String>(reference),
+      'userId': serializer.toJson<String>(userId),
+      'campaignId': serializer.toJson<String?>(campaignId),
+      'stampCardId': serializer.toJson<String?>(stampCardId),
+      'productId': serializer.toJson<String?>(productId),
+      'type': serializer.toJson<String>(type),
+      'points': serializer.toJson<int>(points),
+      'productName': serializer.toJson<String?>(productName),
+      'storeName': serializer.toJson<String?>(storeName),
+      'scanToken': serializer.toJson<String?>(scanToken),
+      'occurredAt': serializer.toJson<DateTime>(occurredAt),
+      'syncStatus': serializer.toJson<int>(syncStatus),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
     };
   }
 
-  CachedAttendanceLog copyWith(
+  LoyaltyTransaction copyWith(
           {String? id,
-          DateTime? logTime,
-          String? rawJson,
-          DateTime? fetchedAt}) =>
-      CachedAttendanceLog(
+          String? reference,
+          String? userId,
+          Value<String?> campaignId = const Value.absent(),
+          Value<String?> stampCardId = const Value.absent(),
+          Value<String?> productId = const Value.absent(),
+          String? type,
+          int? points,
+          Value<String?> productName = const Value.absent(),
+          Value<String?> storeName = const Value.absent(),
+          Value<String?> scanToken = const Value.absent(),
+          DateTime? occurredAt,
+          int? syncStatus,
+          DateTime? createdAt,
+          DateTime? updatedAt}) =>
+      LoyaltyTransaction(
         id: id ?? this.id,
-        logTime: logTime ?? this.logTime,
-        rawJson: rawJson ?? this.rawJson,
-        fetchedAt: fetchedAt ?? this.fetchedAt,
+        reference: reference ?? this.reference,
+        userId: userId ?? this.userId,
+        campaignId: campaignId.present ? campaignId.value : this.campaignId,
+        stampCardId: stampCardId.present ? stampCardId.value : this.stampCardId,
+        productId: productId.present ? productId.value : this.productId,
+        type: type ?? this.type,
+        points: points ?? this.points,
+        productName: productName.present ? productName.value : this.productName,
+        storeName: storeName.present ? storeName.value : this.storeName,
+        scanToken: scanToken.present ? scanToken.value : this.scanToken,
+        occurredAt: occurredAt ?? this.occurredAt,
+        syncStatus: syncStatus ?? this.syncStatus,
+        createdAt: createdAt ?? this.createdAt,
+        updatedAt: updatedAt ?? this.updatedAt,
       );
-  CachedAttendanceLog copyWithCompanion(CachedAttendanceLogsCompanion data) {
-    return CachedAttendanceLog(
+  LoyaltyTransaction copyWithCompanion(LoyaltyTransactionsCompanion data) {
+    return LoyaltyTransaction(
       id: data.id.present ? data.id.value : this.id,
-      logTime: data.logTime.present ? data.logTime.value : this.logTime,
-      rawJson: data.rawJson.present ? data.rawJson.value : this.rawJson,
-      fetchedAt: data.fetchedAt.present ? data.fetchedAt.value : this.fetchedAt,
+      reference: data.reference.present ? data.reference.value : this.reference,
+      userId: data.userId.present ? data.userId.value : this.userId,
+      campaignId:
+          data.campaignId.present ? data.campaignId.value : this.campaignId,
+      stampCardId:
+          data.stampCardId.present ? data.stampCardId.value : this.stampCardId,
+      productId: data.productId.present ? data.productId.value : this.productId,
+      type: data.type.present ? data.type.value : this.type,
+      points: data.points.present ? data.points.value : this.points,
+      productName:
+          data.productName.present ? data.productName.value : this.productName,
+      storeName: data.storeName.present ? data.storeName.value : this.storeName,
+      scanToken: data.scanToken.present ? data.scanToken.value : this.scanToken,
+      occurredAt:
+          data.occurredAt.present ? data.occurredAt.value : this.occurredAt,
+      syncStatus:
+          data.syncStatus.present ? data.syncStatus.value : this.syncStatus,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
     );
   }
 
   @override
   String toString() {
-    return (StringBuffer('CachedAttendanceLog(')
+    return (StringBuffer('LoyaltyTransaction(')
           ..write('id: $id, ')
-          ..write('logTime: $logTime, ')
-          ..write('rawJson: $rawJson, ')
-          ..write('fetchedAt: $fetchedAt')
+          ..write('reference: $reference, ')
+          ..write('userId: $userId, ')
+          ..write('campaignId: $campaignId, ')
+          ..write('stampCardId: $stampCardId, ')
+          ..write('productId: $productId, ')
+          ..write('type: $type, ')
+          ..write('points: $points, ')
+          ..write('productName: $productName, ')
+          ..write('storeName: $storeName, ')
+          ..write('scanToken: $scanToken, ')
+          ..write('occurredAt: $occurredAt, ')
+          ..write('syncStatus: $syncStatus, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(id, logTime, rawJson, fetchedAt);
+  int get hashCode => Object.hash(
+      id,
+      reference,
+      userId,
+      campaignId,
+      stampCardId,
+      productId,
+      type,
+      points,
+      productName,
+      storeName,
+      scanToken,
+      occurredAt,
+      syncStatus,
+      createdAt,
+      updatedAt);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      (other is CachedAttendanceLog &&
+      (other is LoyaltyTransaction &&
           other.id == this.id &&
-          other.logTime == this.logTime &&
-          other.rawJson == this.rawJson &&
-          other.fetchedAt == this.fetchedAt);
+          other.reference == this.reference &&
+          other.userId == this.userId &&
+          other.campaignId == this.campaignId &&
+          other.stampCardId == this.stampCardId &&
+          other.productId == this.productId &&
+          other.type == this.type &&
+          other.points == this.points &&
+          other.productName == this.productName &&
+          other.storeName == this.storeName &&
+          other.scanToken == this.scanToken &&
+          other.occurredAt == this.occurredAt &&
+          other.syncStatus == this.syncStatus &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt);
 }
 
-class CachedAttendanceLogsCompanion
-    extends UpdateCompanion<CachedAttendanceLog> {
+class LoyaltyTransactionsCompanion extends UpdateCompanion<LoyaltyTransaction> {
   final Value<String> id;
-  final Value<DateTime> logTime;
-  final Value<String> rawJson;
-  final Value<DateTime> fetchedAt;
+  final Value<String> reference;
+  final Value<String> userId;
+  final Value<String?> campaignId;
+  final Value<String?> stampCardId;
+  final Value<String?> productId;
+  final Value<String> type;
+  final Value<int> points;
+  final Value<String?> productName;
+  final Value<String?> storeName;
+  final Value<String?> scanToken;
+  final Value<DateTime> occurredAt;
+  final Value<int> syncStatus;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
   final Value<int> rowid;
-  const CachedAttendanceLogsCompanion({
+  const LoyaltyTransactionsCompanion({
     this.id = const Value.absent(),
-    this.logTime = const Value.absent(),
-    this.rawJson = const Value.absent(),
-    this.fetchedAt = const Value.absent(),
+    this.reference = const Value.absent(),
+    this.userId = const Value.absent(),
+    this.campaignId = const Value.absent(),
+    this.stampCardId = const Value.absent(),
+    this.productId = const Value.absent(),
+    this.type = const Value.absent(),
+    this.points = const Value.absent(),
+    this.productName = const Value.absent(),
+    this.storeName = const Value.absent(),
+    this.scanToken = const Value.absent(),
+    this.occurredAt = const Value.absent(),
+    this.syncStatus = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
     this.rowid = const Value.absent(),
   });
-  CachedAttendanceLogsCompanion.insert({
-    required String id,
-    required DateTime logTime,
-    required String rawJson,
-    required DateTime fetchedAt,
+  LoyaltyTransactionsCompanion.insert({
+    this.id = const Value.absent(),
+    required String reference,
+    required String userId,
+    this.campaignId = const Value.absent(),
+    this.stampCardId = const Value.absent(),
+    this.productId = const Value.absent(),
+    required String type,
+    this.points = const Value.absent(),
+    this.productName = const Value.absent(),
+    this.storeName = const Value.absent(),
+    this.scanToken = const Value.absent(),
+    this.occurredAt = const Value.absent(),
+    this.syncStatus = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
     this.rowid = const Value.absent(),
-  })  : id = Value(id),
-        logTime = Value(logTime),
-        rawJson = Value(rawJson),
-        fetchedAt = Value(fetchedAt);
-  static Insertable<CachedAttendanceLog> custom({
+  })  : reference = Value(reference),
+        userId = Value(userId),
+        type = Value(type);
+  static Insertable<LoyaltyTransaction> custom({
     Expression<String>? id,
-    Expression<DateTime>? logTime,
-    Expression<String>? rawJson,
-    Expression<DateTime>? fetchedAt,
+    Expression<String>? reference,
+    Expression<String>? userId,
+    Expression<String>? campaignId,
+    Expression<String>? stampCardId,
+    Expression<String>? productId,
+    Expression<String>? type,
+    Expression<int>? points,
+    Expression<String>? productName,
+    Expression<String>? storeName,
+    Expression<String>? scanToken,
+    Expression<DateTime>? occurredAt,
+    Expression<int>? syncStatus,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
-      if (logTime != null) 'log_time': logTime,
-      if (rawJson != null) 'raw_json': rawJson,
-      if (fetchedAt != null) 'fetched_at': fetchedAt,
+      if (reference != null) 'reference': reference,
+      if (userId != null) 'user_id': userId,
+      if (campaignId != null) 'campaign_id': campaignId,
+      if (stampCardId != null) 'stamp_card_id': stampCardId,
+      if (productId != null) 'product_id': productId,
+      if (type != null) 'type': type,
+      if (points != null) 'points': points,
+      if (productName != null) 'product_name': productName,
+      if (storeName != null) 'store_name': storeName,
+      if (scanToken != null) 'scan_token': scanToken,
+      if (occurredAt != null) 'occurred_at': occurredAt,
+      if (syncStatus != null) 'sync_status': syncStatus,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
       if (rowid != null) 'rowid': rowid,
     });
   }
 
-  CachedAttendanceLogsCompanion copyWith(
+  LoyaltyTransactionsCompanion copyWith(
       {Value<String>? id,
-      Value<DateTime>? logTime,
-      Value<String>? rawJson,
-      Value<DateTime>? fetchedAt,
+      Value<String>? reference,
+      Value<String>? userId,
+      Value<String?>? campaignId,
+      Value<String?>? stampCardId,
+      Value<String?>? productId,
+      Value<String>? type,
+      Value<int>? points,
+      Value<String?>? productName,
+      Value<String?>? storeName,
+      Value<String?>? scanToken,
+      Value<DateTime>? occurredAt,
+      Value<int>? syncStatus,
+      Value<DateTime>? createdAt,
+      Value<DateTime>? updatedAt,
       Value<int>? rowid}) {
-    return CachedAttendanceLogsCompanion(
+    return LoyaltyTransactionsCompanion(
       id: id ?? this.id,
-      logTime: logTime ?? this.logTime,
-      rawJson: rawJson ?? this.rawJson,
-      fetchedAt: fetchedAt ?? this.fetchedAt,
+      reference: reference ?? this.reference,
+      userId: userId ?? this.userId,
+      campaignId: campaignId ?? this.campaignId,
+      stampCardId: stampCardId ?? this.stampCardId,
+      productId: productId ?? this.productId,
+      type: type ?? this.type,
+      points: points ?? this.points,
+      productName: productName ?? this.productName,
+      storeName: storeName ?? this.storeName,
+      scanToken: scanToken ?? this.scanToken,
+      occurredAt: occurredAt ?? this.occurredAt,
+      syncStatus: syncStatus ?? this.syncStatus,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -6963,14 +7698,47 @@ class CachedAttendanceLogsCompanion
     if (id.present) {
       map['id'] = Variable<String>(id.value);
     }
-    if (logTime.present) {
-      map['log_time'] = Variable<DateTime>(logTime.value);
+    if (reference.present) {
+      map['reference'] = Variable<String>(reference.value);
     }
-    if (rawJson.present) {
-      map['raw_json'] = Variable<String>(rawJson.value);
+    if (userId.present) {
+      map['user_id'] = Variable<String>(userId.value);
     }
-    if (fetchedAt.present) {
-      map['fetched_at'] = Variable<DateTime>(fetchedAt.value);
+    if (campaignId.present) {
+      map['campaign_id'] = Variable<String>(campaignId.value);
+    }
+    if (stampCardId.present) {
+      map['stamp_card_id'] = Variable<String>(stampCardId.value);
+    }
+    if (productId.present) {
+      map['product_id'] = Variable<String>(productId.value);
+    }
+    if (type.present) {
+      map['type'] = Variable<String>(type.value);
+    }
+    if (points.present) {
+      map['points'] = Variable<int>(points.value);
+    }
+    if (productName.present) {
+      map['product_name'] = Variable<String>(productName.value);
+    }
+    if (storeName.present) {
+      map['store_name'] = Variable<String>(storeName.value);
+    }
+    if (scanToken.present) {
+      map['scan_token'] = Variable<String>(scanToken.value);
+    }
+    if (occurredAt.present) {
+      map['occurred_at'] = Variable<DateTime>(occurredAt.value);
+    }
+    if (syncStatus.present) {
+      map['sync_status'] = Variable<int>(syncStatus.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
     }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
@@ -6980,11 +7748,22 @@ class CachedAttendanceLogsCompanion
 
   @override
   String toString() {
-    return (StringBuffer('CachedAttendanceLogsCompanion(')
+    return (StringBuffer('LoyaltyTransactionsCompanion(')
           ..write('id: $id, ')
-          ..write('logTime: $logTime, ')
-          ..write('rawJson: $rawJson, ')
-          ..write('fetchedAt: $fetchedAt, ')
+          ..write('reference: $reference, ')
+          ..write('userId: $userId, ')
+          ..write('campaignId: $campaignId, ')
+          ..write('stampCardId: $stampCardId, ')
+          ..write('productId: $productId, ')
+          ..write('type: $type, ')
+          ..write('points: $points, ')
+          ..write('productName: $productName, ')
+          ..write('storeName: $storeName, ')
+          ..write('scanToken: $scanToken, ')
+          ..write('occurredAt: $occurredAt, ')
+          ..write('syncStatus: $syncStatus, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -7004,11 +7783,11 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $AuditLogsTable auditLogs = $AuditLogsTable(this);
   late final $SyncLogTable syncLog = $SyncLogTable(this);
   late final $AppSettingsTable appSettings = $AppSettingsTable(this);
-  late final $OfflineDtrLogsTable offlineDtrLogs = $OfflineDtrLogsTable(this);
-  late final $CachedDtrSchedulesTable cachedDtrSchedules =
-      $CachedDtrSchedulesTable(this);
-  late final $CachedAttendanceLogsTable cachedAttendanceLogs =
-      $CachedAttendanceLogsTable(this);
+  late final $ProductsTable products = $ProductsTable(this);
+  late final $CampaignsTable campaigns = $CampaignsTable(this);
+  late final $StampCardsTable stampCards = $StampCardsTable(this);
+  late final $LoyaltyTransactionsTable loyaltyTransactions =
+      $LoyaltyTransactionsTable(this);
   late final RoleDao roleDao = RoleDao(this as AppDatabase);
   late final PermissionDao permissionDao = PermissionDao(this as AppDatabase);
   late final ModuleDao moduleDao = ModuleDao(this as AppDatabase);
@@ -7018,6 +7797,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
       PermissionMatrixDao(this as AppDatabase);
   late final AuditLogDao auditLogDao = AuditLogDao(this as AppDatabase);
   late final SettingsDao settingsDao = SettingsDao(this as AppDatabase);
+  late final LoyaltyDao loyaltyDao = LoyaltyDao(this as AppDatabase);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -7032,9 +7812,10 @@ abstract class _$AppDatabase extends GeneratedDatabase {
         auditLogs,
         syncLog,
         appSettings,
-        offlineDtrLogs,
-        cachedDtrSchedules,
-        cachedAttendanceLogs
+        products,
+        campaigns,
+        stampCards,
+        loyaltyTransactions
       ];
   @override
   DriftDatabaseOptions get options =>
@@ -8410,6 +9191,38 @@ final class $$UsersTableReferences
     return ProcessedTableManager(
         manager.$state.copyWith(prefetchedData: cache));
   }
+
+  static MultiTypedResultKey<$StampCardsTable, List<StampCard>>
+      _stampCardsRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+          db.stampCards,
+          aliasName: $_aliasNameGenerator(db.users.id, db.stampCards.userId));
+
+  $$StampCardsTableProcessedTableManager get stampCardsRefs {
+    final manager = $$StampCardsTableTableManager($_db, $_db.stampCards)
+        .filter((f) => f.userId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_stampCardsRefsTable($_db));
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: cache));
+  }
+
+  static MultiTypedResultKey<$LoyaltyTransactionsTable,
+      List<LoyaltyTransaction>> _loyaltyTransactionsRefsTable(
+          _$AppDatabase db) =>
+      MultiTypedResultKey.fromTable(db.loyaltyTransactions,
+          aliasName:
+              $_aliasNameGenerator(db.users.id, db.loyaltyTransactions.userId));
+
+  $$LoyaltyTransactionsTableProcessedTableManager get loyaltyTransactionsRefs {
+    final manager =
+        $$LoyaltyTransactionsTableTableManager($_db, $_db.loyaltyTransactions)
+            .filter((f) => f.userId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache =
+        $_typedResult.readTableOrNull(_loyaltyTransactionsRefsTable($_db));
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: cache));
+  }
 }
 
 class $$UsersTableFilterComposer extends Composer<_$AppDatabase, $UsersTable> {
@@ -8605,6 +9418,48 @@ class $$UsersTableFilterComposer extends Composer<_$AppDatabase, $UsersTable> {
             $$AppSettingsTableFilterComposer(
               $db: $db,
               $table: $db.appSettings,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return f(composer);
+  }
+
+  Expression<bool> stampCardsRefs(
+      Expression<bool> Function($$StampCardsTableFilterComposer f) f) {
+    final $$StampCardsTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.id,
+        referencedTable: $db.stampCards,
+        getReferencedColumn: (t) => t.userId,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$StampCardsTableFilterComposer(
+              $db: $db,
+              $table: $db.stampCards,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return f(composer);
+  }
+
+  Expression<bool> loyaltyTransactionsRefs(
+      Expression<bool> Function($$LoyaltyTransactionsTableFilterComposer f) f) {
+    final $$LoyaltyTransactionsTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.id,
+        referencedTable: $db.loyaltyTransactions,
+        getReferencedColumn: (t) => t.userId,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$LoyaltyTransactionsTableFilterComposer(
+              $db: $db,
+              $table: $db.loyaltyTransactions,
               $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
               joinBuilder: joinBuilder,
               $removeJoinBuilderFromRootComposer:
@@ -8911,6 +9766,50 @@ class $$UsersTableAnnotationComposer
             ));
     return f(composer);
   }
+
+  Expression<T> stampCardsRefs<T extends Object>(
+      Expression<T> Function($$StampCardsTableAnnotationComposer a) f) {
+    final $$StampCardsTableAnnotationComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.id,
+        referencedTable: $db.stampCards,
+        getReferencedColumn: (t) => t.userId,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$StampCardsTableAnnotationComposer(
+              $db: $db,
+              $table: $db.stampCards,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return f(composer);
+  }
+
+  Expression<T> loyaltyTransactionsRefs<T extends Object>(
+      Expression<T> Function($$LoyaltyTransactionsTableAnnotationComposer a)
+          f) {
+    final $$LoyaltyTransactionsTableAnnotationComposer composer =
+        $composerBuilder(
+            composer: this,
+            getCurrentColumn: (t) => t.id,
+            referencedTable: $db.loyaltyTransactions,
+            getReferencedColumn: (t) => t.userId,
+            builder: (joinBuilder,
+                    {$addJoinBuilderToRootComposer,
+                    $removeJoinBuilderFromRootComposer}) =>
+                $$LoyaltyTransactionsTableAnnotationComposer(
+                  $db: $db,
+                  $table: $db.loyaltyTransactions,
+                  $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                  joinBuilder: joinBuilder,
+                  $removeJoinBuilderFromRootComposer:
+                      $removeJoinBuilderFromRootComposer,
+                ));
+    return f(composer);
+  }
 }
 
 class $$UsersTableTableManager extends RootTableManager<
@@ -8931,7 +9830,9 @@ class $$UsersTableTableManager extends RootTableManager<
         bool sessionsRefs,
         bool auditLogsRefs,
         bool syncLogRefs,
-        bool appSettingsRefs})> {
+        bool appSettingsRefs,
+        bool stampCardsRefs,
+        bool loyaltyTransactionsRefs})> {
   $$UsersTableTableManager(_$AppDatabase db, $UsersTable table)
       : super(TableManagerState(
           db: db,
@@ -9033,7 +9934,9 @@ class $$UsersTableTableManager extends RootTableManager<
               sessionsRefs = false,
               auditLogsRefs = false,
               syncLogRefs = false,
-              appSettingsRefs = false}) {
+              appSettingsRefs = false,
+              stampCardsRefs = false,
+              loyaltyTransactionsRefs = false}) {
             return PrefetchHooks(
               db: db,
               explicitlyWatchedTables: [
@@ -9041,7 +9944,9 @@ class $$UsersTableTableManager extends RootTableManager<
                 if (sessionsRefs) db.sessions,
                 if (auditLogsRefs) db.auditLogs,
                 if (syncLogRefs) db.syncLog,
-                if (appSettingsRefs) db.appSettings
+                if (appSettingsRefs) db.appSettings,
+                if (stampCardsRefs) db.stampCards,
+                if (loyaltyTransactionsRefs) db.loyaltyTransactions
               ],
               addJoins: <
                   T extends TableManagerState<
@@ -9136,6 +10041,31 @@ class $$UsersTableTableManager extends RootTableManager<
                         referencedItemsForCurrentItem: (item,
                                 referencedItems) =>
                             referencedItems.where((e) => e.userId == item.id),
+                        typedResults: items),
+                  if (stampCardsRefs)
+                    await $_getPrefetchedData<User, $UsersTable, StampCard>(
+                        currentTable: table,
+                        referencedTable:
+                            $$UsersTableReferences._stampCardsRefsTable(db),
+                        managerFromTypedResult: (p0) =>
+                            $$UsersTableReferences(db, table, p0)
+                                .stampCardsRefs,
+                        referencedItemsForCurrentItem: (item,
+                                referencedItems) =>
+                            referencedItems.where((e) => e.userId == item.id),
+                        typedResults: items),
+                  if (loyaltyTransactionsRefs)
+                    await $_getPrefetchedData<User, $UsersTable,
+                            LoyaltyTransaction>(
+                        currentTable: table,
+                        referencedTable: $$UsersTableReferences
+                            ._loyaltyTransactionsRefsTable(db),
+                        managerFromTypedResult: (p0) =>
+                            $$UsersTableReferences(db, table, p0)
+                                .loyaltyTransactionsRefs,
+                        referencedItemsForCurrentItem: (item,
+                                referencedItems) =>
+                            referencedItems.where((e) => e.userId == item.id),
                         typedResults: items)
                 ];
               },
@@ -9162,7 +10092,9 @@ typedef $$UsersTableProcessedTableManager = ProcessedTableManager<
         bool sessionsRefs,
         bool auditLogsRefs,
         bool syncLogRefs,
-        bool appSettingsRefs})>;
+        bool appSettingsRefs,
+        bool stampCardsRefs,
+        bool loyaltyTransactionsRefs})>;
 typedef $$RoleModulePermissionsTableCreateCompanionBuilder
     = RoleModulePermissionsCompanion Function({
   Value<String> id,
@@ -11178,46 +12110,57 @@ typedef $$AppSettingsTableProcessedTableManager = ProcessedTableManager<
     (AppSetting, $$AppSettingsTableReferences),
     AppSetting,
     PrefetchHooks Function({bool userId})>;
-typedef $$OfflineDtrLogsTableCreateCompanionBuilder = OfflineDtrLogsCompanion
-    Function({
+typedef $$ProductsTableCreateCompanionBuilder = ProductsCompanion Function({
   Value<String> id,
-  Value<String?> clientRequestId,
-  Value<String?> scheduleId,
-  Value<String?> actionType,
-  required double latitude,
-  required double longitude,
-  required double accuracy,
-  required DateTime capturedAt,
-  required String photoPath,
-  Value<String?> deviceInfo,
-  Value<int> syncStatus,
-  Value<String?> serverMessage,
+  required String code,
+  required String name,
+  Value<String?> category,
+  Value<String?> emoji,
+  Value<double> price,
+  Value<bool> isActive,
   Value<DateTime> createdAt,
   Value<DateTime> updatedAt,
   Value<int> rowid,
 });
-typedef $$OfflineDtrLogsTableUpdateCompanionBuilder = OfflineDtrLogsCompanion
-    Function({
+typedef $$ProductsTableUpdateCompanionBuilder = ProductsCompanion Function({
   Value<String> id,
-  Value<String?> clientRequestId,
-  Value<String?> scheduleId,
-  Value<String?> actionType,
-  Value<double> latitude,
-  Value<double> longitude,
-  Value<double> accuracy,
-  Value<DateTime> capturedAt,
-  Value<String> photoPath,
-  Value<String?> deviceInfo,
-  Value<int> syncStatus,
-  Value<String?> serverMessage,
+  Value<String> code,
+  Value<String> name,
+  Value<String?> category,
+  Value<String?> emoji,
+  Value<double> price,
+  Value<bool> isActive,
   Value<DateTime> createdAt,
   Value<DateTime> updatedAt,
   Value<int> rowid,
 });
 
-class $$OfflineDtrLogsTableFilterComposer
-    extends Composer<_$AppDatabase, $OfflineDtrLogsTable> {
-  $$OfflineDtrLogsTableFilterComposer({
+final class $$ProductsTableReferences
+    extends BaseReferences<_$AppDatabase, $ProductsTable, Product> {
+  $$ProductsTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static MultiTypedResultKey<$LoyaltyTransactionsTable,
+      List<LoyaltyTransaction>> _loyaltyTransactionsRefsTable(
+          _$AppDatabase db) =>
+      MultiTypedResultKey.fromTable(db.loyaltyTransactions,
+          aliasName: $_aliasNameGenerator(
+              db.products.id, db.loyaltyTransactions.productId));
+
+  $$LoyaltyTransactionsTableProcessedTableManager get loyaltyTransactionsRefs {
+    final manager = $$LoyaltyTransactionsTableTableManager(
+            $_db, $_db.loyaltyTransactions)
+        .filter((f) => f.productId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache =
+        $_typedResult.readTableOrNull(_loyaltyTransactionsRefsTable($_db));
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: cache));
+  }
+}
+
+class $$ProductsTableFilterComposer
+    extends Composer<_$AppDatabase, $ProductsTable> {
+  $$ProductsTableFilterComposer({
     required super.$db,
     required super.$table,
     super.joinBuilder,
@@ -11227,50 +12170,55 @@ class $$OfflineDtrLogsTableFilterComposer
   ColumnFilters<String> get id => $composableBuilder(
       column: $table.id, builder: (column) => ColumnFilters(column));
 
-  ColumnFilters<String> get clientRequestId => $composableBuilder(
-      column: $table.clientRequestId,
-      builder: (column) => ColumnFilters(column));
+  ColumnFilters<String> get code => $composableBuilder(
+      column: $table.code, builder: (column) => ColumnFilters(column));
 
-  ColumnFilters<String> get scheduleId => $composableBuilder(
-      column: $table.scheduleId, builder: (column) => ColumnFilters(column));
+  ColumnFilters<String> get name => $composableBuilder(
+      column: $table.name, builder: (column) => ColumnFilters(column));
 
-  ColumnFilters<String> get actionType => $composableBuilder(
-      column: $table.actionType, builder: (column) => ColumnFilters(column));
+  ColumnFilters<String> get category => $composableBuilder(
+      column: $table.category, builder: (column) => ColumnFilters(column));
 
-  ColumnFilters<double> get latitude => $composableBuilder(
-      column: $table.latitude, builder: (column) => ColumnFilters(column));
+  ColumnFilters<String> get emoji => $composableBuilder(
+      column: $table.emoji, builder: (column) => ColumnFilters(column));
 
-  ColumnFilters<double> get longitude => $composableBuilder(
-      column: $table.longitude, builder: (column) => ColumnFilters(column));
+  ColumnFilters<double> get price => $composableBuilder(
+      column: $table.price, builder: (column) => ColumnFilters(column));
 
-  ColumnFilters<double> get accuracy => $composableBuilder(
-      column: $table.accuracy, builder: (column) => ColumnFilters(column));
-
-  ColumnFilters<DateTime> get capturedAt => $composableBuilder(
-      column: $table.capturedAt, builder: (column) => ColumnFilters(column));
-
-  ColumnFilters<String> get photoPath => $composableBuilder(
-      column: $table.photoPath, builder: (column) => ColumnFilters(column));
-
-  ColumnFilters<String> get deviceInfo => $composableBuilder(
-      column: $table.deviceInfo, builder: (column) => ColumnFilters(column));
-
-  ColumnFilters<int> get syncStatus => $composableBuilder(
-      column: $table.syncStatus, builder: (column) => ColumnFilters(column));
-
-  ColumnFilters<String> get serverMessage => $composableBuilder(
-      column: $table.serverMessage, builder: (column) => ColumnFilters(column));
+  ColumnFilters<bool> get isActive => $composableBuilder(
+      column: $table.isActive, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<DateTime> get createdAt => $composableBuilder(
       column: $table.createdAt, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<DateTime> get updatedAt => $composableBuilder(
       column: $table.updatedAt, builder: (column) => ColumnFilters(column));
+
+  Expression<bool> loyaltyTransactionsRefs(
+      Expression<bool> Function($$LoyaltyTransactionsTableFilterComposer f) f) {
+    final $$LoyaltyTransactionsTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.id,
+        referencedTable: $db.loyaltyTransactions,
+        getReferencedColumn: (t) => t.productId,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$LoyaltyTransactionsTableFilterComposer(
+              $db: $db,
+              $table: $db.loyaltyTransactions,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return f(composer);
+  }
 }
 
-class $$OfflineDtrLogsTableOrderingComposer
-    extends Composer<_$AppDatabase, $OfflineDtrLogsTable> {
-  $$OfflineDtrLogsTableOrderingComposer({
+class $$ProductsTableOrderingComposer
+    extends Composer<_$AppDatabase, $ProductsTable> {
+  $$ProductsTableOrderingComposer({
     required super.$db,
     required super.$table,
     super.joinBuilder,
@@ -11280,40 +12228,23 @@ class $$OfflineDtrLogsTableOrderingComposer
   ColumnOrderings<String> get id => $composableBuilder(
       column: $table.id, builder: (column) => ColumnOrderings(column));
 
-  ColumnOrderings<String> get clientRequestId => $composableBuilder(
-      column: $table.clientRequestId,
-      builder: (column) => ColumnOrderings(column));
+  ColumnOrderings<String> get code => $composableBuilder(
+      column: $table.code, builder: (column) => ColumnOrderings(column));
 
-  ColumnOrderings<String> get scheduleId => $composableBuilder(
-      column: $table.scheduleId, builder: (column) => ColumnOrderings(column));
+  ColumnOrderings<String> get name => $composableBuilder(
+      column: $table.name, builder: (column) => ColumnOrderings(column));
 
-  ColumnOrderings<String> get actionType => $composableBuilder(
-      column: $table.actionType, builder: (column) => ColumnOrderings(column));
+  ColumnOrderings<String> get category => $composableBuilder(
+      column: $table.category, builder: (column) => ColumnOrderings(column));
 
-  ColumnOrderings<double> get latitude => $composableBuilder(
-      column: $table.latitude, builder: (column) => ColumnOrderings(column));
+  ColumnOrderings<String> get emoji => $composableBuilder(
+      column: $table.emoji, builder: (column) => ColumnOrderings(column));
 
-  ColumnOrderings<double> get longitude => $composableBuilder(
-      column: $table.longitude, builder: (column) => ColumnOrderings(column));
+  ColumnOrderings<double> get price => $composableBuilder(
+      column: $table.price, builder: (column) => ColumnOrderings(column));
 
-  ColumnOrderings<double> get accuracy => $composableBuilder(
-      column: $table.accuracy, builder: (column) => ColumnOrderings(column));
-
-  ColumnOrderings<DateTime> get capturedAt => $composableBuilder(
-      column: $table.capturedAt, builder: (column) => ColumnOrderings(column));
-
-  ColumnOrderings<String> get photoPath => $composableBuilder(
-      column: $table.photoPath, builder: (column) => ColumnOrderings(column));
-
-  ColumnOrderings<String> get deviceInfo => $composableBuilder(
-      column: $table.deviceInfo, builder: (column) => ColumnOrderings(column));
-
-  ColumnOrderings<int> get syncStatus => $composableBuilder(
-      column: $table.syncStatus, builder: (column) => ColumnOrderings(column));
-
-  ColumnOrderings<String> get serverMessage => $composableBuilder(
-      column: $table.serverMessage,
-      builder: (column) => ColumnOrderings(column));
+  ColumnOrderings<bool> get isActive => $composableBuilder(
+      column: $table.isActive, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<DateTime> get createdAt => $composableBuilder(
       column: $table.createdAt, builder: (column) => ColumnOrderings(column));
@@ -11322,9 +12253,9 @@ class $$OfflineDtrLogsTableOrderingComposer
       column: $table.updatedAt, builder: (column) => ColumnOrderings(column));
 }
 
-class $$OfflineDtrLogsTableAnnotationComposer
-    extends Composer<_$AppDatabase, $OfflineDtrLogsTable> {
-  $$OfflineDtrLogsTableAnnotationComposer({
+class $$ProductsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $ProductsTable> {
+  $$ProductsTableAnnotationComposer({
     required super.$db,
     required super.$table,
     super.joinBuilder,
@@ -11334,208 +12265,251 @@ class $$OfflineDtrLogsTableAnnotationComposer
   GeneratedColumn<String> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
 
-  GeneratedColumn<String> get clientRequestId => $composableBuilder(
-      column: $table.clientRequestId, builder: (column) => column);
+  GeneratedColumn<String> get code =>
+      $composableBuilder(column: $table.code, builder: (column) => column);
 
-  GeneratedColumn<String> get scheduleId => $composableBuilder(
-      column: $table.scheduleId, builder: (column) => column);
+  GeneratedColumn<String> get name =>
+      $composableBuilder(column: $table.name, builder: (column) => column);
 
-  GeneratedColumn<String> get actionType => $composableBuilder(
-      column: $table.actionType, builder: (column) => column);
+  GeneratedColumn<String> get category =>
+      $composableBuilder(column: $table.category, builder: (column) => column);
 
-  GeneratedColumn<double> get latitude =>
-      $composableBuilder(column: $table.latitude, builder: (column) => column);
+  GeneratedColumn<String> get emoji =>
+      $composableBuilder(column: $table.emoji, builder: (column) => column);
 
-  GeneratedColumn<double> get longitude =>
-      $composableBuilder(column: $table.longitude, builder: (column) => column);
+  GeneratedColumn<double> get price =>
+      $composableBuilder(column: $table.price, builder: (column) => column);
 
-  GeneratedColumn<double> get accuracy =>
-      $composableBuilder(column: $table.accuracy, builder: (column) => column);
-
-  GeneratedColumn<DateTime> get capturedAt => $composableBuilder(
-      column: $table.capturedAt, builder: (column) => column);
-
-  GeneratedColumn<String> get photoPath =>
-      $composableBuilder(column: $table.photoPath, builder: (column) => column);
-
-  GeneratedColumn<String> get deviceInfo => $composableBuilder(
-      column: $table.deviceInfo, builder: (column) => column);
-
-  GeneratedColumn<int> get syncStatus => $composableBuilder(
-      column: $table.syncStatus, builder: (column) => column);
-
-  GeneratedColumn<String> get serverMessage => $composableBuilder(
-      column: $table.serverMessage, builder: (column) => column);
+  GeneratedColumn<bool> get isActive =>
+      $composableBuilder(column: $table.isActive, builder: (column) => column);
 
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
 
   GeneratedColumn<DateTime> get updatedAt =>
       $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  Expression<T> loyaltyTransactionsRefs<T extends Object>(
+      Expression<T> Function($$LoyaltyTransactionsTableAnnotationComposer a)
+          f) {
+    final $$LoyaltyTransactionsTableAnnotationComposer composer =
+        $composerBuilder(
+            composer: this,
+            getCurrentColumn: (t) => t.id,
+            referencedTable: $db.loyaltyTransactions,
+            getReferencedColumn: (t) => t.productId,
+            builder: (joinBuilder,
+                    {$addJoinBuilderToRootComposer,
+                    $removeJoinBuilderFromRootComposer}) =>
+                $$LoyaltyTransactionsTableAnnotationComposer(
+                  $db: $db,
+                  $table: $db.loyaltyTransactions,
+                  $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                  joinBuilder: joinBuilder,
+                  $removeJoinBuilderFromRootComposer:
+                      $removeJoinBuilderFromRootComposer,
+                ));
+    return f(composer);
+  }
 }
 
-class $$OfflineDtrLogsTableTableManager extends RootTableManager<
+class $$ProductsTableTableManager extends RootTableManager<
     _$AppDatabase,
-    $OfflineDtrLogsTable,
-    OfflineDtrLog,
-    $$OfflineDtrLogsTableFilterComposer,
-    $$OfflineDtrLogsTableOrderingComposer,
-    $$OfflineDtrLogsTableAnnotationComposer,
-    $$OfflineDtrLogsTableCreateCompanionBuilder,
-    $$OfflineDtrLogsTableUpdateCompanionBuilder,
-    (
-      OfflineDtrLog,
-      BaseReferences<_$AppDatabase, $OfflineDtrLogsTable, OfflineDtrLog>
-    ),
-    OfflineDtrLog,
-    PrefetchHooks Function()> {
-  $$OfflineDtrLogsTableTableManager(
-      _$AppDatabase db, $OfflineDtrLogsTable table)
+    $ProductsTable,
+    Product,
+    $$ProductsTableFilterComposer,
+    $$ProductsTableOrderingComposer,
+    $$ProductsTableAnnotationComposer,
+    $$ProductsTableCreateCompanionBuilder,
+    $$ProductsTableUpdateCompanionBuilder,
+    (Product, $$ProductsTableReferences),
+    Product,
+    PrefetchHooks Function({bool loyaltyTransactionsRefs})> {
+  $$ProductsTableTableManager(_$AppDatabase db, $ProductsTable table)
       : super(TableManagerState(
           db: db,
           table: table,
           createFilteringComposer: () =>
-              $$OfflineDtrLogsTableFilterComposer($db: db, $table: table),
+              $$ProductsTableFilterComposer($db: db, $table: table),
           createOrderingComposer: () =>
-              $$OfflineDtrLogsTableOrderingComposer($db: db, $table: table),
+              $$ProductsTableOrderingComposer($db: db, $table: table),
           createComputedFieldComposer: () =>
-              $$OfflineDtrLogsTableAnnotationComposer($db: db, $table: table),
+              $$ProductsTableAnnotationComposer($db: db, $table: table),
           updateCompanionCallback: ({
             Value<String> id = const Value.absent(),
-            Value<String?> clientRequestId = const Value.absent(),
-            Value<String?> scheduleId = const Value.absent(),
-            Value<String?> actionType = const Value.absent(),
-            Value<double> latitude = const Value.absent(),
-            Value<double> longitude = const Value.absent(),
-            Value<double> accuracy = const Value.absent(),
-            Value<DateTime> capturedAt = const Value.absent(),
-            Value<String> photoPath = const Value.absent(),
-            Value<String?> deviceInfo = const Value.absent(),
-            Value<int> syncStatus = const Value.absent(),
-            Value<String?> serverMessage = const Value.absent(),
+            Value<String> code = const Value.absent(),
+            Value<String> name = const Value.absent(),
+            Value<String?> category = const Value.absent(),
+            Value<String?> emoji = const Value.absent(),
+            Value<double> price = const Value.absent(),
+            Value<bool> isActive = const Value.absent(),
             Value<DateTime> createdAt = const Value.absent(),
             Value<DateTime> updatedAt = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
-              OfflineDtrLogsCompanion(
+              ProductsCompanion(
             id: id,
-            clientRequestId: clientRequestId,
-            scheduleId: scheduleId,
-            actionType: actionType,
-            latitude: latitude,
-            longitude: longitude,
-            accuracy: accuracy,
-            capturedAt: capturedAt,
-            photoPath: photoPath,
-            deviceInfo: deviceInfo,
-            syncStatus: syncStatus,
-            serverMessage: serverMessage,
+            code: code,
+            name: name,
+            category: category,
+            emoji: emoji,
+            price: price,
+            isActive: isActive,
             createdAt: createdAt,
             updatedAt: updatedAt,
             rowid: rowid,
           ),
           createCompanionCallback: ({
             Value<String> id = const Value.absent(),
-            Value<String?> clientRequestId = const Value.absent(),
-            Value<String?> scheduleId = const Value.absent(),
-            Value<String?> actionType = const Value.absent(),
-            required double latitude,
-            required double longitude,
-            required double accuracy,
-            required DateTime capturedAt,
-            required String photoPath,
-            Value<String?> deviceInfo = const Value.absent(),
-            Value<int> syncStatus = const Value.absent(),
-            Value<String?> serverMessage = const Value.absent(),
+            required String code,
+            required String name,
+            Value<String?> category = const Value.absent(),
+            Value<String?> emoji = const Value.absent(),
+            Value<double> price = const Value.absent(),
+            Value<bool> isActive = const Value.absent(),
             Value<DateTime> createdAt = const Value.absent(),
             Value<DateTime> updatedAt = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
-              OfflineDtrLogsCompanion.insert(
+              ProductsCompanion.insert(
             id: id,
-            clientRequestId: clientRequestId,
-            scheduleId: scheduleId,
-            actionType: actionType,
-            latitude: latitude,
-            longitude: longitude,
-            accuracy: accuracy,
-            capturedAt: capturedAt,
-            photoPath: photoPath,
-            deviceInfo: deviceInfo,
-            syncStatus: syncStatus,
-            serverMessage: serverMessage,
+            code: code,
+            name: name,
+            category: category,
+            emoji: emoji,
+            price: price,
+            isActive: isActive,
             createdAt: createdAt,
             updatedAt: updatedAt,
             rowid: rowid,
           ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .map((e) =>
+                  (e.readTable(table), $$ProductsTableReferences(db, table, e)))
               .toList(),
-          prefetchHooksCallback: null,
+          prefetchHooksCallback: ({loyaltyTransactionsRefs = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [
+                if (loyaltyTransactionsRefs) db.loyaltyTransactions
+              ],
+              addJoins: null,
+              getPrefetchedDataCallback: (items) async {
+                return [
+                  if (loyaltyTransactionsRefs)
+                    await $_getPrefetchedData<Product, $ProductsTable,
+                            LoyaltyTransaction>(
+                        currentTable: table,
+                        referencedTable: $$ProductsTableReferences
+                            ._loyaltyTransactionsRefsTable(db),
+                        managerFromTypedResult: (p0) =>
+                            $$ProductsTableReferences(db, table, p0)
+                                .loyaltyTransactionsRefs,
+                        referencedItemsForCurrentItem:
+                            (item, referencedItems) => referencedItems
+                                .where((e) => e.productId == item.id),
+                        typedResults: items)
+                ];
+              },
+            );
+          },
         ));
 }
 
-typedef $$OfflineDtrLogsTableProcessedTableManager = ProcessedTableManager<
+typedef $$ProductsTableProcessedTableManager = ProcessedTableManager<
     _$AppDatabase,
-    $OfflineDtrLogsTable,
-    OfflineDtrLog,
-    $$OfflineDtrLogsTableFilterComposer,
-    $$OfflineDtrLogsTableOrderingComposer,
-    $$OfflineDtrLogsTableAnnotationComposer,
-    $$OfflineDtrLogsTableCreateCompanionBuilder,
-    $$OfflineDtrLogsTableUpdateCompanionBuilder,
-    (
-      OfflineDtrLog,
-      BaseReferences<_$AppDatabase, $OfflineDtrLogsTable, OfflineDtrLog>
-    ),
-    OfflineDtrLog,
-    PrefetchHooks Function()>;
-typedef $$CachedDtrSchedulesTableCreateCompanionBuilder
-    = CachedDtrSchedulesCompanion Function({
-  required String id,
-  Value<String?> userId,
-  Value<String?> status,
-  required DateTime startTime,
-  required DateTime endTime,
-  Value<String?> storeId,
-  Value<String?> storeCode,
-  Value<String?> storeName,
-  Value<double?> storeLatitude,
-  Value<double?> storeLongitude,
-  Value<double?> radiusMeters,
-  Value<String?> lastLogType,
-  Value<DateTime?> lastLogAt,
-  Value<bool> isSegmentComplete,
-  required String rawJson,
-  required DateTime fetchedAt,
-  required DateTime validUntil,
+    $ProductsTable,
+    Product,
+    $$ProductsTableFilterComposer,
+    $$ProductsTableOrderingComposer,
+    $$ProductsTableAnnotationComposer,
+    $$ProductsTableCreateCompanionBuilder,
+    $$ProductsTableUpdateCompanionBuilder,
+    (Product, $$ProductsTableReferences),
+    Product,
+    PrefetchHooks Function({bool loyaltyTransactionsRefs})>;
+typedef $$CampaignsTableCreateCompanionBuilder = CampaignsCompanion Function({
+  Value<String> id,
+  required String code,
+  required String name,
+  Value<String?> description,
+  Value<String?> emoji,
+  Value<String?> tag,
+  Value<int> requiredStamps,
+  Value<String> eligibleProductCodes,
+  Value<String?> rewardDescription,
+  Value<String?> termsAndConditions,
+  Value<DateTime?> startsAt,
+  Value<DateTime?> endsAt,
+  Value<bool> isActive,
+  Value<int> displayOrder,
+  Value<int> syncStatus,
+  Value<DateTime> createdAt,
+  Value<DateTime> updatedAt,
   Value<int> rowid,
 });
-typedef $$CachedDtrSchedulesTableUpdateCompanionBuilder
-    = CachedDtrSchedulesCompanion Function({
+typedef $$CampaignsTableUpdateCompanionBuilder = CampaignsCompanion Function({
   Value<String> id,
-  Value<String?> userId,
-  Value<String?> status,
-  Value<DateTime> startTime,
-  Value<DateTime> endTime,
-  Value<String?> storeId,
-  Value<String?> storeCode,
-  Value<String?> storeName,
-  Value<double?> storeLatitude,
-  Value<double?> storeLongitude,
-  Value<double?> radiusMeters,
-  Value<String?> lastLogType,
-  Value<DateTime?> lastLogAt,
-  Value<bool> isSegmentComplete,
-  Value<String> rawJson,
-  Value<DateTime> fetchedAt,
-  Value<DateTime> validUntil,
+  Value<String> code,
+  Value<String> name,
+  Value<String?> description,
+  Value<String?> emoji,
+  Value<String?> tag,
+  Value<int> requiredStamps,
+  Value<String> eligibleProductCodes,
+  Value<String?> rewardDescription,
+  Value<String?> termsAndConditions,
+  Value<DateTime?> startsAt,
+  Value<DateTime?> endsAt,
+  Value<bool> isActive,
+  Value<int> displayOrder,
+  Value<int> syncStatus,
+  Value<DateTime> createdAt,
+  Value<DateTime> updatedAt,
   Value<int> rowid,
 });
 
-class $$CachedDtrSchedulesTableFilterComposer
-    extends Composer<_$AppDatabase, $CachedDtrSchedulesTable> {
-  $$CachedDtrSchedulesTableFilterComposer({
+final class $$CampaignsTableReferences
+    extends BaseReferences<_$AppDatabase, $CampaignsTable, Campaign> {
+  $$CampaignsTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static MultiTypedResultKey<$StampCardsTable, List<StampCard>>
+      _stampCardsRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+          db.stampCards,
+          aliasName:
+              $_aliasNameGenerator(db.campaigns.id, db.stampCards.campaignId));
+
+  $$StampCardsTableProcessedTableManager get stampCardsRefs {
+    final manager = $$StampCardsTableTableManager($_db, $_db.stampCards)
+        .filter((f) => f.campaignId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_stampCardsRefsTable($_db));
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: cache));
+  }
+
+  static MultiTypedResultKey<$LoyaltyTransactionsTable,
+      List<LoyaltyTransaction>> _loyaltyTransactionsRefsTable(
+          _$AppDatabase db) =>
+      MultiTypedResultKey.fromTable(db.loyaltyTransactions,
+          aliasName: $_aliasNameGenerator(
+              db.campaigns.id, db.loyaltyTransactions.campaignId));
+
+  $$LoyaltyTransactionsTableProcessedTableManager get loyaltyTransactionsRefs {
+    final manager = $$LoyaltyTransactionsTableTableManager(
+            $_db, $_db.loyaltyTransactions)
+        .filter((f) => f.campaignId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache =
+        $_typedResult.readTableOrNull(_loyaltyTransactionsRefsTable($_db));
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: cache));
+  }
+}
+
+class $$CampaignsTableFilterComposer
+    extends Composer<_$AppDatabase, $CampaignsTable> {
+  $$CampaignsTableFilterComposer({
     required super.$db,
     required super.$table,
     super.joinBuilder,
@@ -11545,60 +12519,1176 @@ class $$CachedDtrSchedulesTableFilterComposer
   ColumnFilters<String> get id => $composableBuilder(
       column: $table.id, builder: (column) => ColumnFilters(column));
 
-  ColumnFilters<String> get userId => $composableBuilder(
-      column: $table.userId, builder: (column) => ColumnFilters(column));
+  ColumnFilters<String> get code => $composableBuilder(
+      column: $table.code, builder: (column) => ColumnFilters(column));
 
-  ColumnFilters<String> get status => $composableBuilder(
-      column: $table.status, builder: (column) => ColumnFilters(column));
+  ColumnFilters<String> get name => $composableBuilder(
+      column: $table.name, builder: (column) => ColumnFilters(column));
 
-  ColumnFilters<DateTime> get startTime => $composableBuilder(
-      column: $table.startTime, builder: (column) => ColumnFilters(column));
+  ColumnFilters<String> get description => $composableBuilder(
+      column: $table.description, builder: (column) => ColumnFilters(column));
 
-  ColumnFilters<DateTime> get endTime => $composableBuilder(
-      column: $table.endTime, builder: (column) => ColumnFilters(column));
+  ColumnFilters<String> get emoji => $composableBuilder(
+      column: $table.emoji, builder: (column) => ColumnFilters(column));
 
-  ColumnFilters<String> get storeId => $composableBuilder(
-      column: $table.storeId, builder: (column) => ColumnFilters(column));
+  ColumnFilters<String> get tag => $composableBuilder(
+      column: $table.tag, builder: (column) => ColumnFilters(column));
 
-  ColumnFilters<String> get storeCode => $composableBuilder(
-      column: $table.storeCode, builder: (column) => ColumnFilters(column));
+  ColumnFilters<int> get requiredStamps => $composableBuilder(
+      column: $table.requiredStamps,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get eligibleProductCodes => $composableBuilder(
+      column: $table.eligibleProductCodes,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get rewardDescription => $composableBuilder(
+      column: $table.rewardDescription,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get termsAndConditions => $composableBuilder(
+      column: $table.termsAndConditions,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get startsAt => $composableBuilder(
+      column: $table.startsAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get endsAt => $composableBuilder(
+      column: $table.endsAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<bool> get isActive => $composableBuilder(
+      column: $table.isActive, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get displayOrder => $composableBuilder(
+      column: $table.displayOrder, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get syncStatus => $composableBuilder(
+      column: $table.syncStatus, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+      column: $table.createdAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+      column: $table.updatedAt, builder: (column) => ColumnFilters(column));
+
+  Expression<bool> stampCardsRefs(
+      Expression<bool> Function($$StampCardsTableFilterComposer f) f) {
+    final $$StampCardsTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.id,
+        referencedTable: $db.stampCards,
+        getReferencedColumn: (t) => t.campaignId,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$StampCardsTableFilterComposer(
+              $db: $db,
+              $table: $db.stampCards,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return f(composer);
+  }
+
+  Expression<bool> loyaltyTransactionsRefs(
+      Expression<bool> Function($$LoyaltyTransactionsTableFilterComposer f) f) {
+    final $$LoyaltyTransactionsTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.id,
+        referencedTable: $db.loyaltyTransactions,
+        getReferencedColumn: (t) => t.campaignId,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$LoyaltyTransactionsTableFilterComposer(
+              $db: $db,
+              $table: $db.loyaltyTransactions,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return f(composer);
+  }
+}
+
+class $$CampaignsTableOrderingComposer
+    extends Composer<_$AppDatabase, $CampaignsTable> {
+  $$CampaignsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get code => $composableBuilder(
+      column: $table.code, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get name => $composableBuilder(
+      column: $table.name, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get description => $composableBuilder(
+      column: $table.description, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get emoji => $composableBuilder(
+      column: $table.emoji, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get tag => $composableBuilder(
+      column: $table.tag, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get requiredStamps => $composableBuilder(
+      column: $table.requiredStamps,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get eligibleProductCodes => $composableBuilder(
+      column: $table.eligibleProductCodes,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get rewardDescription => $composableBuilder(
+      column: $table.rewardDescription,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get termsAndConditions => $composableBuilder(
+      column: $table.termsAndConditions,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get startsAt => $composableBuilder(
+      column: $table.startsAt, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get endsAt => $composableBuilder(
+      column: $table.endsAt, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<bool> get isActive => $composableBuilder(
+      column: $table.isActive, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get displayOrder => $composableBuilder(
+      column: $table.displayOrder,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get syncStatus => $composableBuilder(
+      column: $table.syncStatus, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+      column: $table.createdAt, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+      column: $table.updatedAt, builder: (column) => ColumnOrderings(column));
+}
+
+class $$CampaignsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $CampaignsTable> {
+  $$CampaignsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get code =>
+      $composableBuilder(column: $table.code, builder: (column) => column);
+
+  GeneratedColumn<String> get name =>
+      $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumn<String> get description => $composableBuilder(
+      column: $table.description, builder: (column) => column);
+
+  GeneratedColumn<String> get emoji =>
+      $composableBuilder(column: $table.emoji, builder: (column) => column);
+
+  GeneratedColumn<String> get tag =>
+      $composableBuilder(column: $table.tag, builder: (column) => column);
+
+  GeneratedColumn<int> get requiredStamps => $composableBuilder(
+      column: $table.requiredStamps, builder: (column) => column);
+
+  GeneratedColumn<String> get eligibleProductCodes => $composableBuilder(
+      column: $table.eligibleProductCodes, builder: (column) => column);
+
+  GeneratedColumn<String> get rewardDescription => $composableBuilder(
+      column: $table.rewardDescription, builder: (column) => column);
+
+  GeneratedColumn<String> get termsAndConditions => $composableBuilder(
+      column: $table.termsAndConditions, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get startsAt =>
+      $composableBuilder(column: $table.startsAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get endsAt =>
+      $composableBuilder(column: $table.endsAt, builder: (column) => column);
+
+  GeneratedColumn<bool> get isActive =>
+      $composableBuilder(column: $table.isActive, builder: (column) => column);
+
+  GeneratedColumn<int> get displayOrder => $composableBuilder(
+      column: $table.displayOrder, builder: (column) => column);
+
+  GeneratedColumn<int> get syncStatus => $composableBuilder(
+      column: $table.syncStatus, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  Expression<T> stampCardsRefs<T extends Object>(
+      Expression<T> Function($$StampCardsTableAnnotationComposer a) f) {
+    final $$StampCardsTableAnnotationComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.id,
+        referencedTable: $db.stampCards,
+        getReferencedColumn: (t) => t.campaignId,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$StampCardsTableAnnotationComposer(
+              $db: $db,
+              $table: $db.stampCards,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return f(composer);
+  }
+
+  Expression<T> loyaltyTransactionsRefs<T extends Object>(
+      Expression<T> Function($$LoyaltyTransactionsTableAnnotationComposer a)
+          f) {
+    final $$LoyaltyTransactionsTableAnnotationComposer composer =
+        $composerBuilder(
+            composer: this,
+            getCurrentColumn: (t) => t.id,
+            referencedTable: $db.loyaltyTransactions,
+            getReferencedColumn: (t) => t.campaignId,
+            builder: (joinBuilder,
+                    {$addJoinBuilderToRootComposer,
+                    $removeJoinBuilderFromRootComposer}) =>
+                $$LoyaltyTransactionsTableAnnotationComposer(
+                  $db: $db,
+                  $table: $db.loyaltyTransactions,
+                  $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                  joinBuilder: joinBuilder,
+                  $removeJoinBuilderFromRootComposer:
+                      $removeJoinBuilderFromRootComposer,
+                ));
+    return f(composer);
+  }
+}
+
+class $$CampaignsTableTableManager extends RootTableManager<
+    _$AppDatabase,
+    $CampaignsTable,
+    Campaign,
+    $$CampaignsTableFilterComposer,
+    $$CampaignsTableOrderingComposer,
+    $$CampaignsTableAnnotationComposer,
+    $$CampaignsTableCreateCompanionBuilder,
+    $$CampaignsTableUpdateCompanionBuilder,
+    (Campaign, $$CampaignsTableReferences),
+    Campaign,
+    PrefetchHooks Function(
+        {bool stampCardsRefs, bool loyaltyTransactionsRefs})> {
+  $$CampaignsTableTableManager(_$AppDatabase db, $CampaignsTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$CampaignsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$CampaignsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$CampaignsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<String> id = const Value.absent(),
+            Value<String> code = const Value.absent(),
+            Value<String> name = const Value.absent(),
+            Value<String?> description = const Value.absent(),
+            Value<String?> emoji = const Value.absent(),
+            Value<String?> tag = const Value.absent(),
+            Value<int> requiredStamps = const Value.absent(),
+            Value<String> eligibleProductCodes = const Value.absent(),
+            Value<String?> rewardDescription = const Value.absent(),
+            Value<String?> termsAndConditions = const Value.absent(),
+            Value<DateTime?> startsAt = const Value.absent(),
+            Value<DateTime?> endsAt = const Value.absent(),
+            Value<bool> isActive = const Value.absent(),
+            Value<int> displayOrder = const Value.absent(),
+            Value<int> syncStatus = const Value.absent(),
+            Value<DateTime> createdAt = const Value.absent(),
+            Value<DateTime> updatedAt = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              CampaignsCompanion(
+            id: id,
+            code: code,
+            name: name,
+            description: description,
+            emoji: emoji,
+            tag: tag,
+            requiredStamps: requiredStamps,
+            eligibleProductCodes: eligibleProductCodes,
+            rewardDescription: rewardDescription,
+            termsAndConditions: termsAndConditions,
+            startsAt: startsAt,
+            endsAt: endsAt,
+            isActive: isActive,
+            displayOrder: displayOrder,
+            syncStatus: syncStatus,
+            createdAt: createdAt,
+            updatedAt: updatedAt,
+            rowid: rowid,
+          ),
+          createCompanionCallback: ({
+            Value<String> id = const Value.absent(),
+            required String code,
+            required String name,
+            Value<String?> description = const Value.absent(),
+            Value<String?> emoji = const Value.absent(),
+            Value<String?> tag = const Value.absent(),
+            Value<int> requiredStamps = const Value.absent(),
+            Value<String> eligibleProductCodes = const Value.absent(),
+            Value<String?> rewardDescription = const Value.absent(),
+            Value<String?> termsAndConditions = const Value.absent(),
+            Value<DateTime?> startsAt = const Value.absent(),
+            Value<DateTime?> endsAt = const Value.absent(),
+            Value<bool> isActive = const Value.absent(),
+            Value<int> displayOrder = const Value.absent(),
+            Value<int> syncStatus = const Value.absent(),
+            Value<DateTime> createdAt = const Value.absent(),
+            Value<DateTime> updatedAt = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              CampaignsCompanion.insert(
+            id: id,
+            code: code,
+            name: name,
+            description: description,
+            emoji: emoji,
+            tag: tag,
+            requiredStamps: requiredStamps,
+            eligibleProductCodes: eligibleProductCodes,
+            rewardDescription: rewardDescription,
+            termsAndConditions: termsAndConditions,
+            startsAt: startsAt,
+            endsAt: endsAt,
+            isActive: isActive,
+            displayOrder: displayOrder,
+            syncStatus: syncStatus,
+            createdAt: createdAt,
+            updatedAt: updatedAt,
+            rowid: rowid,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (
+                    e.readTable(table),
+                    $$CampaignsTableReferences(db, table, e)
+                  ))
+              .toList(),
+          prefetchHooksCallback: (
+              {stampCardsRefs = false, loyaltyTransactionsRefs = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [
+                if (stampCardsRefs) db.stampCards,
+                if (loyaltyTransactionsRefs) db.loyaltyTransactions
+              ],
+              addJoins: null,
+              getPrefetchedDataCallback: (items) async {
+                return [
+                  if (stampCardsRefs)
+                    await $_getPrefetchedData<Campaign, $CampaignsTable,
+                            StampCard>(
+                        currentTable: table,
+                        referencedTable:
+                            $$CampaignsTableReferences._stampCardsRefsTable(db),
+                        managerFromTypedResult: (p0) =>
+                            $$CampaignsTableReferences(db, table, p0)
+                                .stampCardsRefs,
+                        referencedItemsForCurrentItem:
+                            (item, referencedItems) => referencedItems
+                                .where((e) => e.campaignId == item.id),
+                        typedResults: items),
+                  if (loyaltyTransactionsRefs)
+                    await $_getPrefetchedData<Campaign, $CampaignsTable,
+                            LoyaltyTransaction>(
+                        currentTable: table,
+                        referencedTable: $$CampaignsTableReferences
+                            ._loyaltyTransactionsRefsTable(db),
+                        managerFromTypedResult: (p0) =>
+                            $$CampaignsTableReferences(db, table, p0)
+                                .loyaltyTransactionsRefs,
+                        referencedItemsForCurrentItem:
+                            (item, referencedItems) => referencedItems
+                                .where((e) => e.campaignId == item.id),
+                        typedResults: items)
+                ];
+              },
+            );
+          },
+        ));
+}
+
+typedef $$CampaignsTableProcessedTableManager = ProcessedTableManager<
+    _$AppDatabase,
+    $CampaignsTable,
+    Campaign,
+    $$CampaignsTableFilterComposer,
+    $$CampaignsTableOrderingComposer,
+    $$CampaignsTableAnnotationComposer,
+    $$CampaignsTableCreateCompanionBuilder,
+    $$CampaignsTableUpdateCompanionBuilder,
+    (Campaign, $$CampaignsTableReferences),
+    Campaign,
+    PrefetchHooks Function(
+        {bool stampCardsRefs, bool loyaltyTransactionsRefs})>;
+typedef $$StampCardsTableCreateCompanionBuilder = StampCardsCompanion Function({
+  Value<String> id,
+  required String userId,
+  required String campaignId,
+  Value<int> stampsCollected,
+  Value<int> cycle,
+  Value<DateTime?> completedAt,
+  Value<DateTime?> redeemedAt,
+  Value<int> syncStatus,
+  Value<DateTime> createdAt,
+  Value<DateTime> updatedAt,
+  Value<int> rowid,
+});
+typedef $$StampCardsTableUpdateCompanionBuilder = StampCardsCompanion Function({
+  Value<String> id,
+  Value<String> userId,
+  Value<String> campaignId,
+  Value<int> stampsCollected,
+  Value<int> cycle,
+  Value<DateTime?> completedAt,
+  Value<DateTime?> redeemedAt,
+  Value<int> syncStatus,
+  Value<DateTime> createdAt,
+  Value<DateTime> updatedAt,
+  Value<int> rowid,
+});
+
+final class $$StampCardsTableReferences
+    extends BaseReferences<_$AppDatabase, $StampCardsTable, StampCard> {
+  $$StampCardsTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static $UsersTable _userIdTable(_$AppDatabase db) => db.users
+      .createAlias($_aliasNameGenerator(db.stampCards.userId, db.users.id));
+
+  $$UsersTableProcessedTableManager get userId {
+    final $_column = $_itemColumn<String>('user_id')!;
+
+    final manager = $$UsersTableTableManager($_db, $_db.users)
+        .filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_userIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: [item]));
+  }
+
+  static $CampaignsTable _campaignIdTable(_$AppDatabase db) =>
+      db.campaigns.createAlias(
+          $_aliasNameGenerator(db.stampCards.campaignId, db.campaigns.id));
+
+  $$CampaignsTableProcessedTableManager get campaignId {
+    final $_column = $_itemColumn<String>('campaign_id')!;
+
+    final manager = $$CampaignsTableTableManager($_db, $_db.campaigns)
+        .filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_campaignIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: [item]));
+  }
+
+  static MultiTypedResultKey<$LoyaltyTransactionsTable,
+      List<LoyaltyTransaction>> _loyaltyTransactionsRefsTable(
+          _$AppDatabase db) =>
+      MultiTypedResultKey.fromTable(db.loyaltyTransactions,
+          aliasName: $_aliasNameGenerator(
+              db.stampCards.id, db.loyaltyTransactions.stampCardId));
+
+  $$LoyaltyTransactionsTableProcessedTableManager get loyaltyTransactionsRefs {
+    final manager = $$LoyaltyTransactionsTableTableManager(
+            $_db, $_db.loyaltyTransactions)
+        .filter((f) => f.stampCardId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache =
+        $_typedResult.readTableOrNull(_loyaltyTransactionsRefsTable($_db));
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: cache));
+  }
+}
+
+class $$StampCardsTableFilterComposer
+    extends Composer<_$AppDatabase, $StampCardsTable> {
+  $$StampCardsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get stampsCollected => $composableBuilder(
+      column: $table.stampsCollected,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get cycle => $composableBuilder(
+      column: $table.cycle, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get completedAt => $composableBuilder(
+      column: $table.completedAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get redeemedAt => $composableBuilder(
+      column: $table.redeemedAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get syncStatus => $composableBuilder(
+      column: $table.syncStatus, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+      column: $table.createdAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+      column: $table.updatedAt, builder: (column) => ColumnFilters(column));
+
+  $$UsersTableFilterComposer get userId {
+    final $$UsersTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.userId,
+        referencedTable: $db.users,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$UsersTableFilterComposer(
+              $db: $db,
+              $table: $db.users,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+
+  $$CampaignsTableFilterComposer get campaignId {
+    final $$CampaignsTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.campaignId,
+        referencedTable: $db.campaigns,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$CampaignsTableFilterComposer(
+              $db: $db,
+              $table: $db.campaigns,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+
+  Expression<bool> loyaltyTransactionsRefs(
+      Expression<bool> Function($$LoyaltyTransactionsTableFilterComposer f) f) {
+    final $$LoyaltyTransactionsTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.id,
+        referencedTable: $db.loyaltyTransactions,
+        getReferencedColumn: (t) => t.stampCardId,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$LoyaltyTransactionsTableFilterComposer(
+              $db: $db,
+              $table: $db.loyaltyTransactions,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return f(composer);
+  }
+}
+
+class $$StampCardsTableOrderingComposer
+    extends Composer<_$AppDatabase, $StampCardsTable> {
+  $$StampCardsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get stampsCollected => $composableBuilder(
+      column: $table.stampsCollected,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get cycle => $composableBuilder(
+      column: $table.cycle, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get completedAt => $composableBuilder(
+      column: $table.completedAt, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get redeemedAt => $composableBuilder(
+      column: $table.redeemedAt, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get syncStatus => $composableBuilder(
+      column: $table.syncStatus, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+      column: $table.createdAt, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+      column: $table.updatedAt, builder: (column) => ColumnOrderings(column));
+
+  $$UsersTableOrderingComposer get userId {
+    final $$UsersTableOrderingComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.userId,
+        referencedTable: $db.users,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$UsersTableOrderingComposer(
+              $db: $db,
+              $table: $db.users,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+
+  $$CampaignsTableOrderingComposer get campaignId {
+    final $$CampaignsTableOrderingComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.campaignId,
+        referencedTable: $db.campaigns,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$CampaignsTableOrderingComposer(
+              $db: $db,
+              $table: $db.campaigns,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+}
+
+class $$StampCardsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $StampCardsTable> {
+  $$StampCardsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<int> get stampsCollected => $composableBuilder(
+      column: $table.stampsCollected, builder: (column) => column);
+
+  GeneratedColumn<int> get cycle =>
+      $composableBuilder(column: $table.cycle, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get completedAt => $composableBuilder(
+      column: $table.completedAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get redeemedAt => $composableBuilder(
+      column: $table.redeemedAt, builder: (column) => column);
+
+  GeneratedColumn<int> get syncStatus => $composableBuilder(
+      column: $table.syncStatus, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  $$UsersTableAnnotationComposer get userId {
+    final $$UsersTableAnnotationComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.userId,
+        referencedTable: $db.users,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$UsersTableAnnotationComposer(
+              $db: $db,
+              $table: $db.users,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+
+  $$CampaignsTableAnnotationComposer get campaignId {
+    final $$CampaignsTableAnnotationComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.campaignId,
+        referencedTable: $db.campaigns,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$CampaignsTableAnnotationComposer(
+              $db: $db,
+              $table: $db.campaigns,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+
+  Expression<T> loyaltyTransactionsRefs<T extends Object>(
+      Expression<T> Function($$LoyaltyTransactionsTableAnnotationComposer a)
+          f) {
+    final $$LoyaltyTransactionsTableAnnotationComposer composer =
+        $composerBuilder(
+            composer: this,
+            getCurrentColumn: (t) => t.id,
+            referencedTable: $db.loyaltyTransactions,
+            getReferencedColumn: (t) => t.stampCardId,
+            builder: (joinBuilder,
+                    {$addJoinBuilderToRootComposer,
+                    $removeJoinBuilderFromRootComposer}) =>
+                $$LoyaltyTransactionsTableAnnotationComposer(
+                  $db: $db,
+                  $table: $db.loyaltyTransactions,
+                  $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                  joinBuilder: joinBuilder,
+                  $removeJoinBuilderFromRootComposer:
+                      $removeJoinBuilderFromRootComposer,
+                ));
+    return f(composer);
+  }
+}
+
+class $$StampCardsTableTableManager extends RootTableManager<
+    _$AppDatabase,
+    $StampCardsTable,
+    StampCard,
+    $$StampCardsTableFilterComposer,
+    $$StampCardsTableOrderingComposer,
+    $$StampCardsTableAnnotationComposer,
+    $$StampCardsTableCreateCompanionBuilder,
+    $$StampCardsTableUpdateCompanionBuilder,
+    (StampCard, $$StampCardsTableReferences),
+    StampCard,
+    PrefetchHooks Function(
+        {bool userId, bool campaignId, bool loyaltyTransactionsRefs})> {
+  $$StampCardsTableTableManager(_$AppDatabase db, $StampCardsTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$StampCardsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$StampCardsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$StampCardsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<String> id = const Value.absent(),
+            Value<String> userId = const Value.absent(),
+            Value<String> campaignId = const Value.absent(),
+            Value<int> stampsCollected = const Value.absent(),
+            Value<int> cycle = const Value.absent(),
+            Value<DateTime?> completedAt = const Value.absent(),
+            Value<DateTime?> redeemedAt = const Value.absent(),
+            Value<int> syncStatus = const Value.absent(),
+            Value<DateTime> createdAt = const Value.absent(),
+            Value<DateTime> updatedAt = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              StampCardsCompanion(
+            id: id,
+            userId: userId,
+            campaignId: campaignId,
+            stampsCollected: stampsCollected,
+            cycle: cycle,
+            completedAt: completedAt,
+            redeemedAt: redeemedAt,
+            syncStatus: syncStatus,
+            createdAt: createdAt,
+            updatedAt: updatedAt,
+            rowid: rowid,
+          ),
+          createCompanionCallback: ({
+            Value<String> id = const Value.absent(),
+            required String userId,
+            required String campaignId,
+            Value<int> stampsCollected = const Value.absent(),
+            Value<int> cycle = const Value.absent(),
+            Value<DateTime?> completedAt = const Value.absent(),
+            Value<DateTime?> redeemedAt = const Value.absent(),
+            Value<int> syncStatus = const Value.absent(),
+            Value<DateTime> createdAt = const Value.absent(),
+            Value<DateTime> updatedAt = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              StampCardsCompanion.insert(
+            id: id,
+            userId: userId,
+            campaignId: campaignId,
+            stampsCollected: stampsCollected,
+            cycle: cycle,
+            completedAt: completedAt,
+            redeemedAt: redeemedAt,
+            syncStatus: syncStatus,
+            createdAt: createdAt,
+            updatedAt: updatedAt,
+            rowid: rowid,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (
+                    e.readTable(table),
+                    $$StampCardsTableReferences(db, table, e)
+                  ))
+              .toList(),
+          prefetchHooksCallback: (
+              {userId = false,
+              campaignId = false,
+              loyaltyTransactionsRefs = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [
+                if (loyaltyTransactionsRefs) db.loyaltyTransactions
+              ],
+              addJoins: <
+                  T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic>>(state) {
+                if (userId) {
+                  state = state.withJoin(
+                    currentTable: table,
+                    currentColumn: table.userId,
+                    referencedTable:
+                        $$StampCardsTableReferences._userIdTable(db),
+                    referencedColumn:
+                        $$StampCardsTableReferences._userIdTable(db).id,
+                  ) as T;
+                }
+                if (campaignId) {
+                  state = state.withJoin(
+                    currentTable: table,
+                    currentColumn: table.campaignId,
+                    referencedTable:
+                        $$StampCardsTableReferences._campaignIdTable(db),
+                    referencedColumn:
+                        $$StampCardsTableReferences._campaignIdTable(db).id,
+                  ) as T;
+                }
+
+                return state;
+              },
+              getPrefetchedDataCallback: (items) async {
+                return [
+                  if (loyaltyTransactionsRefs)
+                    await $_getPrefetchedData<StampCard, $StampCardsTable,
+                            LoyaltyTransaction>(
+                        currentTable: table,
+                        referencedTable: $$StampCardsTableReferences
+                            ._loyaltyTransactionsRefsTable(db),
+                        managerFromTypedResult: (p0) =>
+                            $$StampCardsTableReferences(db, table, p0)
+                                .loyaltyTransactionsRefs,
+                        referencedItemsForCurrentItem:
+                            (item, referencedItems) => referencedItems
+                                .where((e) => e.stampCardId == item.id),
+                        typedResults: items)
+                ];
+              },
+            );
+          },
+        ));
+}
+
+typedef $$StampCardsTableProcessedTableManager = ProcessedTableManager<
+    _$AppDatabase,
+    $StampCardsTable,
+    StampCard,
+    $$StampCardsTableFilterComposer,
+    $$StampCardsTableOrderingComposer,
+    $$StampCardsTableAnnotationComposer,
+    $$StampCardsTableCreateCompanionBuilder,
+    $$StampCardsTableUpdateCompanionBuilder,
+    (StampCard, $$StampCardsTableReferences),
+    StampCard,
+    PrefetchHooks Function(
+        {bool userId, bool campaignId, bool loyaltyTransactionsRefs})>;
+typedef $$LoyaltyTransactionsTableCreateCompanionBuilder
+    = LoyaltyTransactionsCompanion Function({
+  Value<String> id,
+  required String reference,
+  required String userId,
+  Value<String?> campaignId,
+  Value<String?> stampCardId,
+  Value<String?> productId,
+  required String type,
+  Value<int> points,
+  Value<String?> productName,
+  Value<String?> storeName,
+  Value<String?> scanToken,
+  Value<DateTime> occurredAt,
+  Value<int> syncStatus,
+  Value<DateTime> createdAt,
+  Value<DateTime> updatedAt,
+  Value<int> rowid,
+});
+typedef $$LoyaltyTransactionsTableUpdateCompanionBuilder
+    = LoyaltyTransactionsCompanion Function({
+  Value<String> id,
+  Value<String> reference,
+  Value<String> userId,
+  Value<String?> campaignId,
+  Value<String?> stampCardId,
+  Value<String?> productId,
+  Value<String> type,
+  Value<int> points,
+  Value<String?> productName,
+  Value<String?> storeName,
+  Value<String?> scanToken,
+  Value<DateTime> occurredAt,
+  Value<int> syncStatus,
+  Value<DateTime> createdAt,
+  Value<DateTime> updatedAt,
+  Value<int> rowid,
+});
+
+final class $$LoyaltyTransactionsTableReferences extends BaseReferences<
+    _$AppDatabase, $LoyaltyTransactionsTable, LoyaltyTransaction> {
+  $$LoyaltyTransactionsTableReferences(
+      super.$_db, super.$_table, super.$_typedResult);
+
+  static $UsersTable _userIdTable(_$AppDatabase db) => db.users.createAlias(
+      $_aliasNameGenerator(db.loyaltyTransactions.userId, db.users.id));
+
+  $$UsersTableProcessedTableManager get userId {
+    final $_column = $_itemColumn<String>('user_id')!;
+
+    final manager = $$UsersTableTableManager($_db, $_db.users)
+        .filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_userIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: [item]));
+  }
+
+  static $CampaignsTable _campaignIdTable(_$AppDatabase db) =>
+      db.campaigns.createAlias($_aliasNameGenerator(
+          db.loyaltyTransactions.campaignId, db.campaigns.id));
+
+  $$CampaignsTableProcessedTableManager? get campaignId {
+    final $_column = $_itemColumn<String>('campaign_id');
+    if ($_column == null) return null;
+    final manager = $$CampaignsTableTableManager($_db, $_db.campaigns)
+        .filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_campaignIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: [item]));
+  }
+
+  static $StampCardsTable _stampCardIdTable(_$AppDatabase db) =>
+      db.stampCards.createAlias($_aliasNameGenerator(
+          db.loyaltyTransactions.stampCardId, db.stampCards.id));
+
+  $$StampCardsTableProcessedTableManager? get stampCardId {
+    final $_column = $_itemColumn<String>('stamp_card_id');
+    if ($_column == null) return null;
+    final manager = $$StampCardsTableTableManager($_db, $_db.stampCards)
+        .filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_stampCardIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: [item]));
+  }
+
+  static $ProductsTable _productIdTable(_$AppDatabase db) =>
+      db.products.createAlias($_aliasNameGenerator(
+          db.loyaltyTransactions.productId, db.products.id));
+
+  $$ProductsTableProcessedTableManager? get productId {
+    final $_column = $_itemColumn<String>('product_id');
+    if ($_column == null) return null;
+    final manager = $$ProductsTableTableManager($_db, $_db.products)
+        .filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_productIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: [item]));
+  }
+}
+
+class $$LoyaltyTransactionsTableFilterComposer
+    extends Composer<_$AppDatabase, $LoyaltyTransactionsTable> {
+  $$LoyaltyTransactionsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get reference => $composableBuilder(
+      column: $table.reference, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get type => $composableBuilder(
+      column: $table.type, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get points => $composableBuilder(
+      column: $table.points, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get productName => $composableBuilder(
+      column: $table.productName, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get storeName => $composableBuilder(
       column: $table.storeName, builder: (column) => ColumnFilters(column));
 
-  ColumnFilters<double> get storeLatitude => $composableBuilder(
-      column: $table.storeLatitude, builder: (column) => ColumnFilters(column));
+  ColumnFilters<String> get scanToken => $composableBuilder(
+      column: $table.scanToken, builder: (column) => ColumnFilters(column));
 
-  ColumnFilters<double> get storeLongitude => $composableBuilder(
-      column: $table.storeLongitude,
-      builder: (column) => ColumnFilters(column));
+  ColumnFilters<DateTime> get occurredAt => $composableBuilder(
+      column: $table.occurredAt, builder: (column) => ColumnFilters(column));
 
-  ColumnFilters<double> get radiusMeters => $composableBuilder(
-      column: $table.radiusMeters, builder: (column) => ColumnFilters(column));
+  ColumnFilters<int> get syncStatus => $composableBuilder(
+      column: $table.syncStatus, builder: (column) => ColumnFilters(column));
 
-  ColumnFilters<String> get lastLogType => $composableBuilder(
-      column: $table.lastLogType, builder: (column) => ColumnFilters(column));
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+      column: $table.createdAt, builder: (column) => ColumnFilters(column));
 
-  ColumnFilters<DateTime> get lastLogAt => $composableBuilder(
-      column: $table.lastLogAt, builder: (column) => ColumnFilters(column));
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+      column: $table.updatedAt, builder: (column) => ColumnFilters(column));
 
-  ColumnFilters<bool> get isSegmentComplete => $composableBuilder(
-      column: $table.isSegmentComplete,
-      builder: (column) => ColumnFilters(column));
+  $$UsersTableFilterComposer get userId {
+    final $$UsersTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.userId,
+        referencedTable: $db.users,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$UsersTableFilterComposer(
+              $db: $db,
+              $table: $db.users,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
 
-  ColumnFilters<String> get rawJson => $composableBuilder(
-      column: $table.rawJson, builder: (column) => ColumnFilters(column));
+  $$CampaignsTableFilterComposer get campaignId {
+    final $$CampaignsTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.campaignId,
+        referencedTable: $db.campaigns,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$CampaignsTableFilterComposer(
+              $db: $db,
+              $table: $db.campaigns,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
 
-  ColumnFilters<DateTime> get fetchedAt => $composableBuilder(
-      column: $table.fetchedAt, builder: (column) => ColumnFilters(column));
+  $$StampCardsTableFilterComposer get stampCardId {
+    final $$StampCardsTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.stampCardId,
+        referencedTable: $db.stampCards,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$StampCardsTableFilterComposer(
+              $db: $db,
+              $table: $db.stampCards,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
 
-  ColumnFilters<DateTime> get validUntil => $composableBuilder(
-      column: $table.validUntil, builder: (column) => ColumnFilters(column));
+  $$ProductsTableFilterComposer get productId {
+    final $$ProductsTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.productId,
+        referencedTable: $db.products,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$ProductsTableFilterComposer(
+              $db: $db,
+              $table: $db.products,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
 }
 
-class $$CachedDtrSchedulesTableOrderingComposer
-    extends Composer<_$AppDatabase, $CachedDtrSchedulesTable> {
-  $$CachedDtrSchedulesTableOrderingComposer({
+class $$LoyaltyTransactionsTableOrderingComposer
+    extends Composer<_$AppDatabase, $LoyaltyTransactionsTable> {
+  $$LoyaltyTransactionsTableOrderingComposer({
     required super.$db,
     required super.$table,
     super.joinBuilder,
@@ -11608,62 +13698,120 @@ class $$CachedDtrSchedulesTableOrderingComposer
   ColumnOrderings<String> get id => $composableBuilder(
       column: $table.id, builder: (column) => ColumnOrderings(column));
 
-  ColumnOrderings<String> get userId => $composableBuilder(
-      column: $table.userId, builder: (column) => ColumnOrderings(column));
+  ColumnOrderings<String> get reference => $composableBuilder(
+      column: $table.reference, builder: (column) => ColumnOrderings(column));
 
-  ColumnOrderings<String> get status => $composableBuilder(
-      column: $table.status, builder: (column) => ColumnOrderings(column));
+  ColumnOrderings<String> get type => $composableBuilder(
+      column: $table.type, builder: (column) => ColumnOrderings(column));
 
-  ColumnOrderings<DateTime> get startTime => $composableBuilder(
-      column: $table.startTime, builder: (column) => ColumnOrderings(column));
+  ColumnOrderings<int> get points => $composableBuilder(
+      column: $table.points, builder: (column) => ColumnOrderings(column));
 
-  ColumnOrderings<DateTime> get endTime => $composableBuilder(
-      column: $table.endTime, builder: (column) => ColumnOrderings(column));
-
-  ColumnOrderings<String> get storeId => $composableBuilder(
-      column: $table.storeId, builder: (column) => ColumnOrderings(column));
-
-  ColumnOrderings<String> get storeCode => $composableBuilder(
-      column: $table.storeCode, builder: (column) => ColumnOrderings(column));
+  ColumnOrderings<String> get productName => $composableBuilder(
+      column: $table.productName, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<String> get storeName => $composableBuilder(
       column: $table.storeName, builder: (column) => ColumnOrderings(column));
 
-  ColumnOrderings<double> get storeLatitude => $composableBuilder(
-      column: $table.storeLatitude,
-      builder: (column) => ColumnOrderings(column));
+  ColumnOrderings<String> get scanToken => $composableBuilder(
+      column: $table.scanToken, builder: (column) => ColumnOrderings(column));
 
-  ColumnOrderings<double> get storeLongitude => $composableBuilder(
-      column: $table.storeLongitude,
-      builder: (column) => ColumnOrderings(column));
+  ColumnOrderings<DateTime> get occurredAt => $composableBuilder(
+      column: $table.occurredAt, builder: (column) => ColumnOrderings(column));
 
-  ColumnOrderings<double> get radiusMeters => $composableBuilder(
-      column: $table.radiusMeters,
-      builder: (column) => ColumnOrderings(column));
+  ColumnOrderings<int> get syncStatus => $composableBuilder(
+      column: $table.syncStatus, builder: (column) => ColumnOrderings(column));
 
-  ColumnOrderings<String> get lastLogType => $composableBuilder(
-      column: $table.lastLogType, builder: (column) => ColumnOrderings(column));
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+      column: $table.createdAt, builder: (column) => ColumnOrderings(column));
 
-  ColumnOrderings<DateTime> get lastLogAt => $composableBuilder(
-      column: $table.lastLogAt, builder: (column) => ColumnOrderings(column));
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+      column: $table.updatedAt, builder: (column) => ColumnOrderings(column));
 
-  ColumnOrderings<bool> get isSegmentComplete => $composableBuilder(
-      column: $table.isSegmentComplete,
-      builder: (column) => ColumnOrderings(column));
+  $$UsersTableOrderingComposer get userId {
+    final $$UsersTableOrderingComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.userId,
+        referencedTable: $db.users,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$UsersTableOrderingComposer(
+              $db: $db,
+              $table: $db.users,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
 
-  ColumnOrderings<String> get rawJson => $composableBuilder(
-      column: $table.rawJson, builder: (column) => ColumnOrderings(column));
+  $$CampaignsTableOrderingComposer get campaignId {
+    final $$CampaignsTableOrderingComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.campaignId,
+        referencedTable: $db.campaigns,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$CampaignsTableOrderingComposer(
+              $db: $db,
+              $table: $db.campaigns,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
 
-  ColumnOrderings<DateTime> get fetchedAt => $composableBuilder(
-      column: $table.fetchedAt, builder: (column) => ColumnOrderings(column));
+  $$StampCardsTableOrderingComposer get stampCardId {
+    final $$StampCardsTableOrderingComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.stampCardId,
+        referencedTable: $db.stampCards,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$StampCardsTableOrderingComposer(
+              $db: $db,
+              $table: $db.stampCards,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
 
-  ColumnOrderings<DateTime> get validUntil => $composableBuilder(
-      column: $table.validUntil, builder: (column) => ColumnOrderings(column));
+  $$ProductsTableOrderingComposer get productId {
+    final $$ProductsTableOrderingComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.productId,
+        referencedTable: $db.products,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$ProductsTableOrderingComposer(
+              $db: $db,
+              $table: $db.products,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
 }
 
-class $$CachedDtrSchedulesTableAnnotationComposer
-    extends Composer<_$AppDatabase, $CachedDtrSchedulesTable> {
-  $$CachedDtrSchedulesTableAnnotationComposer({
+class $$LoyaltyTransactionsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $LoyaltyTransactionsTable> {
+  $$LoyaltyTransactionsTableAnnotationComposer({
     required super.$db,
     required super.$table,
     super.joinBuilder,
@@ -11673,348 +13821,310 @@ class $$CachedDtrSchedulesTableAnnotationComposer
   GeneratedColumn<String> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
 
-  GeneratedColumn<String> get userId =>
-      $composableBuilder(column: $table.userId, builder: (column) => column);
+  GeneratedColumn<String> get reference =>
+      $composableBuilder(column: $table.reference, builder: (column) => column);
 
-  GeneratedColumn<String> get status =>
-      $composableBuilder(column: $table.status, builder: (column) => column);
+  GeneratedColumn<String> get type =>
+      $composableBuilder(column: $table.type, builder: (column) => column);
 
-  GeneratedColumn<DateTime> get startTime =>
-      $composableBuilder(column: $table.startTime, builder: (column) => column);
+  GeneratedColumn<int> get points =>
+      $composableBuilder(column: $table.points, builder: (column) => column);
 
-  GeneratedColumn<DateTime> get endTime =>
-      $composableBuilder(column: $table.endTime, builder: (column) => column);
-
-  GeneratedColumn<String> get storeId =>
-      $composableBuilder(column: $table.storeId, builder: (column) => column);
-
-  GeneratedColumn<String> get storeCode =>
-      $composableBuilder(column: $table.storeCode, builder: (column) => column);
+  GeneratedColumn<String> get productName => $composableBuilder(
+      column: $table.productName, builder: (column) => column);
 
   GeneratedColumn<String> get storeName =>
       $composableBuilder(column: $table.storeName, builder: (column) => column);
 
-  GeneratedColumn<double> get storeLatitude => $composableBuilder(
-      column: $table.storeLatitude, builder: (column) => column);
+  GeneratedColumn<String> get scanToken =>
+      $composableBuilder(column: $table.scanToken, builder: (column) => column);
 
-  GeneratedColumn<double> get storeLongitude => $composableBuilder(
-      column: $table.storeLongitude, builder: (column) => column);
+  GeneratedColumn<DateTime> get occurredAt => $composableBuilder(
+      column: $table.occurredAt, builder: (column) => column);
 
-  GeneratedColumn<double> get radiusMeters => $composableBuilder(
-      column: $table.radiusMeters, builder: (column) => column);
+  GeneratedColumn<int> get syncStatus => $composableBuilder(
+      column: $table.syncStatus, builder: (column) => column);
 
-  GeneratedColumn<String> get lastLogType => $composableBuilder(
-      column: $table.lastLogType, builder: (column) => column);
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
 
-  GeneratedColumn<DateTime> get lastLogAt =>
-      $composableBuilder(column: $table.lastLogAt, builder: (column) => column);
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
 
-  GeneratedColumn<bool> get isSegmentComplete => $composableBuilder(
-      column: $table.isSegmentComplete, builder: (column) => column);
+  $$UsersTableAnnotationComposer get userId {
+    final $$UsersTableAnnotationComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.userId,
+        referencedTable: $db.users,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$UsersTableAnnotationComposer(
+              $db: $db,
+              $table: $db.users,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
 
-  GeneratedColumn<String> get rawJson =>
-      $composableBuilder(column: $table.rawJson, builder: (column) => column);
+  $$CampaignsTableAnnotationComposer get campaignId {
+    final $$CampaignsTableAnnotationComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.campaignId,
+        referencedTable: $db.campaigns,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$CampaignsTableAnnotationComposer(
+              $db: $db,
+              $table: $db.campaigns,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
 
-  GeneratedColumn<DateTime> get fetchedAt =>
-      $composableBuilder(column: $table.fetchedAt, builder: (column) => column);
+  $$StampCardsTableAnnotationComposer get stampCardId {
+    final $$StampCardsTableAnnotationComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.stampCardId,
+        referencedTable: $db.stampCards,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$StampCardsTableAnnotationComposer(
+              $db: $db,
+              $table: $db.stampCards,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
 
-  GeneratedColumn<DateTime> get validUntil => $composableBuilder(
-      column: $table.validUntil, builder: (column) => column);
+  $$ProductsTableAnnotationComposer get productId {
+    final $$ProductsTableAnnotationComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.productId,
+        referencedTable: $db.products,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$ProductsTableAnnotationComposer(
+              $db: $db,
+              $table: $db.products,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
 }
 
-class $$CachedDtrSchedulesTableTableManager extends RootTableManager<
+class $$LoyaltyTransactionsTableTableManager extends RootTableManager<
     _$AppDatabase,
-    $CachedDtrSchedulesTable,
-    CachedDtrSchedule,
-    $$CachedDtrSchedulesTableFilterComposer,
-    $$CachedDtrSchedulesTableOrderingComposer,
-    $$CachedDtrSchedulesTableAnnotationComposer,
-    $$CachedDtrSchedulesTableCreateCompanionBuilder,
-    $$CachedDtrSchedulesTableUpdateCompanionBuilder,
-    (
-      CachedDtrSchedule,
-      BaseReferences<_$AppDatabase, $CachedDtrSchedulesTable, CachedDtrSchedule>
-    ),
-    CachedDtrSchedule,
-    PrefetchHooks Function()> {
-  $$CachedDtrSchedulesTableTableManager(
-      _$AppDatabase db, $CachedDtrSchedulesTable table)
+    $LoyaltyTransactionsTable,
+    LoyaltyTransaction,
+    $$LoyaltyTransactionsTableFilterComposer,
+    $$LoyaltyTransactionsTableOrderingComposer,
+    $$LoyaltyTransactionsTableAnnotationComposer,
+    $$LoyaltyTransactionsTableCreateCompanionBuilder,
+    $$LoyaltyTransactionsTableUpdateCompanionBuilder,
+    (LoyaltyTransaction, $$LoyaltyTransactionsTableReferences),
+    LoyaltyTransaction,
+    PrefetchHooks Function(
+        {bool userId, bool campaignId, bool stampCardId, bool productId})> {
+  $$LoyaltyTransactionsTableTableManager(
+      _$AppDatabase db, $LoyaltyTransactionsTable table)
       : super(TableManagerState(
           db: db,
           table: table,
           createFilteringComposer: () =>
-              $$CachedDtrSchedulesTableFilterComposer($db: db, $table: table),
+              $$LoyaltyTransactionsTableFilterComposer($db: db, $table: table),
           createOrderingComposer: () =>
-              $$CachedDtrSchedulesTableOrderingComposer($db: db, $table: table),
+              $$LoyaltyTransactionsTableOrderingComposer(
+                  $db: db, $table: table),
           createComputedFieldComposer: () =>
-              $$CachedDtrSchedulesTableAnnotationComposer(
+              $$LoyaltyTransactionsTableAnnotationComposer(
                   $db: db, $table: table),
           updateCompanionCallback: ({
             Value<String> id = const Value.absent(),
-            Value<String?> userId = const Value.absent(),
-            Value<String?> status = const Value.absent(),
-            Value<DateTime> startTime = const Value.absent(),
-            Value<DateTime> endTime = const Value.absent(),
-            Value<String?> storeId = const Value.absent(),
-            Value<String?> storeCode = const Value.absent(),
+            Value<String> reference = const Value.absent(),
+            Value<String> userId = const Value.absent(),
+            Value<String?> campaignId = const Value.absent(),
+            Value<String?> stampCardId = const Value.absent(),
+            Value<String?> productId = const Value.absent(),
+            Value<String> type = const Value.absent(),
+            Value<int> points = const Value.absent(),
+            Value<String?> productName = const Value.absent(),
             Value<String?> storeName = const Value.absent(),
-            Value<double?> storeLatitude = const Value.absent(),
-            Value<double?> storeLongitude = const Value.absent(),
-            Value<double?> radiusMeters = const Value.absent(),
-            Value<String?> lastLogType = const Value.absent(),
-            Value<DateTime?> lastLogAt = const Value.absent(),
-            Value<bool> isSegmentComplete = const Value.absent(),
-            Value<String> rawJson = const Value.absent(),
-            Value<DateTime> fetchedAt = const Value.absent(),
-            Value<DateTime> validUntil = const Value.absent(),
+            Value<String?> scanToken = const Value.absent(),
+            Value<DateTime> occurredAt = const Value.absent(),
+            Value<int> syncStatus = const Value.absent(),
+            Value<DateTime> createdAt = const Value.absent(),
+            Value<DateTime> updatedAt = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
-              CachedDtrSchedulesCompanion(
+              LoyaltyTransactionsCompanion(
             id: id,
+            reference: reference,
             userId: userId,
-            status: status,
-            startTime: startTime,
-            endTime: endTime,
-            storeId: storeId,
-            storeCode: storeCode,
+            campaignId: campaignId,
+            stampCardId: stampCardId,
+            productId: productId,
+            type: type,
+            points: points,
+            productName: productName,
             storeName: storeName,
-            storeLatitude: storeLatitude,
-            storeLongitude: storeLongitude,
-            radiusMeters: radiusMeters,
-            lastLogType: lastLogType,
-            lastLogAt: lastLogAt,
-            isSegmentComplete: isSegmentComplete,
-            rawJson: rawJson,
-            fetchedAt: fetchedAt,
-            validUntil: validUntil,
+            scanToken: scanToken,
+            occurredAt: occurredAt,
+            syncStatus: syncStatus,
+            createdAt: createdAt,
+            updatedAt: updatedAt,
             rowid: rowid,
           ),
           createCompanionCallback: ({
-            required String id,
-            Value<String?> userId = const Value.absent(),
-            Value<String?> status = const Value.absent(),
-            required DateTime startTime,
-            required DateTime endTime,
-            Value<String?> storeId = const Value.absent(),
-            Value<String?> storeCode = const Value.absent(),
-            Value<String?> storeName = const Value.absent(),
-            Value<double?> storeLatitude = const Value.absent(),
-            Value<double?> storeLongitude = const Value.absent(),
-            Value<double?> radiusMeters = const Value.absent(),
-            Value<String?> lastLogType = const Value.absent(),
-            Value<DateTime?> lastLogAt = const Value.absent(),
-            Value<bool> isSegmentComplete = const Value.absent(),
-            required String rawJson,
-            required DateTime fetchedAt,
-            required DateTime validUntil,
-            Value<int> rowid = const Value.absent(),
-          }) =>
-              CachedDtrSchedulesCompanion.insert(
-            id: id,
-            userId: userId,
-            status: status,
-            startTime: startTime,
-            endTime: endTime,
-            storeId: storeId,
-            storeCode: storeCode,
-            storeName: storeName,
-            storeLatitude: storeLatitude,
-            storeLongitude: storeLongitude,
-            radiusMeters: radiusMeters,
-            lastLogType: lastLogType,
-            lastLogAt: lastLogAt,
-            isSegmentComplete: isSegmentComplete,
-            rawJson: rawJson,
-            fetchedAt: fetchedAt,
-            validUntil: validUntil,
-            rowid: rowid,
-          ),
-          withReferenceMapper: (p0) => p0
-              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
-              .toList(),
-          prefetchHooksCallback: null,
-        ));
-}
-
-typedef $$CachedDtrSchedulesTableProcessedTableManager = ProcessedTableManager<
-    _$AppDatabase,
-    $CachedDtrSchedulesTable,
-    CachedDtrSchedule,
-    $$CachedDtrSchedulesTableFilterComposer,
-    $$CachedDtrSchedulesTableOrderingComposer,
-    $$CachedDtrSchedulesTableAnnotationComposer,
-    $$CachedDtrSchedulesTableCreateCompanionBuilder,
-    $$CachedDtrSchedulesTableUpdateCompanionBuilder,
-    (
-      CachedDtrSchedule,
-      BaseReferences<_$AppDatabase, $CachedDtrSchedulesTable, CachedDtrSchedule>
-    ),
-    CachedDtrSchedule,
-    PrefetchHooks Function()>;
-typedef $$CachedAttendanceLogsTableCreateCompanionBuilder
-    = CachedAttendanceLogsCompanion Function({
-  required String id,
-  required DateTime logTime,
-  required String rawJson,
-  required DateTime fetchedAt,
-  Value<int> rowid,
-});
-typedef $$CachedAttendanceLogsTableUpdateCompanionBuilder
-    = CachedAttendanceLogsCompanion Function({
-  Value<String> id,
-  Value<DateTime> logTime,
-  Value<String> rawJson,
-  Value<DateTime> fetchedAt,
-  Value<int> rowid,
-});
-
-class $$CachedAttendanceLogsTableFilterComposer
-    extends Composer<_$AppDatabase, $CachedAttendanceLogsTable> {
-  $$CachedAttendanceLogsTableFilterComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  ColumnFilters<String> get id => $composableBuilder(
-      column: $table.id, builder: (column) => ColumnFilters(column));
-
-  ColumnFilters<DateTime> get logTime => $composableBuilder(
-      column: $table.logTime, builder: (column) => ColumnFilters(column));
-
-  ColumnFilters<String> get rawJson => $composableBuilder(
-      column: $table.rawJson, builder: (column) => ColumnFilters(column));
-
-  ColumnFilters<DateTime> get fetchedAt => $composableBuilder(
-      column: $table.fetchedAt, builder: (column) => ColumnFilters(column));
-}
-
-class $$CachedAttendanceLogsTableOrderingComposer
-    extends Composer<_$AppDatabase, $CachedAttendanceLogsTable> {
-  $$CachedAttendanceLogsTableOrderingComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  ColumnOrderings<String> get id => $composableBuilder(
-      column: $table.id, builder: (column) => ColumnOrderings(column));
-
-  ColumnOrderings<DateTime> get logTime => $composableBuilder(
-      column: $table.logTime, builder: (column) => ColumnOrderings(column));
-
-  ColumnOrderings<String> get rawJson => $composableBuilder(
-      column: $table.rawJson, builder: (column) => ColumnOrderings(column));
-
-  ColumnOrderings<DateTime> get fetchedAt => $composableBuilder(
-      column: $table.fetchedAt, builder: (column) => ColumnOrderings(column));
-}
-
-class $$CachedAttendanceLogsTableAnnotationComposer
-    extends Composer<_$AppDatabase, $CachedAttendanceLogsTable> {
-  $$CachedAttendanceLogsTableAnnotationComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  GeneratedColumn<String> get id =>
-      $composableBuilder(column: $table.id, builder: (column) => column);
-
-  GeneratedColumn<DateTime> get logTime =>
-      $composableBuilder(column: $table.logTime, builder: (column) => column);
-
-  GeneratedColumn<String> get rawJson =>
-      $composableBuilder(column: $table.rawJson, builder: (column) => column);
-
-  GeneratedColumn<DateTime> get fetchedAt =>
-      $composableBuilder(column: $table.fetchedAt, builder: (column) => column);
-}
-
-class $$CachedAttendanceLogsTableTableManager extends RootTableManager<
-    _$AppDatabase,
-    $CachedAttendanceLogsTable,
-    CachedAttendanceLog,
-    $$CachedAttendanceLogsTableFilterComposer,
-    $$CachedAttendanceLogsTableOrderingComposer,
-    $$CachedAttendanceLogsTableAnnotationComposer,
-    $$CachedAttendanceLogsTableCreateCompanionBuilder,
-    $$CachedAttendanceLogsTableUpdateCompanionBuilder,
-    (
-      CachedAttendanceLog,
-      BaseReferences<_$AppDatabase, $CachedAttendanceLogsTable,
-          CachedAttendanceLog>
-    ),
-    CachedAttendanceLog,
-    PrefetchHooks Function()> {
-  $$CachedAttendanceLogsTableTableManager(
-      _$AppDatabase db, $CachedAttendanceLogsTable table)
-      : super(TableManagerState(
-          db: db,
-          table: table,
-          createFilteringComposer: () =>
-              $$CachedAttendanceLogsTableFilterComposer($db: db, $table: table),
-          createOrderingComposer: () =>
-              $$CachedAttendanceLogsTableOrderingComposer(
-                  $db: db, $table: table),
-          createComputedFieldComposer: () =>
-              $$CachedAttendanceLogsTableAnnotationComposer(
-                  $db: db, $table: table),
-          updateCompanionCallback: ({
             Value<String> id = const Value.absent(),
-            Value<DateTime> logTime = const Value.absent(),
-            Value<String> rawJson = const Value.absent(),
-            Value<DateTime> fetchedAt = const Value.absent(),
+            required String reference,
+            required String userId,
+            Value<String?> campaignId = const Value.absent(),
+            Value<String?> stampCardId = const Value.absent(),
+            Value<String?> productId = const Value.absent(),
+            required String type,
+            Value<int> points = const Value.absent(),
+            Value<String?> productName = const Value.absent(),
+            Value<String?> storeName = const Value.absent(),
+            Value<String?> scanToken = const Value.absent(),
+            Value<DateTime> occurredAt = const Value.absent(),
+            Value<int> syncStatus = const Value.absent(),
+            Value<DateTime> createdAt = const Value.absent(),
+            Value<DateTime> updatedAt = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
-              CachedAttendanceLogsCompanion(
+              LoyaltyTransactionsCompanion.insert(
             id: id,
-            logTime: logTime,
-            rawJson: rawJson,
-            fetchedAt: fetchedAt,
-            rowid: rowid,
-          ),
-          createCompanionCallback: ({
-            required String id,
-            required DateTime logTime,
-            required String rawJson,
-            required DateTime fetchedAt,
-            Value<int> rowid = const Value.absent(),
-          }) =>
-              CachedAttendanceLogsCompanion.insert(
-            id: id,
-            logTime: logTime,
-            rawJson: rawJson,
-            fetchedAt: fetchedAt,
+            reference: reference,
+            userId: userId,
+            campaignId: campaignId,
+            stampCardId: stampCardId,
+            productId: productId,
+            type: type,
+            points: points,
+            productName: productName,
+            storeName: storeName,
+            scanToken: scanToken,
+            occurredAt: occurredAt,
+            syncStatus: syncStatus,
+            createdAt: createdAt,
+            updatedAt: updatedAt,
             rowid: rowid,
           ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .map((e) => (
+                    e.readTable(table),
+                    $$LoyaltyTransactionsTableReferences(db, table, e)
+                  ))
               .toList(),
-          prefetchHooksCallback: null,
+          prefetchHooksCallback: (
+              {userId = false,
+              campaignId = false,
+              stampCardId = false,
+              productId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins: <
+                  T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic>>(state) {
+                if (userId) {
+                  state = state.withJoin(
+                    currentTable: table,
+                    currentColumn: table.userId,
+                    referencedTable:
+                        $$LoyaltyTransactionsTableReferences._userIdTable(db),
+                    referencedColumn: $$LoyaltyTransactionsTableReferences
+                        ._userIdTable(db)
+                        .id,
+                  ) as T;
+                }
+                if (campaignId) {
+                  state = state.withJoin(
+                    currentTable: table,
+                    currentColumn: table.campaignId,
+                    referencedTable: $$LoyaltyTransactionsTableReferences
+                        ._campaignIdTable(db),
+                    referencedColumn: $$LoyaltyTransactionsTableReferences
+                        ._campaignIdTable(db)
+                        .id,
+                  ) as T;
+                }
+                if (stampCardId) {
+                  state = state.withJoin(
+                    currentTable: table,
+                    currentColumn: table.stampCardId,
+                    referencedTable: $$LoyaltyTransactionsTableReferences
+                        ._stampCardIdTable(db),
+                    referencedColumn: $$LoyaltyTransactionsTableReferences
+                        ._stampCardIdTable(db)
+                        .id,
+                  ) as T;
+                }
+                if (productId) {
+                  state = state.withJoin(
+                    currentTable: table,
+                    currentColumn: table.productId,
+                    referencedTable: $$LoyaltyTransactionsTableReferences
+                        ._productIdTable(db),
+                    referencedColumn: $$LoyaltyTransactionsTableReferences
+                        ._productIdTable(db)
+                        .id,
+                  ) as T;
+                }
+
+                return state;
+              },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
         ));
 }
 
-typedef $$CachedAttendanceLogsTableProcessedTableManager
-    = ProcessedTableManager<
-        _$AppDatabase,
-        $CachedAttendanceLogsTable,
-        CachedAttendanceLog,
-        $$CachedAttendanceLogsTableFilterComposer,
-        $$CachedAttendanceLogsTableOrderingComposer,
-        $$CachedAttendanceLogsTableAnnotationComposer,
-        $$CachedAttendanceLogsTableCreateCompanionBuilder,
-        $$CachedAttendanceLogsTableUpdateCompanionBuilder,
-        (
-          CachedAttendanceLog,
-          BaseReferences<_$AppDatabase, $CachedAttendanceLogsTable,
-              CachedAttendanceLog>
-        ),
-        CachedAttendanceLog,
-        PrefetchHooks Function()>;
+typedef $$LoyaltyTransactionsTableProcessedTableManager = ProcessedTableManager<
+    _$AppDatabase,
+    $LoyaltyTransactionsTable,
+    LoyaltyTransaction,
+    $$LoyaltyTransactionsTableFilterComposer,
+    $$LoyaltyTransactionsTableOrderingComposer,
+    $$LoyaltyTransactionsTableAnnotationComposer,
+    $$LoyaltyTransactionsTableCreateCompanionBuilder,
+    $$LoyaltyTransactionsTableUpdateCompanionBuilder,
+    (LoyaltyTransaction, $$LoyaltyTransactionsTableReferences),
+    LoyaltyTransaction,
+    PrefetchHooks Function(
+        {bool userId, bool campaignId, bool stampCardId, bool productId})>;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -12037,10 +14147,12 @@ class $AppDatabaseManager {
       $$SyncLogTableTableManager(_db, _db.syncLog);
   $$AppSettingsTableTableManager get appSettings =>
       $$AppSettingsTableTableManager(_db, _db.appSettings);
-  $$OfflineDtrLogsTableTableManager get offlineDtrLogs =>
-      $$OfflineDtrLogsTableTableManager(_db, _db.offlineDtrLogs);
-  $$CachedDtrSchedulesTableTableManager get cachedDtrSchedules =>
-      $$CachedDtrSchedulesTableTableManager(_db, _db.cachedDtrSchedules);
-  $$CachedAttendanceLogsTableTableManager get cachedAttendanceLogs =>
-      $$CachedAttendanceLogsTableTableManager(_db, _db.cachedAttendanceLogs);
+  $$ProductsTableTableManager get products =>
+      $$ProductsTableTableManager(_db, _db.products);
+  $$CampaignsTableTableManager get campaigns =>
+      $$CampaignsTableTableManager(_db, _db.campaigns);
+  $$StampCardsTableTableManager get stampCards =>
+      $$StampCardsTableTableManager(_db, _db.stampCards);
+  $$LoyaltyTransactionsTableTableManager get loyaltyTransactions =>
+      $$LoyaltyTransactionsTableTableManager(_db, _db.loyaltyTransactions);
 }

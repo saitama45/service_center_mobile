@@ -1,9 +1,8 @@
 /// All user-visible strings in one place for easy localization later
 abstract class AppStrings {
   // App identity
-  static const String appName = 'SC';
+  static const String appName = 'Coffee Bean & Tea Leaf';
   static const String appFullName = 'TAS Service Center';
-  static const String organization = 'TAS Technical Services';
   static const String organizationShort = 'TAS';
 
   // Auth

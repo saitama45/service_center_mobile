@@ -40,6 +40,10 @@ dependencies:
   json_annotation: ^4.9.0
   crypto: ^3.0.3
 
+  # Loyalty
+  qr_flutter: ^4.1.0 # renders the member's rotating scan token
+  local_auth: ^2.3.0 # Face ID / fingerprint unlock
+
   # UI
   flutter_svg: ^2.0.10+1
   cached_network_image: ^3.3.1
@@ -68,8 +72,12 @@ dev_dependencies:
 flutter_launcher_icons:
   android: "launcher_icon"
   ios: true
-  image_path: "assets/images/app_logo_v2.png"
+  image_path: "assets/images/app_logo.jpg"
   min_sdk_android: 21 # android min sdk min:16, default:21
+  # Android 8+ masks legacy icons into a pale circle; adaptive layers keep the
+  # brand purple edge-to-edge. Background matches the logo's own #5C3875.
+  adaptive_icon_background: "#5C3875"
+  adaptive_icon_foreground: "assets/images/app_logo.jpg"
 
 flutter:
   uses-material-design: true
@@ -77,3 +85,30 @@ flutter:
   assets:
     - assets/images/
     - assets/data/
+
+  fonts:
+    # Body / UI typeface
+    - family: DMSans
+      fonts:
+        - asset: assets/fonts/DMSans-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/DMSans-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/DMSans-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/DMSans-Bold.ttf
+          weight: 700
+    # Display / heading typeface
+    - family: PlayfairDisplay
+      fonts:
+        - asset: assets/fonts/PlayfairDisplay-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/PlayfairDisplay-Bold.ttf
+          weight: 700
+    # Numerals, IDs, timestamps
+    - family: DMMono
+      fonts:
+        - asset: assets/fonts/DMMono-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/DMMono-Medium.ttf
+          weight: 500

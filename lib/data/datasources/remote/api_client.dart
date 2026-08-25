@@ -7,8 +7,15 @@ class ApiClient {
 
   final FlutterSecureStorage _secureStorage;
 
-  // Production Cloud API
-  static const String _baseUrl = 'https://support.tablegroup.com.ph';
+  // Production Cloud API by default. Override for local testing without
+  // touching this file: `flutter run --dart-define=API_BASE_URL=http://10.0.2.2:8010`
+  // (10.0.2.2 is the Android emulator's alias for the host machine's
+  // loopback — see docs/knowledge/Integrations.md). Omitting the define
+  // builds against production exactly as before.
+  static const String _baseUrl = String.fromEnvironment(
+    'API_BASE_URL',
+    defaultValue: 'https://support.tablegroup.com.ph',
+  );
   static const String _tokenKey = 'session_token';
   static const Duration _timeout = Duration(seconds: 10);
 
@@ -30,7 +37,11 @@ class ApiClient {
     return http.get(url, headers: headers).timeout(_timeout);
   }
 
-  Future<http.Response> post(String path, dynamic body) async {
+  /// [timeout] overrides the default 10s budget — needed by endpoints that
+  /// do real synchronous work server-side (the OTP send route sends mail
+  /// over SMTP inline; see `OtpRemoteDatasource`) rather than just querying
+  /// a database.
+  Future<http.Response> post(String path, dynamic body, {Duration? timeout}) async {
     final normalizedPath = path.startsWith('/') ? path : '/$path';
     final url = Uri.parse('$_baseUrl$normalizedPath');
     final headers = await _getHeaders();
@@ -38,7 +49,7 @@ class ApiClient {
       url,
       headers: headers,
       body: jsonEncode(body),
-    ).timeout(_timeout);
+    ).timeout(timeout ?? _timeout);
   }
 
   Future<http.Response> put(String path, dynamic body) async {

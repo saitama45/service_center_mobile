@@ -105,10 +105,22 @@ class LoginUseCase {
 
     await _secureStorage.write(key: _tokenStorageKey, value: token);
 
+    debugPrint('Login: user payload keys: ${userJson.keys.toList()}');
+
     final String userId = userJson['id'].toString();
-    final String fullName =
-        '${userJson['first_name'] ?? ''} ${userJson['last_name'] ?? ''}'.trim();
     final String email = userJson['email'] ?? '';
+
+    // The server may send first_name/last_name, a single `name`, or neither.
+    // Fall back through all three so the profile and home header never render
+    // blank (an empty full_name makes UserEntity.initials show "?").
+    String fullName =
+        '${userJson['first_name'] ?? ''} ${userJson['last_name'] ?? ''}'.trim();
+    if (fullName.isEmpty) {
+      fullName = (userJson['name'] as String?)?.trim() ?? '';
+    }
+    if (fullName.isEmpty && email.isNotEmpty) {
+      fullName = email.split('@').first;
+    }
     final String roleName = (userJson['roles'] as List? ?? []).isNotEmpty
         ? userJson['roles'][0]
         : 'user';
@@ -237,6 +249,105 @@ class LoginUseCase {
     } catch (e) {
       debugPrint('Login: bcrypt verify failed: $e');
       return false;
+    }
+  }
+}
+
+// ── Registration ─────────────────────────────────────────────────────────────
+
+sealed class RegisterResult {
+  const RegisterResult();
+}
+
+class RegisterSuccess extends RegisterResult {
+  const RegisterSuccess(this.user);
+  final UserEntity user;
+}
+
+class RegisterFailure extends RegisterResult {
+  const RegisterFailure(this.failure);
+  final Failure failure;
+}
+
+/// Self-service sign-up for a new member.
+///
+/// `POST /api/register` returns the exact same `{ token, user, roles }`
+/// shape as `/api/login` (see ghelpdesk's `Api\RegisterController`), so a
+/// fresh registration is handed to [LoginUseCase]'s own success handling —
+/// same local user upsert, same session row, same offline-bcrypt fallback
+/// set up for next time. Composes a [LoginUseCase] purely to reuse its
+/// private `_handleRemoteSuccess`/`_resolveDeviceName` — legal here because
+/// Dart privacy is per-library (this file), not per-class, and the two are
+/// deliberately kept in one file so that stays true.
+class RegisterUseCase {
+  const RegisterUseCase(this._db, this._secureStorage, this._apiClient);
+
+  final AppDatabase _db;
+  final FlutterSecureStorage _secureStorage;
+  final ApiClient _apiClient;
+
+  Future<RegisterResult> call({
+    required String name,
+    required String email,
+    required String password,
+    String? phone,
+  }) async {
+    debugPrint('Register: Attempting sign-up for "$email" at ${_apiClient.baseUrl}');
+
+    final loginUseCase = LoginUseCase(_db, _secureStorage, _apiClient);
+    final deviceName = await loginUseCase._resolveDeviceName();
+
+    try {
+      final response = await _apiClient.post('/api/register', {
+        'name': name,
+        'email': email,
+        'password': password,
+        if (phone != null && phone.trim().isNotEmpty) 'phone': phone.trim(),
+        'device_name': deviceName,
+      });
+
+      debugPrint('Register: API Response status: ${response.statusCode}');
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final result =
+            await loginUseCase._handleRemoteSuccess(response.body, password, deviceName);
+        return switch (result) {
+          LoginSuccess(:final user) => RegisterSuccess(user),
+          LoginFailure(:final failure) => RegisterFailure(failure),
+        };
+      } else if (response.statusCode == 422) {
+        return RegisterFailure(ValidationFailure(_firstValidationMessage(response.body)));
+      } else if (response.statusCode == 429) {
+        return const RegisterFailure(
+            UnexpectedFailure('Too many attempts. Please wait a moment and try again.'));
+      } else {
+        debugPrint('Register: Unexpected status code ${response.statusCode}');
+        return const RegisterFailure(UnexpectedFailure('Server error during registration.'));
+      }
+    } catch (e) {
+      debugPrint('Register: Remote unreachable ($e).');
+      return const RegisterFailure(NetworkFailure(
+          'Could not reach the server. Check your connection and try again.'));
+    }
+  }
+
+  /// Prefers a field-specific message (e.g. "The email has already been
+  /// taken.") over the generic top-level one, since that's what actually
+  /// tells the member what to fix.
+  String _firstValidationMessage(String body) {
+    try {
+      final decoded = jsonDecode(body) as Map<String, dynamic>;
+      final errors = decoded['errors'] as Map<String, dynamic>?;
+      if (errors != null) {
+        for (final value in errors.values) {
+          if (value is List && value.isNotEmpty) {
+            return value.first.toString();
+          }
+        }
+      }
+      return decoded['message'] as String? ?? 'Could not create your account.';
+    } catch (_) {
+      return 'Could not create your account.';
     }
   }
 }

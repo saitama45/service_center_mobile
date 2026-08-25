@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/constants/app_colors.dart';
@@ -10,6 +11,7 @@ import '../../../core/widgets/bms_text_field.dart';
 import '../../../core/widgets/bms_loading_overlay.dart';
 import '../../../core/errors/failures.dart';
 import '../../../domain/usecases/auth/login_usecase.dart';
+import '../../providers/auth_flow_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/app_providers.dart';
 import '../../../routing/route_names.dart';
@@ -76,7 +78,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           ),
         );
       }
-      context.go(RouteName.dashboard);
+      ref
+          .read(postLoginStepProvider.notifier)
+          .beginVerification(offline: result.isOffline);
+      context.go(RouteName.otp);
       return;
     }
 
@@ -107,8 +112,15 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     final isLocked = _lockedUntil != null &&
         _lockedUntil!.isAfter(DateTime.now().toUtc());
 
-    return Scaffold(
-      backgroundColor: AppColors.primaryBlue,
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      // Espresso header needs light status-bar icons.
+      value: SystemUiOverlayStyle.light.copyWith(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.light,
+        statusBarBrightness: Brightness.dark,
+      ),
+      child: Scaffold(
+      backgroundColor: AppColors.espresso,
       body: Stack(
         children: [
           SafeArea(
@@ -141,6 +153,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           if (_isLoading) const BmsLoadingOverlay(message: 'Signing in…'),
         ],
       ),
+      ),
     );
   }
 
@@ -151,55 +164,86 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       orElse: () => false,
     );
 
-    return Stack(
-      children: [
-        Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Image.asset(
-                'assets/images/app_logo_v2.png',
-                height: 100,
-              ),
-              const SizedBox(height: 16),
-              const Text(AppStrings.appName, style: AppTextStyles.displayLarge),
-              const SizedBox(height: 4),
-              Text(
-                AppStrings.appFullName,
-                style: AppTextStyles.bodyLarge
-                    .copyWith(color: AppColors.white),
-              ),
-            ],
-          ),
+    return Container(
+      decoration: const BoxDecoration(
+        gradient: RadialGradient(
+          center: Alignment(0, -0.1),
+          radius: 1.0,
+          colors: [AppColors.darkBrown, AppColors.espresso],
         ),
-        if (isOffline)
-          Positioned(
-            top: 12,
-            right: 12,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-              decoration: BoxDecoration(
-                color: AppColors.warning,
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: const Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Icons.cloud_off, color: Colors.white, size: 14),
-                  SizedBox(width: 6),
-                  Text(
-                    'Offline',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
+      ),
+      child: Stack(
+        children: [
+          Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                // The brand mark is an opaque square, so it fills the tile
+                // edge-to-edge rather than floating inside a cream frame.
+                Container(
+                  width: 84,
+                  height: 84,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(24),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.espresso.withValues(alpha: 0.4),
+                        blurRadius: 24,
+                        offset: const Offset(0, 8),
+                      ),
+                    ],
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(24),
+                    child: Image.asset(
+                      'assets/images/app_logo.jpg',
+                      fit: BoxFit.cover,
                     ),
                   ),
-                ],
-              ),
+                ),
+                const SizedBox(height: 16),
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: AppDimensions.lg),
+                  child: Text(
+                    AppStrings.appName,
+                    style: AppTextStyles.displayMedium
+                        .copyWith(color: AppColors.cream),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              ],
             ),
           ),
-      ],
+          if (isOffline)
+            Positioned(
+              top: 12,
+              right: 16,
+              child: Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+                decoration: BoxDecoration(
+                  color: AppColors.warning,
+                  borderRadius:
+                      BorderRadius.circular(AppDimensions.radiusRound),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.cloud_off,
+                        color: AppColors.white, size: 13),
+                    const SizedBox(width: 6),
+                    Text(
+                      'Offline',
+                      style: AppTextStyles.chip
+                          .copyWith(color: AppColors.white),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+        ],
+      ),
     );
   }
 
@@ -207,17 +251,35 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     return Container(
       width: double.infinity,
       decoration: const BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        color: AppColors.cream,
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(AppDimensions.radiusXl + 8),
+        ),
       ),
       child: SingleChildScrollView(
-        padding: const EdgeInsets.all(AppDimensions.lg),
+        padding: const EdgeInsets.fromLTRB(
+          AppDimensions.lg,
+          AppDimensions.lg,
+          AppDimensions.lg,
+          AppDimensions.lg,
+        ),
         child: Form(
           key: _formKey,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const SizedBox(height: 8),
+              // Sheet grabber — signals the panel as a surface you pull up.
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  margin: const EdgeInsets.only(bottom: AppDimensions.lg),
+                  decoration: BoxDecoration(
+                    color: AppColors.latte,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
               Text(AppStrings.loginTitle, style: AppTextStyles.h1),
               const SizedBox(height: 4),
               Text(
@@ -274,6 +336,28 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               ),
 
               const SizedBox(height: AppDimensions.lg),
+              Center(
+                child: TextButton(
+                  onPressed:
+                      _isLoading ? null : () => context.go(RouteName.register),
+                  child: Text.rich(
+                    TextSpan(
+                      style: AppTextStyles.bodySmall,
+                      children: [
+                        const TextSpan(text: "Don't have an account? "),
+                        TextSpan(
+                          text: 'Sign Up',
+                          style: AppTextStyles.bodySmall.copyWith(
+                            color: AppColors.amber,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: AppDimensions.sm),
               Center(
                 child: Text(
                   'Contact your administrator if you cannot access your account.',
@@ -354,16 +438,16 @@ class _BannerCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: color,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: borderColor, width: 1),
+        borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
+        border: Border.all(color: borderColor.withValues(alpha: 0.4), width: 1.5),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, color: iconColor, size: 20),
+          Icon(icon, color: iconColor, size: 19),
           const SizedBox(width: 10),
           Expanded(child: child),
         ],

@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../constants/app_colors.dart';
+import '../constants/app_dimensions.dart';
 import '../constants/app_strings.dart';
+import '../constants/app_text_styles.dart';
 import '../constants/permission_codes.dart';
 import '../../database/app_database.dart';
 import '../../presentation/providers/app_providers.dart';
@@ -34,8 +36,23 @@ class AppDrawer extends ConsumerWidget {
     final modules = modulesAsync.valueOrNull ?? const <Module>[];
     final cache = permissionsAsync.valueOrNull;
 
+    // Read from the delegate rather than GoRouterState.of — the drawer is built
+    // outside the route's own builder, where GoRouterState is not guaranteed.
+    final location = GoRouter.of(context)
+        .routerDelegate
+        .currentConfiguration
+        .uri
+        .path;
+
     return Drawer(
-      child: _buildDrawerList(context, ref, modules: modules, cache: cache),
+      backgroundColor: AppColors.cream,
+      child: _buildDrawerList(
+        context,
+        ref,
+        modules: modules,
+        cache: cache,
+        location: location,
+      ),
     );
   }
 
@@ -44,97 +61,203 @@ class AppDrawer extends ConsumerWidget {
     WidgetRef ref, {
     required List<Module> modules,
     required dynamic cache,
+    required String location,
   }) {
-    return ListView(
-      padding: EdgeInsets.zero,
+    return Column(
       children: [
-        DrawerHeader(
-          decoration: const BoxDecoration(color: AppColors.primaryBlack),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            mainAxisAlignment: MainAxisAlignment.center,
+        const _DrawerHeader(),
+        Expanded(
+          child: ListView(
+            padding: const EdgeInsets.fromLTRB(12, 12, 12, 8),
             children: [
-              Image.asset(
-                'assets/images/app_logo_v2.png',
-                height: 80,
+              // Dashboard is always visible — not permission-controlled.
+              _DrawerItem(
+                icon: Icons.dashboard_outlined,
+                label: 'Dashboard',
+                route: '/dashboard',
+                location: location,
+                exact: true,
               ),
-              const SizedBox(height: 8),
-              const Text(
-                AppStrings.appName,
-                style: TextStyle(
-                    color: AppColors.white,
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold),
+
+              // ── Dynamic module items ───────────────────────────────────
+              // Iterates every active module from the DB in displayOrder.
+              // A module's item shows only when the user has VIEW permission.
+              // To add a new module: seed it + add its icon to _iconMap above.
+              for (final module in modules)
+                if (cache != null &&
+                    cache.check(module.code, PermissionCodes.view))
+                  _DrawerItem(
+                    icon: _iconData(module.icon ?? ''),
+                    label: module.name,
+                    route: '/dashboard${module.route}',
+                    location: location,
+                  ),
+
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 10, horizontal: 4),
+                child: Divider(color: AppColors.latte),
+              ),
+
+              _DrawerItem(
+                icon: Icons.person_outline,
+                label: 'Profile',
+                route: '/dashboard/profile',
+                location: location,
               ),
             ],
           ),
         ),
-        // Dashboard is always visible — not a permission-controlled module.
-        ListTile(
-          leading: const Icon(Icons.dashboard),
-          title: const Text('Dashboard'),
-          onTap: () {
-            Navigator.pop(context);
-            context.go('/dashboard');
-          },
-        ),
-        ListTile(
-          leading: const Icon(Icons.timer_outlined),
-          title: const Text('DTR'),
-          onTap: () {
-            Navigator.pop(context);
-            context.go('/dashboard/dtr');
-          },
-        ),
-        ListTile(
-          leading: const Icon(Icons.history),
-          title: const Text('Attendance Logs'),
-          onTap: () {
-            Navigator.pop(context);
-            context.go('/dashboard/attendance');
-          },
-        ),
-        // ── Dynamic module items ─────────────────────────────────────────
-        // Iterates every active module from the DB in displayOrder.
-        // A module's ListTile is shown only when the user has VIEW permission.
-        // To add a new module: seed it + add its icon to _iconMap above.
-        for (final module in modules)
-          if (cache != null &&
-              cache.check(module.code, PermissionCodes.view))
-            ListTile(
-              leading: Icon(_iconData(module.icon ?? '')),
-              title: Text(module.name),
-              onTap: () {
-                Navigator.pop(context);
-                context.go('/dashboard${module.route}');
+
+        // ── Logout, pinned to the bottom ─────────────────────────────────
+        Padding(
+          padding: const EdgeInsets.fromLTRB(12, 4, 12, 16),
+          child: Material(
+            color: AppColors.dangerSurface,
+            borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
+            child: InkWell(
+              borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
+              onTap: () async {
+                final confirmed = await showConfirmationDialog(
+                  context,
+                  title: 'Logout',
+                  message: 'Are you sure you want to logout?',
+                  confirmLabel: 'Logout',
+                );
+                if (confirmed == true && context.mounted) {
+                  await ref.read(authProvider.notifier).logout();
+                }
               },
+              child: Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
+                child: Row(
+                  children: [
+                    const Icon(Icons.logout,
+                        size: 19, color: AppColors.danger),
+                    const SizedBox(width: 12),
+                    Text('Logout',
+                        style: AppTextStyles.bodyMedium.copyWith(
+                          color: AppColors.danger,
+                          fontWeight: FontWeight.w700,
+                        )),
+                  ],
+                ),
+              ),
             ),
-        const Divider(),
-        ListTile(
-          leading: const Icon(Icons.person_outline),
-          title: const Text('Profile'),
-          onTap: () {
-            Navigator.pop(context);
-            context.go('/dashboard/profile');
-          },
-        ),
-        ListTile(
-          leading: const Icon(Icons.logout, color: Colors.redAccent),
-          title: const Text('Logout',
-              style: TextStyle(color: Colors.redAccent)),
-          onTap: () async {
-            final confirmed = await showConfirmationDialog(
-              context,
-              title: 'Logout',
-              message: 'Are you sure you want to logout?',
-              confirmLabel: 'Logout',
-            );
-            if (confirmed == true && context.mounted) {
-              await ref.read(authProvider.notifier).logout();
-            }
-          },
+          ),
         ),
       ],
+    );
+  }
+}
+
+/// Espresso header block with the logo mark and wordmark.
+class _DrawerHeader extends StatelessWidget {
+  const _DrawerHeader();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.fromLTRB(
+        20,
+        MediaQuery.of(context).padding.top + 24,
+        20,
+        22,
+      ),
+      decoration: const BoxDecoration(gradient: AppColors.heroGradient),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
+            child: Image.asset(
+              'assets/images/app_logo.jpg',
+              width: 58,
+              height: 58,
+              fit: BoxFit.cover,
+            ),
+          ),
+          const SizedBox(height: 14),
+          Text(
+            AppStrings.appName,
+            style: AppTextStyles.h1.copyWith(color: AppColors.cream),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// A single navigation row. Selected rows get a latte fill + amber icon,
+/// mirroring the sidebar treatment in the design.
+class _DrawerItem extends StatelessWidget {
+  const _DrawerItem({
+    required this.icon,
+    required this.label,
+    required this.route,
+    required this.location,
+    this.exact = false,
+  });
+
+  final IconData icon;
+  final String label;
+  final String route;
+  final String location;
+
+  /// `/dashboard` would otherwise match every child route.
+  final bool exact;
+
+  @override
+  Widget build(BuildContext context) {
+    final selected =
+        exact ? location == route : location.startsWith(route);
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 4),
+      child: Material(
+        color: selected ? AppColors.latteLight : Colors.transparent,
+        borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
+          onTap: () {
+            Navigator.pop(context);
+            context.go(route);
+          },
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
+            child: Row(
+              children: [
+                Icon(
+                  icon,
+                  size: 19,
+                  color: selected ? AppColors.amber : AppColors.muted,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    label,
+                    overflow: TextOverflow.ellipsis,
+                    style: AppTextStyles.bodyMedium.copyWith(
+                      fontWeight:
+                          selected ? FontWeight.w700 : FontWeight.w500,
+                    ),
+                  ),
+                ),
+                if (selected)
+                  Container(
+                    width: 6,
+                    height: 6,
+                    decoration: const BoxDecoration(
+                      color: AppColors.amber,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

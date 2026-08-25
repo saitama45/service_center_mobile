@@ -9,7 +9,10 @@ import '../../../core/utils/date_format_util.dart';
 import '../../../core/widgets/app_drawer.dart';
 import '../../../core/widgets/bms_app_bar.dart';
 import '../../../core/widgets/bms_button.dart';
-import '../../providers/app_providers.dart';
+import '../../../core/widgets/bms_card.dart';
+import '../../../core/widgets/confirmation_dialog.dart';
+import '../../providers/auth_flow_provider.dart';
+import '../../providers/loyalty_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../../routing/route_names.dart';
 
@@ -26,62 +29,124 @@ class ProfileScreen extends ConsumerWidget {
     }
 
     return Scaffold(
-      backgroundColor: AppColors.white,
+      backgroundColor: AppColors.cream,
       drawer: const AppDrawer(),
       appBar: const BmsAppBar(
         title: AppStrings.profile,
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(AppDimensions.md),
+        padding: const EdgeInsets.fromLTRB(
+            AppDimensions.md, AppDimensions.md, AppDimensions.md, AppDimensions.xl),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ── Avatar + Name ───────────────────────────────────────────
-            Center(
-              child: Column(
+            // ── Identity hero ────────────────────────────────────────────
+            BmsHeroCard(
+              padding: const EdgeInsets.all(AppDimensions.md + 2),
+              child: Row(
                 children: [
-                  CircleAvatar(
-                    radius: AppDimensions.avatarLg / 2,
-                    backgroundColor: AppColors.primaryBlue,
-                    child: Text(user.initials,
-                        style: AppTextStyles.h1
-                            .copyWith(color: AppColors.white, fontSize: 28)),
+                  Container(
+                    width: 54,
+                    height: 54,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      color: AppColors.amber,
+                      borderRadius:
+                          BorderRadius.circular(AppDimensions.radiusLg),
+                    ),
+                    child: Text(
+                      user.initials,
+                      style: AppTextStyles.h2
+                          .copyWith(color: AppColors.white, fontSize: 19),
+                    ),
                   ),
-                  const SizedBox(height: 12),
-                  Text(user.fullName, style: AppTextStyles.h2),
-                  const SizedBox(height: 4),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          user.fullName,
+                          style:
+                              AppTextStyles.h2.copyWith(color: AppColors.cream),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 3),
+                        Text(
+                          '@${user.username}',
+                          style: AppTextStyles.monoSmall
+                              .copyWith(color: AppColors.gold),
+                        ),
+                      ],
+                    ),
+                  ),
                 ],
               ),
             ),
-            const SizedBox(height: AppDimensions.lg),
+            const SizedBox(height: AppDimensions.md),
 
-            // ── Info card ───────────────────────────────────────────────
-            _InfoCard(items: [
-              _InfoRow(label: AppStrings.username, value: '@${user.username}'),
-              if (user.email != null && user.email!.isNotEmpty)
-                _InfoRow(label: AppStrings.email, value: user.email!),
-              if (user.employeeId != null && user.employeeId!.isNotEmpty)
-                _InfoRow(
-                    label: AppStrings.employeeId, value: user.employeeId!),
-              _InfoRow(
-                  label: AppStrings.lastLogin,
-                  value: DateFormatUtil.formatDateTime(user.lastLoginAt)),
-            ]),
+            // ── Account details ──────────────────────────────────────────
+            BmsSectionCard(
+              title: 'Account Details',
+              icon: Icons.badge_outlined,
+              child: Column(
+                children: [
+                  if (user.email != null && user.email!.isNotEmpty)
+                    _InfoRow(label: AppStrings.email, value: user.email!),
+                  if (user.employeeId != null && user.employeeId!.isNotEmpty)
+                    _InfoRow(
+                      label: AppStrings.employeeId,
+                      value: user.employeeId!,
+                      mono: true,
+                    ),
+                  _InfoRow(
+                    label: AppStrings.lastLogin,
+                    value: DateFormatUtil.formatDateTime(user.lastLoginAt),
+                    mono: true,
+                    isLast: true,
+                  ),
+                ],
+              ),
+            ),
 
             const SizedBox(height: AppDimensions.md),
 
-            // ── Change Password ──────────────────────────────────────────
-            BmsButton(
-              label: AppStrings.changePassword,
-              variant: BmsButtonVariant.secondary,
-              isFullWidth: true,
-              icon: Icons.lock_outline,
-              onPressed: () => context.go('/dashboard/profile/change-password'),
+            // ── Preferences ──────────────────────────────────────────────
+            const _BiometricToggleCard(),
+
+            const SizedBox(height: AppDimensions.md),
+
+            // ── Security actions ─────────────────────────────────────────
+            BmsCard(
+              padding: EdgeInsets.zero,
+              child: _NavRow(
+                icon: Icons.lock_outline,
+                label: AppStrings.changePassword,
+                sub: 'Update your account password',
+                onTap: () =>
+                    context.go('/dashboard/profile/change-password'),
+              ),
+            ),
+
+            const SizedBox(height: AppDimensions.md),
+            _AuthenticatorCard(userId: user.id),
+
+            const SizedBox(height: AppDimensions.md),
+
+            // ── Demo utility ─────────────────────────────────────────────
+            BmsCard(
+              padding: EdgeInsets.zero,
+              child: _NavRow(
+                icon: Icons.restart_alt,
+                label: 'Reset my stamp activity',
+                sub: 'Clears your cards and history so you can demo again',
+                onTap: () => _confirmReset(context, ref),
+              ),
             ),
 
             const SizedBox(height: AppDimensions.lg),
 
-            // ── Logout Button ───────────────────────────────────────────
             BmsButton(
               label: AppStrings.signOut,
               variant: BmsButtonVariant.danger,
@@ -89,10 +154,26 @@ class ProfileScreen extends ConsumerWidget {
               icon: Icons.logout,
               onPressed: () => _confirmLogout(context, ref),
             ),
-            const SizedBox(height: AppDimensions.xl),
           ],
         ),
       ),
+    );
+  }
+
+  Future<void> _confirmReset(BuildContext context, WidgetRef ref) async {
+    final confirmed = await showConfirmationDialog(
+      context,
+      title: 'Reset stamp activity',
+      message: 'This clears every stamp card and ledger entry on your account. '
+          'Campaigns themselves are unaffected. This cannot be undone.',
+      confirmLabel: 'Reset',
+    );
+    if (confirmed != true || !context.mounted) return;
+
+    await ref.read(loyaltyActionsProvider).resetActivity();
+    if (!context.mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Your stamp activity has been reset.')),
     );
   }
 
@@ -123,48 +204,186 @@ class ProfileScreen extends ConsumerWidget {
   }
 }
 
-class _InfoCard extends StatelessWidget {
-  const _InfoCard({required this.items});
-  final List<Widget> items;
+/// Biometric opt-in. Hidden entirely when the device has nothing enrolled,
+/// rather than showing a switch that can't be turned on.
+class _BiometricToggleCard extends ConsumerWidget {
+  const _BiometricToggleCard();
 
   @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(AppDimensions.md),
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
-        boxShadow: [
-          BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 4)
+  Widget build(BuildContext context, WidgetRef ref) {
+    final available = ref.watch(biometricAvailableProvider).valueOrNull ?? false;
+    if (!available) return const SizedBox.shrink();
+
+    final enabled = ref.watch(biometricEnabledProvider).valueOrNull ?? false;
+
+    return BmsCard(
+      child: Row(
+        children: [
+          Container(
+            width: 38,
+            height: 38,
+            decoration: BoxDecoration(
+              color: AppColors.latteLight,
+              borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
+            ),
+            child: const Icon(Icons.fingerprint,
+                size: 20, color: AppColors.caramel),
+          ),
+          const SizedBox(width: 12),
+          const Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Biometric Login', style: AppTextStyles.h3),
+                SizedBox(height: 2),
+                Text('Face ID / fingerprint access',
+                    style: AppTextStyles.caption),
+              ],
+            ),
+          ),
+          Switch(
+            value: enabled,
+            onChanged: (v) async {
+              final actions = ref.read(biometricActionsProvider);
+              if (v) {
+                final error = await actions.authenticate();
+                if (error != null) {
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                          content: Text(error),
+                          backgroundColor: AppColors.danger),
+                    );
+                  }
+                  return;
+                }
+              }
+              await actions.setEnabled(v);
+            },
+          ),
         ],
-      ),
-      child: Column(
-        children: items
-            .expand((w) => [w, const Divider(height: 16)])
-            .toList()
-          ..removeLast(),
       ),
     );
   }
 }
 
+/// Entry point to the authenticator-app setup/removal screen. Reflects
+/// enrolment state so members can tell at a glance whether offline sign-in
+/// has a second factor available.
+class _AuthenticatorCard extends ConsumerWidget {
+  const _AuthenticatorCard({required this.userId});
+  final String userId;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final enrolled =
+        ref.watch(authenticatorEnrolledProvider(userId)).valueOrNull ?? false;
+
+    return BmsCard(
+      padding: EdgeInsets.zero,
+      child: _NavRow(
+        icon: enrolled ? Icons.verified_user_outlined : Icons.qr_code_2,
+        label: 'Authenticator App',
+        sub: enrolled
+            ? 'Set up — used to verify offline sign-ins'
+            : 'Set up Google Authenticator for offline sign-in',
+        onTap: () => context.go('/dashboard/profile/authenticator'),
+      ),
+    );
+  }
+}
+
+/// Label above value, hairline separated — the detail-row pattern from the
+/// design's profile and campaign cards.
 class _InfoRow extends StatelessWidget {
-  const _InfoRow({required this.label, required this.value});
+  const _InfoRow({
+    required this.label,
+    required this.value,
+    this.mono = false,
+    this.isLast = false,
+  });
+
   final String label;
   final String value;
 
+  /// Use the mono face for IDs and timestamps so columns line up.
+  final bool mono;
+  final bool isLast;
+
   @override
   Widget build(BuildContext context) {
-    return Row(
+    return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        SizedBox(
-          width: 120,
-          child: Text(label,
-              style: AppTextStyles.label),
+        Text(label.toUpperCase(), style: AppTextStyles.label),
+        const SizedBox(height: 3),
+        Text(
+          value,
+          style: mono ? AppTextStyles.monoMedium : AppTextStyles.bodyMedium,
         ),
-        Expanded(child: Text(value, style: AppTextStyles.bodyMedium)),
+        if (!isLast)
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: 12),
+            child: Divider(height: 1, color: AppColors.latteLight),
+          ),
       ],
+    );
+  }
+}
+
+/// Tappable row with a leading icon chip and a chevron.
+class _NavRow extends StatelessWidget {
+  const _NavRow({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+    this.sub,
+  });
+
+  final IconData icon;
+  final String label;
+  final String? sub;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
+        child: Padding(
+          padding: const EdgeInsets.all(AppDimensions.md),
+          child: Row(
+            children: [
+              Container(
+                width: 38,
+                height: 38,
+                decoration: BoxDecoration(
+                  color: AppColors.latteLight,
+                  borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
+                ),
+                child: Icon(icon, size: 18, color: AppColors.caramel),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(label, style: AppTextStyles.h3),
+                    if (sub != null) ...[
+                      const SizedBox(height: 2),
+                      Text(sub!, style: AppTextStyles.caption),
+                    ],
+                  ],
+                ),
+              ),
+              const Icon(Icons.chevron_right,
+                  size: 20, color: AppColors.muted),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

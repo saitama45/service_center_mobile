@@ -5,12 +5,21 @@ import '../../domain/usecases/auth/logout_usecase.dart';
 import '../../domain/usecases/auth/check_session_usecase.dart';
 import '../../domain/usecases/auth/change_password_usecase.dart';
 import 'app_providers.dart';
+import 'auth_flow_provider.dart';
 import 'permission_provider.dart';
 
 // ── Use case providers ────────────────────────────────────────────────────────
 
 final loginUseCaseProvider = Provider<LoginUseCase>((ref) {
   return LoginUseCase(
+    ref.read(appDatabaseProvider),
+    ref.read(secureStorageProvider),
+    ref.read(apiClientProvider),
+  );
+});
+
+final registerUseCaseProvider = Provider<RegisterUseCase>((ref) {
+  return RegisterUseCase(
     ref.read(appDatabaseProvider),
     ref.read(secureStorageProvider),
     ref.read(apiClientProvider),
@@ -101,6 +110,33 @@ class AuthNotifier extends StateNotifier<AuthState> {
     return result;
   }
 
+  /// New members only — registration is always online (there is no local
+  /// fallback for an account that doesn't exist locally yet). On success,
+  /// behaves exactly like a fresh [login]: authenticated state, ready for
+  /// the same OTP/biometric steps.
+  Future<RegisterResult> register({
+    required String name,
+    required String email,
+    required String password,
+    String? phone,
+  }) async {
+    state = const AuthLoading();
+    final result = await _ref.read(registerUseCaseProvider).call(
+          name: name,
+          email: email,
+          password: password,
+          phone: phone,
+        );
+    if (result is RegisterSuccess) {
+      _ref.invalidate(userPermissionsProvider);
+      await _ref.read(userPermissionsProvider.future);
+      state = AuthAuthenticated(result.user);
+    } else {
+      state = const AuthUnauthenticated();
+    }
+    return result;
+  }
+
   Future<void> logout() async {
     final currentUser = state is AuthAuthenticated
         ? (state as AuthAuthenticated).user
@@ -111,6 +147,9 @@ class AuthNotifier extends StateNotifier<AuthState> {
       await _ref.read(logoutUseCaseProvider).call(currentUser.id);
     }
     _ref.invalidate(userPermissionsProvider);
+    // The next sign-in must run the OTP/biometric steps again.
+    _ref.read(postLoginStepProvider.notifier).reset();
+    _ref.read(otpControllerProvider.notifier).reset();
     state = const AuthUnauthenticated();
   }
 

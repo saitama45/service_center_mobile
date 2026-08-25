@@ -6,6 +6,7 @@ import 'permissions_seed.dart';
 import 'modules_seed.dart' as mod_seed;
 import 'roles_seed.dart';
 import 'role_permissions_seed.dart';
+import 'loyalty_seed.dart';
 import '../../core/utils/bcrypt_util.dart';
 
 class SeedRunner {
@@ -21,11 +22,11 @@ class SeedRunner {
       final resetVersion = await _db.settingsDao.getSetting('arch_reset_v7');
       debugPrint('SeedRunner: Current reset version is "$resetVersion"');
 
-      if (resetVersion != '10') {
-        debugPrint('SeedRunner: Reset version mismatch (v10). Wiping database...');
+      if (resetVersion != '12') {
+        debugPrint('SeedRunner: Reset version mismatch (v12). Wiping database...');
         await _runReset();
         await _runSeeds();
-        await _db.settingsDao.setSetting('arch_reset_v7', '10');
+        await _db.settingsDao.setSetting('arch_reset_v7', '12');
         debugPrint('SeedRunner: Database reset and seeded successfully.');
         return;
       }
@@ -46,6 +47,10 @@ class SeedRunner {
   /// Wipes all core tables before re-seeding.
   Future<void> _runReset() async {
     final tables = [
+      'loyalty_transactions',
+      'stamp_cards',
+      'campaigns',
+      'products',
       'role_module_permissions',
       'audit_logs',
       'sync_log',
@@ -137,9 +142,14 @@ class SeedRunner {
     final passwordHash = BcryptUtil.hash('Admin@2026!');
     // Fixed ID for the admin user to prevent duplicates
     final adminUserId = uuid.v5(Uuid.NAMESPACE_URL, 'user_admin');
-    // Explicitly provide failed_login_count and all mandatory columns
+    final seededAt = DateTime.now().toUtc().toIso8601String();
+
+    // last_login_at is seeded deliberately. LoginUseCase's offline path rejects
+    // any account whose last successful login is null or older than 14 days —
+    // without this the bootstrap account can never sign in on a fresh install
+    // with no reachable server, which is the exact case it exists for.
     await _db.customStatement(
-      'INSERT INTO users (id, role_id, username, password_hash, full_name, is_active, failed_login_count, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+      'INSERT INTO users (id, role_id, username, password_hash, full_name, is_active, failed_login_count, last_login_at, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
       [
         adminUserId,
         adminRoleId,
@@ -148,8 +158,9 @@ class SeedRunner {
         'System Administrator',
         1,
         0,
-        DateTime.now().toUtc().toIso8601String(),
-        DateTime.now().toUtc().toIso8601String()
+        seededAt,
+        seededAt,
+        seededAt,
       ]
     );
     debugPrint('SeedRunner: Admin user created.');
@@ -177,7 +188,17 @@ class SeedRunner {
       }
     }
 
-    // ── 6. Finalize ───────────────────────────────────────────────────────
+    // ── 6. Loyalty catalogue ──────────────────────────────────────────────
+    debugPrint('SeedRunner: Seeding products and campaigns...');
+    for (final product in productsSeedData()) {
+      await _db.into(_db.products).insertOnConflictUpdate(product);
+    }
+    for (final campaign in campaignsSeedData()) {
+      await _db.into(_db.campaigns).insertOnConflictUpdate(campaign);
+    }
+    debugPrint('SeedRunner: Loyalty catalogue seeded.');
+
+    // ── 7. Finalize ───────────────────────────────────────────────────────
     await _db.settingsDao.setSetting('db_initialized', '1');
     await _db.settingsDao.setSetting('admin_password_changed', '0');
     debugPrint('SeedRunner: Initialization complete.');

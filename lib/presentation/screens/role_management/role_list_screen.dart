@@ -26,7 +26,7 @@ class RoleListScreen extends ConsumerWidget {
     final rolesAsync = ref.watch(roleListProvider);
 
     return Scaffold(
-      backgroundColor: AppColors.white,
+      backgroundColor: AppColors.cream,
       drawer: const AppDrawer(),
       appBar: const BmsAppBar(
         title: AppStrings.roleManagement,
@@ -80,7 +80,9 @@ class _RoleTile extends ConsumerWidget {
         final tile = Card(
           elevation: AppDimensions.cardElevation,
           shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(AppDimensions.radiusMd)),
+            borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
+            side: const BorderSide(color: AppColors.latte),
+          ),
           child: ListTile(
             contentPadding:
                 const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -113,7 +115,7 @@ class _RoleTile extends ConsumerWidget {
                         horizontal: 6, vertical: 2),
                     decoration: BoxDecoration(
                       color: AppColors.secondaryBlue,
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(AppDimensions.radiusSm),
                     ),
                     child: Text('SYSTEM',
                         style: AppTextStyles.caption
@@ -125,7 +127,7 @@ class _RoleTile extends ConsumerWidget {
                         horizontal: 6, vertical: 2),
                     decoration: BoxDecoration(
                       color: AppColors.mediumGray,
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(AppDimensions.radiusSm),
                     ),
                     child: Text('INACTIVE',
                         style: AppTextStyles.caption
@@ -163,7 +165,7 @@ class _RoleTile extends ConsumerWidget {
                 if (canEdit)
                   const PopupMenuItem(value: 'edit', child: Text('Edit Role')),
                 if (canDelete && !role.isSystem)
-                  const PopupMenuItem(value: 'delete', child: Text('Delete', style: TextStyle(color: Colors.redAccent))),
+                  const PopupMenuItem(value: 'delete', child: Text('Delete', style: TextStyle(color: AppColors.danger))),
               ],
             ),
             onTap: canEdit ? () => context.go('/dashboard/roles/${role.id}') : null,
@@ -179,7 +181,7 @@ class _RoleTile extends ConsumerWidget {
             alignment: Alignment.centerRight,
             padding: const EdgeInsets.only(right: 20),
             decoration: BoxDecoration(
-              color: Colors.redAccent,
+              color: AppColors.danger,
               borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
             ),
             child: const Icon(Icons.delete, color: Colors.white),
@@ -221,7 +223,7 @@ class _RoleTile extends ConsumerWidget {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(err?.toString() ?? 'Could not delete role.'),
-          backgroundColor: Colors.redAccent,
+          backgroundColor: AppColors.danger,
         ),
       );
     }

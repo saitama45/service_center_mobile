@@ -9,7 +9,7 @@
     <uses-feature android:name="android.hardware.camera.autofocus" />
 
     <application
-        android:label="TAS Service Center"
+        android:label="Coffee Bean &amp; Tea Leaf"
         android:name="${applicationName}"
         android:icon="@mipmap/launcher_icon"
         android:usesCleartextTraffic="false">

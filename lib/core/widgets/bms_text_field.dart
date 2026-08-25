@@ -58,8 +58,17 @@ class _BmsTextFieldState extends State<BmsTextField> {
     _obscure = widget.obscureText;
   }
 
+  OutlineInputBorder _border(Color color, [double width = 1.5]) =>
+      OutlineInputBorder(
+        borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
+        borderSide: BorderSide(color: color, width: width),
+      );
+
   @override
   Widget build(BuildContext context) {
+    // Labels are uppercase + wide-tracked, matching the design's field style.
+    final labelText = widget.label.toUpperCase();
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -68,7 +77,7 @@ class _BmsTextFieldState extends State<BmsTextField> {
                 text: TextSpan(
                   style: AppTextStyles.label,
                   children: [
-                    TextSpan(text: widget.label),
+                    TextSpan(text: labelText),
                     const TextSpan(
                       text: ' *',
                       style: TextStyle(color: AppColors.danger),
@@ -76,8 +85,8 @@ class _BmsTextFieldState extends State<BmsTextField> {
                   ],
                 ),
               )
-            : Text(widget.label, style: AppTextStyles.label),
-        const SizedBox(height: 4),
+            : Text(labelText, style: AppTextStyles.label),
+        const SizedBox(height: 6),
         TextFormField(
           controller: widget.controller,
           keyboardType: widget.keyboardType,
@@ -92,62 +101,43 @@ class _BmsTextFieldState extends State<BmsTextField> {
           autofocus: widget.autofocus,
           focusNode: widget.focusNode,
           style: AppTextStyles.bodyLarge,
+          cursorColor: AppColors.amber,
           decoration: InputDecoration(
             hintText: widget.hint,
-            hintStyle: AppTextStyles.bodyMedium
-                .copyWith(color: AppColors.mediumGray.withValues(alpha: 0.7)),
+            hintStyle:
+                AppTextStyles.bodyMedium.copyWith(color: AppColors.muted),
             errorText: widget.errorText,
             errorStyle: AppTextStyles.errorText,
             errorMaxLines: 3,
             prefixIcon: widget.prefixIcon != null
-                ? Icon(widget.prefixIcon,
-                    color: AppColors.primaryBlue, size: 20)
+                ? Icon(widget.prefixIcon, color: AppColors.muted, size: 19)
                 : null,
-              suffixIcon: widget.obscureText
-                  ? IconButton(
-                      icon: Icon(
-                        _obscure ? Icons.visibility_off : Icons.visibility,
-                        color: AppColors.mediumGray,
-                        size: 20,
-                      ),
-                      onPressed: () => setState(() => _obscure = !_obscure),
-                      tooltip: _obscure ? 'Show password' : 'Hide password',
-                    )
-                  : widget.suffixIcon,
-              filled: true,
-              fillColor:
-                  widget.enabled ? AppColors.white : AppColors.white,
-              contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 16, vertical: 14),
-              border: OutlineInputBorder(
-                borderRadius:
-                    BorderRadius.circular(AppDimensions.radiusMd),
-                borderSide: const BorderSide(color: AppColors.borderGray),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius:
-                    BorderRadius.circular(AppDimensions.radiusMd),
-                borderSide: const BorderSide(color: AppColors.borderGray),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius:
-                    BorderRadius.circular(AppDimensions.radiusMd),
-                borderSide: const BorderSide(
-                    color: AppColors.primaryBlue, width: 2),
-              ),
-              errorBorder: OutlineInputBorder(
-                borderRadius:
-                    BorderRadius.circular(AppDimensions.radiusMd),
-                borderSide:
-                    const BorderSide(color: AppColors.danger, width: 1.5),
-              ),
-              disabledBorder: OutlineInputBorder(
-                borderRadius:
-                    BorderRadius.circular(AppDimensions.radiusMd),
-                borderSide: const BorderSide(color: AppColors.borderGray),
-              ),
-            ),
+            suffixIcon: widget.obscureText
+                ? IconButton(
+                    icon: Icon(
+                      _obscure
+                          ? Icons.visibility_off_outlined
+                          : Icons.visibility_outlined,
+                      color: AppColors.muted,
+                      size: 20,
+                    ),
+                    onPressed: () => setState(() => _obscure = !_obscure),
+                    tooltip: _obscure ? 'Show password' : 'Hide password',
+                  )
+                : widget.suffixIcon,
+            filled: true,
+            fillColor:
+                widget.enabled ? AppColors.white : AppColors.latteLight,
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
+            border: _border(AppColors.latte),
+            enabledBorder: _border(AppColors.latte),
+            focusedBorder: _border(AppColors.amber, 2),
+            errorBorder: _border(AppColors.danger),
+            focusedErrorBorder: _border(AppColors.danger, 2),
+            disabledBorder: _border(AppColors.latteLight),
           ),
+        ),
       ],
     );
   }

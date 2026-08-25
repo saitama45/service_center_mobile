@@ -75,7 +75,7 @@ class _ChangePasswordScreenState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.white,
+      backgroundColor: AppColors.cream,
       appBar: BmsAppBar(
         title: AppStrings.changePassword,
         leading: IconButton(

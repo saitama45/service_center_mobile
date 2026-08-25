@@ -105,7 +105,7 @@ class _RoleFormScreenState extends ConsumerState<RoleFormScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.white,
+      backgroundColor: AppColors.cream,
       appBar: BmsAppBar(
         title: isEditing ? AppStrings.editRole : AppStrings.addRole,
         leading: IconButton(
@@ -246,11 +246,8 @@ class _RoleFormScreenState extends ConsumerState<RoleFormScreen> {
       padding: const EdgeInsets.all(AppDimensions.md),
       decoration: BoxDecoration(
         color: AppColors.white,
-        borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
-        boxShadow: [
-          BoxShadow(
-              color: Colors.black.withValues(alpha: 0.05), blurRadius: 4)
-        ],
+        borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
+        border: Border.all(color: AppColors.latte),
       ),
       child: Column(
           crossAxisAlignment: CrossAxisAlignment.start, children: children),

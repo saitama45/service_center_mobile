@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../constants/app_colors.dart';
 import '../constants/app_text_styles.dart';
 
-/// Branded AppBar consistent with TAS Service Center design system.
+/// Branded AppBar — espresso surface, serif title, flat.
 class BmsAppBar extends StatelessWidget implements PreferredSizeWidget {
   const BmsAppBar({
     super.key,
@@ -11,7 +12,7 @@ class BmsAppBar extends StatelessWidget implements PreferredSizeWidget {
     this.actions,
     this.leading,
     this.centerTitle = false,
-    this.backgroundColor = AppColors.primaryBlue,
+    this.backgroundColor = AppColors.espresso,
     this.bottom,
   });
 
@@ -31,19 +32,24 @@ class BmsAppBar extends StatelessWidget implements PreferredSizeWidget {
   Widget build(BuildContext context) {
     return AppBar(
       backgroundColor: backgroundColor,
-      foregroundColor: AppColors.white,
-      elevation: 2,
+      foregroundColor: AppColors.cream,
+      surfaceTintColor: Colors.transparent,
+      elevation: 0,
+      scrolledUnderElevation: 0,
+      systemOverlayStyle: SystemUiOverlayStyle.light,
       leading: leading,
       centerTitle: centerTitle,
       bottom: bottom,
       title: subtitle != null
           ? Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment: centerTitle
+                  ? CrossAxisAlignment.center
+                  : CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
               children: [
                 Text(title, style: AppTextStyles.appBarTitle),
-                Text(subtitle!,
-                    style: AppTextStyles.caption
-                        .copyWith(color: AppColors.white)),
+                const SizedBox(height: 1),
+                Text(subtitle!, style: AppTextStyles.appBarSubtitle),
               ],
             )
           : Text(title, style: AppTextStyles.appBarTitle),
@@ -51,4 +57,3 @@ class BmsAppBar extends StatelessWidget implements PreferredSizeWidget {
     );
   }
 }
-

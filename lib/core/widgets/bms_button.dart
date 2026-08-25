@@ -3,7 +3,22 @@ import '../constants/app_colors.dart';
 import '../constants/app_dimensions.dart';
 import '../constants/app_text_styles.dart';
 
-enum BmsButtonVariant { primary, secondary, danger, ghost }
+enum BmsButtonVariant {
+  /// Espresso fill — the single primary action on a screen.
+  primary,
+
+  /// White fill with a latte hairline — everything alongside the primary.
+  secondary,
+
+  /// Amber fill — reserved for reward / accent moments.
+  accent,
+
+  /// Tinted red — destructive actions.
+  danger,
+
+  /// No fill, amber label — inline / tertiary actions.
+  ghost,
+}
 
 class BmsButton extends StatelessWidget {
   const BmsButton({
@@ -25,25 +40,31 @@ class BmsButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colors = _variantColors(variant);
-    Widget child = isLoading
+    final c = _variantColors(variant);
+
+    final Widget child = isLoading
         ? SizedBox(
             width: 20,
             height: 20,
             child: CircularProgressIndicator(
-              strokeWidth: 2,
-              color: colors.foreground,
+              strokeWidth: 2.2,
+              color: c.foreground,
             ),
           )
         : Row(
             mainAxisSize: MainAxisSize.min,
             children: [
               if (icon != null) ...[
-                Icon(icon, size: 18, color: colors.foreground),
+                Icon(icon, size: 18, color: c.foreground),
                 const SizedBox(width: 8),
               ],
-              Text(label,
-                  style: AppTextStyles.button.copyWith(color: colors.foreground)),
+              Flexible(
+                child: Text(
+                  label,
+                  overflow: TextOverflow.ellipsis,
+                  style: AppTextStyles.button.copyWith(color: c.foreground),
+                ),
+              ),
             ],
           );
 
@@ -52,16 +73,19 @@ class BmsButton extends StatelessWidget {
       child: ElevatedButton(
         onPressed: isLoading ? null : onPressed,
         style: ElevatedButton.styleFrom(
-          backgroundColor: colors.background,
-          foregroundColor: colors.foreground,
-          disabledBackgroundColor: colors.background.withValues(alpha: 0.6),
-          elevation: variant == BmsButtonVariant.ghost ? 0 : 2,
-          side: variant == BmsButtonVariant.secondary
-              ? const BorderSide(color: AppColors.primaryBlue, width: 1.5)
-              : BorderSide.none,
+          backgroundColor: c.background,
+          foregroundColor: c.foreground,
+          disabledBackgroundColor: c.background == Colors.transparent
+              ? Colors.transparent
+              : AppColors.latte,
+          disabledForegroundColor: AppColors.muted,
+          elevation: 0,
+          shadowColor: Colors.transparent,
+          side: c.border == null
+              ? BorderSide.none
+              : BorderSide(color: c.border!, width: 1.5),
           shape: RoundedRectangleBorder(
-            borderRadius:
-                BorderRadius.circular(AppDimensions.radiusMd),
+            borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
           ),
           padding: const EdgeInsets.symmetric(horizontal: 24),
         ),
@@ -74,23 +98,29 @@ class BmsButton extends StatelessWidget {
         : button;
   }
 
-  _ButtonColors _variantColors(BmsButtonVariant v) {
-    return switch (v) {
-      BmsButtonVariant.primary =>
-        _ButtonColors(AppColors.primaryBlue, AppColors.white),
-      BmsButtonVariant.secondary =>
-        _ButtonColors(AppColors.lightBlue, AppColors.primaryBlue),
-      BmsButtonVariant.danger =>
-        _ButtonColors(AppColors.danger, AppColors.white),
-      BmsButtonVariant.ghost =>
-        _ButtonColors(Colors.transparent, AppColors.primaryBlue),
-    };
-  }
+  _ButtonColors _variantColors(BmsButtonVariant v) => switch (v) {
+        BmsButtonVariant.primary =>
+          const _ButtonColors(AppColors.espresso, AppColors.cream),
+        BmsButtonVariant.secondary => const _ButtonColors(
+            AppColors.white,
+            AppColors.espresso,
+            border: AppColors.latte,
+          ),
+        BmsButtonVariant.accent =>
+          const _ButtonColors(AppColors.amber, AppColors.white),
+        BmsButtonVariant.danger => const _ButtonColors(
+            AppColors.dangerSurface,
+            AppColors.danger,
+            border: AppColors.dangerBorder,
+          ),
+        BmsButtonVariant.ghost =>
+          const _ButtonColors(Colors.transparent, AppColors.amber),
+      };
 }
 
 class _ButtonColors {
-  const _ButtonColors(this.background, this.foreground);
+  const _ButtonColors(this.background, this.foreground, {this.border});
   final Color background;
   final Color foreground;
+  final Color? border;
 }
-

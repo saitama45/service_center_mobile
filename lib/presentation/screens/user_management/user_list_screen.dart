@@ -40,7 +40,7 @@ class _UserListScreenState extends ConsumerState<UserListScreen> {
     final filter = ref.watch(userListFilterProvider);
 
     return Scaffold(
-      backgroundColor: AppColors.white,
+      backgroundColor: AppColors.cream,
       drawer: const AppDrawer(),
       appBar: BmsAppBar(
         title: AppStrings.userManagement,
@@ -170,7 +170,9 @@ class _UserListTile extends ConsumerWidget {
         final tile = Card(
           elevation: AppDimensions.cardElevation,
           shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(AppDimensions.radiusMd)),
+            borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
+            side: const BorderSide(color: AppColors.latte),
+          ),
           child: ListTile(
             isThreeLine: true,
             contentPadding:
@@ -208,7 +210,7 @@ class _UserListTile extends ConsumerWidget {
                 if (canEdit)
                   const PopupMenuItem(value: 'edit', child: Text('Edit')),
                 if (canDelete)
-                  const PopupMenuItem(value: 'delete', child: Text('Delete', style: TextStyle(color: Colors.redAccent))),
+                  const PopupMenuItem(value: 'delete', child: Text('Delete', style: TextStyle(color: AppColors.danger))),
               ],
             ),
             onTap: canEdit ? () => context.go('/dashboard/users/${user.id}') : null,
@@ -224,7 +226,7 @@ class _UserListTile extends ConsumerWidget {
             alignment: Alignment.centerRight,
             padding: const EdgeInsets.only(right: 20),
             decoration: BoxDecoration(
-              color: Colors.redAccent,
+              color: AppColors.danger,
               borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
             ),
             child: const Icon(Icons.delete, color: Colors.white),

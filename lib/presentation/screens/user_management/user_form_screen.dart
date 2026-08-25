@@ -185,7 +185,7 @@ class _UserFormScreenState extends ConsumerState<UserFormScreen> {
     final rolesAsync = ref.watch(roleListProvider);
 
     return Scaffold(
-      backgroundColor: AppColors.white,
+      backgroundColor: AppColors.cream,
       appBar: BmsAppBar(
         title: isEditing ? AppStrings.editUser : AppStrings.addUser,
         leading: IconButton(
@@ -355,13 +355,8 @@ class _UserFormScreenState extends ConsumerState<UserFormScreen> {
       padding: const EdgeInsets.all(AppDimensions.md),
       decoration: BoxDecoration(
         color: AppColors.white,
-        borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 4,
-          ),
-        ],
+        borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
+        border: Border.all(color: AppColors.latte),
       ),
       child: Column(
           crossAxisAlignment: CrossAxisAlignment.start, children: children),

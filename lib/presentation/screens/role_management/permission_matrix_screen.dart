@@ -137,7 +137,7 @@ class _PermissionMatrixScreenState
     final totalWidth = _moduleColWidth + 12.0 + _switchColWidth * _cols.length;
 
     return Scaffold(
-      backgroundColor: AppColors.white,
+      backgroundColor: AppColors.cream,
       appBar: BmsAppBar(
         title: AppStrings.permissionMatrix,
         subtitle: _roleName,
