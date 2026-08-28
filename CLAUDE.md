@@ -165,6 +165,8 @@ The suite in `test/` runs with `flutter.bat` + the `test` subcommand; it uses on
   inherent limit of a server-signed code, not a bug to chase here.
 - **Self-registration is real** (`POST /api/register`) — creates a linked ghelpdesk `customers`
   + roleless `users` row, then behaves exactly like a fresh login (same OTP/biometric steps).
+  **A 200/201 means the account already exists**: never report anything that fails after that
+  as a connection error, or the member retries into "the email has already been taken".
 - Stamp replay protection is the **unique index on `loyalty_transactions.scan_token`**, not the
   friendly pre-check inside `earnStamp`.
 - `package:bms/...` is the import prefix everywhere, including in `test/`.
@@ -173,7 +175,10 @@ The suite in `test/` runs with `flutter.bat` + the `test` subcommand; it uses on
   meant to key on something else (e.g. `campaigns.code`) needs the explicit form:
   `insert(companion, onConflict: DoUpdate((_) => companion, target: [table.column]))`. Found in
   `SyncManager`; `SeedRunner` has the identical latent bug, dormant only because seeding runs
-  once against an empty table.
+  once against an empty table. It also bit `users`, whose ids come from the **server**: a
+  member whose account was deleted in ghelpdesk and re-registered got a new id, and the insert
+  hit `UNIQUE (username)` — fixed in `UserDao.upsertUserForLogin` (re-key the existing row),
+  covered by `test/unit/user_dao_test.dart` and `test/unit/register_usecase_test.dart`.
 - **A rebuilt debug APK can silently ignore a changed `--dart-define`.** If `API_BASE_URL`
   seems stuck on the production default after a rebuild, `flutter clean && flutter pub get`
   before rebuilding — don't trust a kernel-blob string-presence check to prove which value

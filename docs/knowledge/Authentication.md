@@ -20,6 +20,11 @@
 2. **200** → store the token, bcrypt-hash the plaintext password into `users.password_hash`
    (this is what makes later offline logins possible), upsert the user, invalidate previous
    sessions, create a new session row keyed by the token hash.
+   The upsert goes through `UserDao.upsertUserForLogin`, which keys on **`username`** (the
+   email), not on `users.id`: the server's id is not stable across accounts — staff can delete
+   a member in ghelpdesk and the member can sign up again with the same email and get a new
+   id. The stale local row is re-pointed at the new id and its old sessions invalidated, so a
+   login always leaves exactly one row per email.
 3. **401 / 422** → `InvalidCredentialsFailure`, surfacing the server's `message`.
 4. **Any exception (unreachable)** → `_attemptLocalLogin`.
 
@@ -30,6 +35,19 @@ account for **30 minutes**. `LoginSuccess.isOffline` is set so the UI can say so
 
 If no usable offline record exists, the result is a `NetworkFailure` (not invalid-credentials)
 so the UI shows "could not connect".
+
+## Sign-up
+
+`RegisterUseCase` (same file) `POST`s `/api/register`; ghelpdesk answers with the identical
+`{ token, user, roles }` payload as `/api/login`, so success is handed straight to
+`_handleRemoteSuccess` — same local row, same session, same OTP/biometric steps after.
+
+Once the server has answered **200/201 the account exists**, so nothing after that point may
+be reported as a connection problem. Only the HTTP call itself yields `NetworkFailure`; a
+failure while storing the account locally returns an `UnexpectedFailure` that says the account
+was created and to sign in. Getting this wrong is what made a re-registration show "Could not
+connect to the server" while the member's account had in fact just been created — the retry
+they were being invited to make could only ever come back "the email has already been taken".
 
 ## Session restore
 

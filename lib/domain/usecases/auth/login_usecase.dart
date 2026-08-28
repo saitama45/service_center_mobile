@@ -145,11 +145,18 @@ class LoginUseCase {
       updatedAt: now,
     );
 
-    await _db.userDao.upsertUser(user);
+    // Keyed on the email, not on the id: the same member can come back with a
+    // different server id after their account was deleted and signed up for
+    // again. See `UserDao.upsertUserForLogin`.
+    final replacedId = await _db.userDao.upsertUserForLogin(user);
     await _db.userDao.resetLoginFailures(userId);
 
     // Create/refresh local Session row so CheckSessionUseCase can validate
-    // the cached JWT on next app restart. Invalidate any stale rows first.
+    // the cached JWT on next app restart. Invalidate any stale rows first —
+    // including those left behind by the account this row replaced.
+    if (replacedId != null) {
+      await _db.sessionDao.invalidateAllUserSessions(replacedId);
+    }
     await _db.sessionDao.invalidateAllUserSessions(userId);
     await _db.sessionDao.createSession(
       userId: userId,
@@ -309,12 +316,22 @@ class RegisterUseCase {
       debugPrint('Register: API Response status: ${response.statusCode}');
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        final result =
-            await loginUseCase._handleRemoteSuccess(response.body, password, deviceName);
-        return switch (result) {
-          LoginSuccess(:final user) => RegisterSuccess(user),
-          LoginFailure(:final failure) => RegisterFailure(failure),
-        };
+        // The account now EXISTS on the server. Nothing that goes wrong from
+        // here may be reported as a connection problem: that sent the member
+        // back to retry, where their own email was already taken.
+        try {
+          final result = await loginUseCase._handleRemoteSuccess(
+              response.body, password, deviceName);
+          return switch (result) {
+            LoginSuccess(:final user) => RegisterSuccess(user),
+            LoginFailure(:final failure) => RegisterFailure(failure),
+          };
+        } catch (e) {
+          debugPrint('Register: account created but local sign-in failed ($e).');
+          return const RegisterFailure(UnexpectedFailure(
+              'Your account was created, but this device could not finish '
+              'signing you in. Please sign in with your email and password.'));
+        }
       } else if (response.statusCode == 422) {
         return RegisterFailure(ValidationFailure(_firstValidationMessage(response.body)));
       } else if (response.statusCode == 429) {
