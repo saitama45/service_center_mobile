@@ -246,15 +246,99 @@ void main() {
     });
   });
 
-  test('resetMemberActivity clears cards and ledger', () async {
-    await dao.earnStamp(
-        userId: userId, campaignId: campaignId, scanToken: 'A');
-    await dao.resetMemberActivity(userId);
+  // The Rewards tab's source. Unlike getCampaignProgress it keeps redeemed
+  // cards — a member whose only card was redeemed used to see "You haven't
+  // started a card yet" there while History showed the claimed reward.
+  group('getAllCardProgress', () {
+    Future<String> insertCard({
+      required int stamps,
+      required int cycle,
+      DateTime? redeemedAt,
+      String? campaign,
+    }) async {
+      final row = await db.into(db.stampCards).insertReturning(
+            StampCardsCompanion.insert(
+              userId: userId,
+              campaignId: campaign ?? campaignId,
+              stampsCollected: Value(stamps),
+              cycle: Value(cycle),
+              redeemedAt: Value(redeemedAt),
+              completedAt: Value(redeemedAt),
+            ),
+          );
+      return row.id;
+    }
 
-    expect(await dao.getTransactions(userId), isEmpty);
-    // The card row itself is deleted, not zeroed — with no card left, the
-    // campaign drops out of the (now card-gated) progress list entirely.
-    expect(await dao.getCampaignProgress(userId), isEmpty);
+    test('keeps redeemed cards that getCampaignProgress drops', () async {
+      await insertCard(
+          stamps: 3, cycle: 1, redeemedAt: DateTime.utc(2026, 9, 2));
+
+      expect(await dao.getCampaignProgress(userId), isEmpty);
+
+      final cards = await dao.getAllCardProgress(userId);
+      expect(cards, hasLength(1));
+      expect(cards.single.isRedeemed, isTrue);
+      expect(cards.single.campaign.name, 'Test Campaign');
+    });
+
+    test('lists every cycle of one campaign separately', () async {
+      await insertCard(
+          stamps: 3, cycle: 1, redeemedAt: DateTime.utc(2026, 8, 1));
+      await insertCard(
+          stamps: 3, cycle: 2, redeemedAt: DateTime.utc(2026, 9, 2));
+      await insertCard(stamps: 1, cycle: 3);
+
+      final cards = await dao.getAllCardProgress(userId);
+      expect(cards, hasLength(3),
+          reason: 'collapsing by campaign would hide all but one');
+
+      // Still in play first, then redeemed most-recent first.
+      expect(cards.map((p) => p.isRedeemed), [false, true, true]);
+      expect(cards[0].stamps, 1);
+      expect(cards[1].card?.redeemedAt, DateTime.utc(2026, 9, 2));
+      expect(cards[2].card?.redeemedAt, DateTime.utc(2026, 8, 1));
+    });
+
+    test('an unlocked card sorts above other cards still in play', () async {
+      await insertCard(stamps: 1, cycle: 1);
+      final full = await db.into(db.campaigns).insertReturning(
+            CampaignsCompanion.insert(
+                code: 'FULL',
+                name: 'Full One',
+                requiredStamps: const Value(3)),
+          );
+      await insertCard(stamps: 3, cycle: 1, campaign: full.id);
+
+      final cards = await dao.getAllCardProgress(userId);
+      expect(cards.first.campaign.name, 'Full One');
+      expect(cards.first.isUnlocked, isTrue);
+    });
+
+    test('a card on a retired campaign still shows its history', () async {
+      // _pullCatalog deactivates campaigns rather than deleting them, so a
+      // reward claimed on a since-retired campaign must not vanish.
+      final retired = await db.into(db.campaigns).insertReturning(
+            CampaignsCompanion.insert(
+              code: 'OLD',
+              name: 'Retired Campaign',
+              requiredStamps: const Value(3),
+              isActive: const Value(false),
+            ),
+          );
+      await insertCard(
+        stamps: 3,
+        cycle: 1,
+        campaign: retired.id,
+        redeemedAt: DateTime.utc(2026, 7, 1),
+      );
+
+      final cards = await dao.getAllCardProgress(userId);
+      expect(cards.map((p) => p.campaign.name), contains('Retired Campaign'));
+    });
+
+    test('a member with no cards gets an empty list, not an error', () async {
+      expect(await dao.getAllCardProgress(userId), isEmpty);
+    });
   });
 }
 

@@ -9,6 +9,7 @@ import '../../../core/constants/app_dimensions.dart';
 import '../../../core/constants/app_text_styles.dart';
 import '../../../core/widgets/bms_button.dart';
 import '../../../core/widgets/bms_card.dart';
+import '../../../core/widgets/bms_manual_code.dart';
 import '../../providers/app_providers.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/loyalty_provider.dart';
@@ -279,6 +280,12 @@ class _MemberCode extends StatelessWidget {
             ],
           ),
         ),
+        const SizedBox(height: AppDimensions.md),
+
+        // The same code in plain text — the fallback when a scanner won't
+        // read the screen. Staff type it into the very same field the
+        // scanner would have typed into.
+        BmsManualCode(code: token),
         const SizedBox(height: AppDimensions.lg),
 
         BmsSectionCard(

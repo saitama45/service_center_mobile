@@ -329,6 +329,150 @@ void main() {
       expect(await db.select(db.stampCards).get(), isEmpty);
     });
 
+    test('a server-side redemption closes the local card', () async {
+      final campaign = await db.into(db.campaigns).insertReturning(
+            CampaignsCompanion.insert(code: 'SP-1', name: 'X', requiredStamps: const Value(12)),
+          );
+      await db.into(db.stampCards).insert(
+            StampCardsCompanion.insert(
+              userId: 'user-1',
+              campaignId: campaign.id,
+              remoteCardId: const Value('77'),
+              redeemToken: const Value('LRDM1:77:abc'),
+              stampsCollected: const Value(12),
+              completedAt: Value(DateTime.utc(2026, 1, 1)),
+            ),
+          );
+
+      final redeemedAt = DateTime.utc(2026, 9, 4, 10, 30);
+      final loyaltyMember = _FakeLoyaltyMember()
+        ..cardsQueue.add(MyCardsSucceeded([
+          RemoteCardProgress(
+            code: 'SP-1',
+            cardId: '77',
+            stampsCount: 12,
+            stampsRequired: 12,
+            status: 'redeemed',
+            redeemedAt: redeemedAt,
+          ),
+        ]));
+      final manager = SyncManager(db, apiClient(),
+          isOnline: _online, catalog: catalogWith('SP-1'), loyaltyMember: loyaltyMember);
+
+      await manager.sync(userId: 'user-1');
+
+      final card = await (db.select(db.stampCards)
+            ..where((s) => s.remoteCardId.equals('77')))
+          .getSingle();
+      expect(card.redeemedAt, redeemedAt,
+          reason: 'the reward was handed over — the card must not still read as claimable');
+      // The whole point: no stale code left on a spent card.
+      expect(card.redeemToken, isNull);
+    });
+
+    test('the replacement card issued after a redemption is a separate row',
+        () async {
+      final campaign = await db.into(db.campaigns).insertReturning(
+            CampaignsCompanion.insert(code: 'SP-1', name: 'X', requiredStamps: const Value(12)),
+          );
+      await db.into(db.stampCards).insert(
+            StampCardsCompanion.insert(
+              userId: 'user-1',
+              campaignId: campaign.id,
+              remoteCardId: const Value('77'),
+              stampsCollected: const Value(12),
+              redeemedAt: Value(DateTime.utc(2026, 9, 4)),
+            ),
+          );
+
+      final loyaltyMember = _FakeLoyaltyMember()
+        ..cardsQueue.add(MyCardsSucceeded([
+          RemoteCardProgress(
+            code: 'SP-1',
+            cardId: '77',
+            stampsCount: 12,
+            stampsRequired: 12,
+            status: 'redeemed',
+            redeemedAt: DateTime.utc(2026, 9, 4),
+          ),
+          // Same campaign code, different server card — the state ghelpdesk
+          // is in the moment staff scan the member again after a redemption.
+          const RemoteCardProgress(
+            code: 'SP-1',
+            cardId: '78',
+            stampsCount: 1,
+            stampsRequired: 12,
+            status: 'active',
+          ),
+        ]));
+      final manager = SyncManager(db, apiClient(),
+          isOnline: _online, catalog: catalogWith('SP-1'), loyaltyMember: loyaltyMember);
+
+      await manager.sync(userId: 'user-1');
+
+      final cards = await (db.select(db.stampCards)
+            ..where((s) => s.userId.equals('user-1'))
+            ..orderBy([(s) => OrderingTerm.asc(s.cycle)]))
+          .get();
+      expect(cards, hasLength(2),
+          reason: 'keying on the campaign code alone would have merged these');
+      expect(cards.first.redeemedAt, isNotNull);
+      expect(cards.last.stampsCollected, 1);
+      expect(cards.last.redeemedAt, isNull);
+      expect(cards.map((c) => c.cycle), [1, 2]);
+    });
+
+    test('a pre-existing local card is adopted by the server card once', () async {
+      final campaign = await db.into(db.campaigns).insertReturning(
+            CampaignsCompanion.insert(code: 'SP-1', name: 'X', requiredStamps: const Value(12)),
+          );
+      // Written before remoteCardId existed — no server identity yet.
+      await db.into(db.stampCards).insert(
+            StampCardsCompanion.insert(
+                userId: 'user-1', campaignId: campaign.id, stampsCollected: const Value(3)),
+          );
+
+      final loyaltyMember = _FakeLoyaltyMember()
+        ..cardsQueue.add(const MyCardsSucceeded([
+          RemoteCardProgress(
+              code: 'SP-1', cardId: '77', stampsCount: 5, stampsRequired: 12, status: 'active'),
+        ]));
+      final manager = SyncManager(db, apiClient(),
+          isOnline: _online, catalog: catalogWith('SP-1'), loyaltyMember: loyaltyMember);
+
+      await manager.sync(userId: 'user-1');
+
+      final cards = await (db.select(db.stampCards)..where((s) => s.userId.equals('user-1'))).get();
+      expect(cards, hasLength(1), reason: 'adoption must not fork a second card');
+      expect(cards.single.remoteCardId, '77');
+      expect(cards.single.stampsCollected, 5);
+    });
+
+    test('a full card carries the redeem code the member shows staff', () async {
+      final loyaltyMember = _FakeLoyaltyMember()
+        ..cardsQueue.add(const MyCardsSucceeded([
+          RemoteCardProgress(
+            code: 'SP-1',
+            cardId: '77',
+            stampsCount: 12,
+            stampsRequired: 12,
+            status: 'completed',
+            redeemToken: 'LRDM1:77:0123456789abcdef01234567',
+          ),
+        ]));
+      final manager = SyncManager(db, apiClient(),
+          isOnline: _online, catalog: catalogWith('SP-1'), loyaltyMember: loyaltyMember);
+
+      await manager.sync(userId: 'user-1');
+
+      final card = await (db.select(db.stampCards)
+            ..where((s) => s.userId.equals('user-1')))
+          .getSingle();
+      expect(card.redeemToken, 'LRDM1:77:0123456789abcdef01234567');
+      expect(card.completedAt, isNotNull);
+      expect(card.redeemedAt, isNull);
+    });
+
     test('sync() without a userId skips progress entirely', () async {
       final loyaltyMember = _FakeLoyaltyMember()
         ..cardsQueue.add(const MyCardsSucceeded([

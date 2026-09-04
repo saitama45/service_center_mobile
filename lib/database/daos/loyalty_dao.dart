@@ -1,6 +1,5 @@
 import 'dart:math';
 import 'package:drift/drift.dart';
-import 'package:flutter/foundation.dart';
 import '../app_database.dart';
 import '../tables/loyalty_tables.dart';
 
@@ -26,10 +25,27 @@ class CampaignProgress {
   int get required => campaign.requiredStamps;
   int get remaining => (required - stamps).clamp(0, required);
 
-  double get progress => required == 0 ? 0 : (stamps / required).clamp(0.0, 1.0);
+  double get progress =>
+      required == 0 ? 0 : (stamps / required).clamp(0.0, 1.0);
 
   /// Card is full and the reward has not been claimed yet.
   bool get isUnlocked => stamps >= required && card?.redeemedAt == null;
+
+  /// Staff have already handed this reward over (ghelpdesk redeemed the card
+  /// and the progress pull closed it here).
+  bool get isRedeemed => card?.redeemedAt != null;
+
+  /// The signed code the member shows staff to claim this card's reward —
+  /// issued by ghelpdesk with the progress pull, cached on the card so it
+  /// still displays with no connectivity. Null until the card is full, and
+  /// cleared again once it's been redeemed.
+  String? get redeemToken => card?.redeemToken;
+
+  /// Whether tapping "Redeem Now" can actually show a scannable code. A full
+  /// card with no token means this member has never been online since it
+  /// filled up — there's nothing for staff to scan yet.
+  bool get canShowRedeemCode =>
+      isUnlocked && (redeemToken?.isNotEmpty ?? false);
 
   bool get isExpired {
     final ends = campaign.endsAt;
@@ -93,6 +109,60 @@ class LoyaltyDao extends DatabaseAccessor<AppDatabase> with _$LoyaltyDaoMixin {
         .where((c) => byCampaign.containsKey(c.id))
         .map((c) => CampaignProgress(campaign: c, card: byCampaign[c.id]))
         .toList();
+  }
+
+  /// Every stamp card the member holds — **including redeemed ones** — as one
+  /// entry per card rather than one per campaign.
+  ///
+  /// This is the Rewards tab's source, and it deliberately differs from
+  /// [getCampaignProgress] in two ways:
+  ///
+  ///  * Redeemed cards are kept. `getCampaignProgress` drops them because the
+  ///    home hero and the "what can I collect on" question only care about
+  ///    open cards — but dropping them left the Rewards tab reading
+  ///    "You haven't started a card yet" for a member whose History plainly
+  ///    showed a redeemed reward.
+  ///  * One entry per *card*, not per campaign. Since redemption became
+  ///    server-authoritative a member legitimately holds several cards for one
+  ///    campaign (each redeemed cycle, plus the current one), and collapsing
+  ///    them by campaign would hide all but one.
+  ///
+  /// Campaigns are looked up by id without the `is_active` filter, so a card
+  /// redeemed on a campaign that has since been retired still shows its
+  /// history — `SyncManager._pullCatalog` deactivates rather than deletes.
+  ///
+  /// Ordered the way the member thinks about them: cards still in play first
+  /// (unlocked before the rest, then furthest along), then redeemed ones
+  /// most-recent first.
+  Future<List<CampaignProgress>> getAllCardProgress(String userId) async {
+    final cards =
+        await (select(stampCards)..where((s) => s.userId.equals(userId))).get();
+    if (cards.isEmpty) return const [];
+
+    final campaignIds = cards.map((c) => c.campaignId).toSet();
+    final rows =
+        await (select(campaigns)..where((c) => c.id.isIn(campaignIds))).get();
+    final byId = {for (final c in rows) c.id: c};
+
+    final progress = <CampaignProgress>[
+      for (final card in cards)
+        if (byId[card.campaignId] case final campaign?)
+          CampaignProgress(campaign: campaign, card: card),
+    ];
+
+    progress.sort((a, b) {
+      if (a.isRedeemed != b.isRedeemed) return a.isRedeemed ? 1 : -1;
+
+      if (a.isRedeemed && b.isRedeemed) {
+        return (b.card?.redeemedAt ?? DateTime(0))
+            .compareTo(a.card?.redeemedAt ?? DateTime(0));
+      }
+
+      if (a.isUnlocked != b.isUnlocked) return a.isUnlocked ? -1 : 1;
+      return b.progress.compareTo(a.progress);
+    });
+
+    return progress;
   }
 
   /// The campaign the member is furthest along on — what the home hero shows.
@@ -305,20 +375,5 @@ class LoyaltyDao extends DatabaseAccessor<AppDatabase> with _$LoyaltyDaoMixin {
   }
 
   /// TXN-XXXXXX, matching the reference format used in the ledger design.
-  String _newReference() =>
-      'TXN-${(100000 + _rand.nextInt(900000))}';
-
-  /// Wipes this member's loyalty activity. Used by the "reset demo data"
-  /// action so the flow can be walked through repeatedly.
-  Future<void> resetMemberActivity(String userId) async {
-    try {
-      await transaction(() async {
-        await (delete(loyaltyTransactions)..where((t) => t.userId.equals(userId)))
-            .go();
-        await (delete(stampCards)..where((s) => s.userId.equals(userId))).go();
-      });
-    } catch (e) {
-      debugPrint('LoyaltyDao: reset failed: $e');
-    }
-  }
+  String _newReference() => 'TXN-${(100000 + _rand.nextInt(900000))}';
 }

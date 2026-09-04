@@ -80,22 +80,44 @@ LoyaltyDao.earnStamp — one Drift transaction
 → token rotated (burned) → pushReplacement('/scan/success', extra: ScanSuccessArgs)
 ```
 
-## 5. Redeem a reward
+## 5. Redeem a reward (server-authoritative since 2026-09-04)
 
-`LoyaltyDao.redeemReward` — one transaction:
-1. Find the open card (`redeemed_at IS NULL`); reject if `stamps_collected < requiredStamps`.
-2. Set `redeemed_at`, `sync_status = pending`.
-3. Insert a `redeem` transaction with `points = -requiredStamps`, name
-   `"<campaign> (Free Reward)"`.
-4. **Insert a fresh card at `cycle + 1`** so collecting continues immediately — this mirrors
-   a paper punch card and is why `stamp_cards` is unique on `(userId, campaignId, cycle)`.
+Redeeming happens in ghelpdesk, not on the phone — the app only presents a code.
+
+```
+Rewards tab → "Redeem Now" (only on a full card)
+  → showRedeemQrSheet: QR of stamp_cards.redeem_token
+       (LRDM1:{ghelpdesk stamp_card_id}:{sig}, cached — displays offline)
+  → cashier: Stamps module → "Scan Redeem QR"
+       → POST stamps/scan/resolve-redeem  (can:stamps.redeem)
+       → refuses a card that is not `completed` (this is the replay guard)
+       → opens the ordinary Redeem Reward modal for that exact card
+  → staff pick asset + location + one coded unit per quantity
+       → POST stamps/cards/{card}/redeem → stamp_cards.status = 'redeemed',
+         inventory deducted
+  → app polls SyncManager every 4s while the sheet is open
+       → _pullProgress sets the local card's redeemed_at → sheet closes
+```
+
+The sheet stops at "show the code" because a redemption deducts specific coded
+inventory units, and only the person at the counter can say which one leaves the shelf.
+
+`LoyaltyDao.redeemReward` (find the open card → set `redeemed_at` → insert a `redeem`
+transaction of `-requiredStamps` → open a fresh card at `cycle + 1`) still exists and is
+still unit-tested, but **has no UI caller** — same status as `earnStamp`. The
+`cycle + 1` mechanic now happens on the sync side instead: ghelpdesk issues a new card
+after a redemption and `_pullProgress` lands it as its own local row.
 
 ## 6. Reads that feed the UI
 
 | Provider | DAO call | Screen |
 |---|---|---|
-| `featuredCampaignProvider` | `getFeaturedProgress` — unlocked first, then highest progress, expired excluded | Home hero |
-| `campaignProgressProvider` | `getCampaignProgress` — every active campaign + the member's open card | Home list, Rewards, Scan |
+| `featuredCampaignProvider` | `getFeaturedProgress` — unlocked first, then highest progress, expired excluded | Home hero (automatic pick) |
+| `homeCampaignChoicesProvider` | `getCampaignProgress` minus expired | Home campaign picker chips (shown only when >1) |
+| `selectedHomeCampaignIdProvider` | — (session `StateProvider`, holds a campaign id) | Which chip is active; null = "decide for me" |
+| `homeCampaignProvider` | the member's pick if still present, else `featuredCampaignProvider` | Home hero + the Active Campaign teaser below it |
+| `campaignProgressProvider` | `getCampaignProgress` — open (non-redeemed) cards only, one per campaign | Home stats, campaign picker, redemption sheet |
+| `campaignCardsProvider` | `getAllCardProgress` — **every** card incl. redeemed, one entry per card | Rewards tab (All / Current / Redeemed filter) |
 | `transactionsProvider` | `getTransactions` (limit 100, newest first) | History |
 | `ledgerTotalsProvider` | `getLedgerTotals` — sums earn vs. abs(redeem) in Dart | History summary strip |
 | `productsProvider` | `getProducts(activeOnly)` | Scan product picker |

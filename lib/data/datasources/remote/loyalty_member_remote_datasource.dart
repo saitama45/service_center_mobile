@@ -175,22 +175,67 @@ class RemoteCardProgress {
     required this.stampsCount,
     required this.stampsRequired,
     required this.status,
+    // Optional because a server predating them simply omits them, and the
+    // app has to keep working against one that does.
+    this.cardId,
+    this.redeemedAt,
+    this.redeemToken,
   });
 
   final String code;
+
+  /// ghelpdesk's own `stamp_cards.id`, as a string. Null only when talking to
+  /// a server old enough not to send it — [code] alone can't tell two cards
+  /// for the same program apart, which is precisely the state a redemption
+  /// leaves behind (the closed card plus its successor).
+  final String? cardId;
+
   final int stampsCount;
   final int stampsRequired;
 
   /// active | completed | redeemed — mirrors ghelpdesk's `stamp_cards.status`.
   final String status;
 
+  /// When staff actually redeemed this card, if they have. Null for a card
+  /// still in play.
+  final DateTime? redeemedAt;
+
+  /// The signed code the member shows staff to claim this card's reward
+  /// (`LoyaltyRedeemQrService`). Only a `completed` card has one — a card
+  /// that isn't full can't be redeemed, and one already redeemed must not be
+  /// redeemable twice.
+  final String? redeemToken;
+
+  /// True once ghelpdesk considers this card closed by a real redemption.
+  bool get isRedeemed => status == 'redeemed' || redeemedAt != null;
+
+  /// Full, and still claimable.
+  bool get isRedeemable => status == 'completed' && !isRedeemed;
+
   factory RemoteCardProgress.fromJson(Map<String, dynamic> json) {
     return RemoteCardProgress(
       code: json['code'] as String? ?? '',
+      cardId: _stringOrNull(json['card_id']),
       stampsCount: _intOrDefault(json['stamps_count'], 0),
       stampsRequired: _intOrDefault(json['stamps_required'], 0),
       status: json['status'] as String? ?? 'active',
+      redeemedAt: _dateOrNull(json['redeemed_at']),
+      redeemToken: _stringOrNull(json['redeem_token']),
     );
+  }
+
+  /// Card ids arrive as JSON numbers from Laravel but as strings from SQL
+  /// Server's string-typed keys — normalise both, and treat empty as absent.
+  static String? _stringOrNull(Object? value) {
+    if (value == null) return null;
+    final text = value.toString().trim();
+    return text.isEmpty ? null : text;
+  }
+
+  static DateTime? _dateOrNull(Object? value) {
+    final text = _stringOrNull(value);
+    if (text == null) return null;
+    return DateTime.tryParse(text)?.toUtc();
   }
 
   static int _intOrDefault(Object? value, int fallback) {

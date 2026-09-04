@@ -10,9 +10,7 @@ import '../../../core/widgets/app_drawer.dart';
 import '../../../core/widgets/bms_app_bar.dart';
 import '../../../core/widgets/bms_button.dart';
 import '../../../core/widgets/bms_card.dart';
-import '../../../core/widgets/confirmation_dialog.dart';
 import '../../providers/auth_flow_provider.dart';
-import '../../providers/loyalty_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../../routing/route_names.dart';
 
@@ -132,19 +130,6 @@ class ProfileScreen extends ConsumerWidget {
             const SizedBox(height: AppDimensions.md),
             _AuthenticatorCard(userId: user.id),
 
-            const SizedBox(height: AppDimensions.md),
-
-            // ── Demo utility ─────────────────────────────────────────────
-            BmsCard(
-              padding: EdgeInsets.zero,
-              child: _NavRow(
-                icon: Icons.restart_alt,
-                label: 'Reset my stamp activity',
-                sub: 'Clears your cards and history so you can demo again',
-                onTap: () => _confirmReset(context, ref),
-              ),
-            ),
-
             const SizedBox(height: AppDimensions.lg),
 
             BmsButton(
@@ -157,23 +142,6 @@ class ProfileScreen extends ConsumerWidget {
           ],
         ),
       ),
-    );
-  }
-
-  Future<void> _confirmReset(BuildContext context, WidgetRef ref) async {
-    final confirmed = await showConfirmationDialog(
-      context,
-      title: 'Reset stamp activity',
-      message: 'This clears every stamp card and ledger entry on your account. '
-          'Campaigns themselves are unaffected. This cannot be undone.',
-      confirmLabel: 'Reset',
-    );
-    if (confirmed != true || !context.mounted) return;
-
-    await ref.read(loyaltyActionsProvider).resetActivity();
-    if (!context.mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Your stamp activity has been reset.')),
     );
   }
 

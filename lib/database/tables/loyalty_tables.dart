@@ -96,6 +96,21 @@ class StampCards extends Table {
   TextColumn get userId => text().references(Users, #id)();
   TextColumn get campaignId => text().references(Campaigns, #id)();
 
+  /// ghelpdesk's `stamp_cards.id` for this card, once the progress pull has
+  /// seen it. This is the identity the server and the app agree on: a
+  /// campaign code alone stops being unique the moment a member has both a
+  /// redeemed card and its replacement for the same program, so keying local
+  /// rows on the code would let a closed card and a fresh one overwrite each
+  /// other. Null for a card that only ever existed on-device.
+  TextColumn get remoteCardId => text().nullable()();
+
+  /// The signed code the member shows staff to claim this card's reward,
+  /// issued by ghelpdesk alongside progress (`LoyaltyRedeemQrService`).
+  /// Stored rather than fetched on demand so "Redeem Now" still produces a
+  /// scannable code at the counter with no signal — same reasoning as the
+  /// cached member QR. Only ever set on a full, unredeemed card.
+  TextColumn get redeemToken => text().nullable()();
+
   IntColumn get stampsCollected => integer().withDefault(const Constant(0))();
   IntColumn get cycle => integer().withDefault(const Constant(1))();
 

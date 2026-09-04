@@ -6521,6 +6521,18 @@ class $StampCardsTable extends StampCards
       requiredDuringInsert: true,
       defaultConstraints:
           GeneratedColumn.constraintIsAlways('REFERENCES campaigns (id)'));
+  static const VerificationMeta _remoteCardIdMeta =
+      const VerificationMeta('remoteCardId');
+  @override
+  late final GeneratedColumn<String> remoteCardId = GeneratedColumn<String>(
+      'remote_card_id', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _redeemTokenMeta =
+      const VerificationMeta('redeemToken');
+  @override
+  late final GeneratedColumn<String> redeemToken = GeneratedColumn<String>(
+      'redeem_token', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
   static const VerificationMeta _stampsCollectedMeta =
       const VerificationMeta('stampsCollected');
   @override
@@ -6577,6 +6589,8 @@ class $StampCardsTable extends StampCards
         id,
         userId,
         campaignId,
+        remoteCardId,
+        redeemToken,
         stampsCollected,
         cycle,
         completedAt,
@@ -6611,6 +6625,18 @@ class $StampCardsTable extends StampCards
               data['campaign_id']!, _campaignIdMeta));
     } else if (isInserting) {
       context.missing(_campaignIdMeta);
+    }
+    if (data.containsKey('remote_card_id')) {
+      context.handle(
+          _remoteCardIdMeta,
+          remoteCardId.isAcceptableOrUnknown(
+              data['remote_card_id']!, _remoteCardIdMeta));
+    }
+    if (data.containsKey('redeem_token')) {
+      context.handle(
+          _redeemTokenMeta,
+          redeemToken.isAcceptableOrUnknown(
+              data['redeem_token']!, _redeemTokenMeta));
     }
     if (data.containsKey('stamps_collected')) {
       context.handle(
@@ -6667,6 +6693,10 @@ class $StampCardsTable extends StampCards
           .read(DriftSqlType.string, data['${effectivePrefix}user_id'])!,
       campaignId: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}campaign_id'])!,
+      remoteCardId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}remote_card_id']),
+      redeemToken: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}redeem_token']),
       stampsCollected: attachedDatabase.typeMapping
           .read(DriftSqlType.int, data['${effectivePrefix}stamps_collected'])!,
       cycle: attachedDatabase.typeMapping
@@ -6694,6 +6724,21 @@ class StampCard extends DataClass implements Insertable<StampCard> {
   final String id;
   final String userId;
   final String campaignId;
+
+  /// ghelpdesk's `stamp_cards.id` for this card, once the progress pull has
+  /// seen it. This is the identity the server and the app agree on: a
+  /// campaign code alone stops being unique the moment a member has both a
+  /// redeemed card and its replacement for the same program, so keying local
+  /// rows on the code would let a closed card and a fresh one overwrite each
+  /// other. Null for a card that only ever existed on-device.
+  final String? remoteCardId;
+
+  /// The signed code the member shows staff to claim this card's reward,
+  /// issued by ghelpdesk alongside progress (`LoyaltyRedeemQrService`).
+  /// Stored rather than fetched on demand so "Redeem Now" still produces a
+  /// scannable code at the counter with no signal — same reasoning as the
+  /// cached member QR. Only ever set on a full, unredeemed card.
+  final String? redeemToken;
   final int stampsCollected;
   final int cycle;
 
@@ -6707,6 +6752,8 @@ class StampCard extends DataClass implements Insertable<StampCard> {
       {required this.id,
       required this.userId,
       required this.campaignId,
+      this.remoteCardId,
+      this.redeemToken,
       required this.stampsCollected,
       required this.cycle,
       this.completedAt,
@@ -6720,6 +6767,12 @@ class StampCard extends DataClass implements Insertable<StampCard> {
     map['id'] = Variable<String>(id);
     map['user_id'] = Variable<String>(userId);
     map['campaign_id'] = Variable<String>(campaignId);
+    if (!nullToAbsent || remoteCardId != null) {
+      map['remote_card_id'] = Variable<String>(remoteCardId);
+    }
+    if (!nullToAbsent || redeemToken != null) {
+      map['redeem_token'] = Variable<String>(redeemToken);
+    }
     map['stamps_collected'] = Variable<int>(stampsCollected);
     map['cycle'] = Variable<int>(cycle);
     if (!nullToAbsent || completedAt != null) {
@@ -6739,6 +6792,12 @@ class StampCard extends DataClass implements Insertable<StampCard> {
       id: Value(id),
       userId: Value(userId),
       campaignId: Value(campaignId),
+      remoteCardId: remoteCardId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(remoteCardId),
+      redeemToken: redeemToken == null && nullToAbsent
+          ? const Value.absent()
+          : Value(redeemToken),
       stampsCollected: Value(stampsCollected),
       cycle: Value(cycle),
       completedAt: completedAt == null && nullToAbsent
@@ -6760,6 +6819,8 @@ class StampCard extends DataClass implements Insertable<StampCard> {
       id: serializer.fromJson<String>(json['id']),
       userId: serializer.fromJson<String>(json['userId']),
       campaignId: serializer.fromJson<String>(json['campaignId']),
+      remoteCardId: serializer.fromJson<String?>(json['remoteCardId']),
+      redeemToken: serializer.fromJson<String?>(json['redeemToken']),
       stampsCollected: serializer.fromJson<int>(json['stampsCollected']),
       cycle: serializer.fromJson<int>(json['cycle']),
       completedAt: serializer.fromJson<DateTime?>(json['completedAt']),
@@ -6776,6 +6837,8 @@ class StampCard extends DataClass implements Insertable<StampCard> {
       'id': serializer.toJson<String>(id),
       'userId': serializer.toJson<String>(userId),
       'campaignId': serializer.toJson<String>(campaignId),
+      'remoteCardId': serializer.toJson<String?>(remoteCardId),
+      'redeemToken': serializer.toJson<String?>(redeemToken),
       'stampsCollected': serializer.toJson<int>(stampsCollected),
       'cycle': serializer.toJson<int>(cycle),
       'completedAt': serializer.toJson<DateTime?>(completedAt),
@@ -6790,6 +6853,8 @@ class StampCard extends DataClass implements Insertable<StampCard> {
           {String? id,
           String? userId,
           String? campaignId,
+          Value<String?> remoteCardId = const Value.absent(),
+          Value<String?> redeemToken = const Value.absent(),
           int? stampsCollected,
           int? cycle,
           Value<DateTime?> completedAt = const Value.absent(),
@@ -6801,6 +6866,9 @@ class StampCard extends DataClass implements Insertable<StampCard> {
         id: id ?? this.id,
         userId: userId ?? this.userId,
         campaignId: campaignId ?? this.campaignId,
+        remoteCardId:
+            remoteCardId.present ? remoteCardId.value : this.remoteCardId,
+        redeemToken: redeemToken.present ? redeemToken.value : this.redeemToken,
         stampsCollected: stampsCollected ?? this.stampsCollected,
         cycle: cycle ?? this.cycle,
         completedAt: completedAt.present ? completedAt.value : this.completedAt,
@@ -6815,6 +6883,11 @@ class StampCard extends DataClass implements Insertable<StampCard> {
       userId: data.userId.present ? data.userId.value : this.userId,
       campaignId:
           data.campaignId.present ? data.campaignId.value : this.campaignId,
+      remoteCardId: data.remoteCardId.present
+          ? data.remoteCardId.value
+          : this.remoteCardId,
+      redeemToken:
+          data.redeemToken.present ? data.redeemToken.value : this.redeemToken,
       stampsCollected: data.stampsCollected.present
           ? data.stampsCollected.value
           : this.stampsCollected,
@@ -6836,6 +6909,8 @@ class StampCard extends DataClass implements Insertable<StampCard> {
           ..write('id: $id, ')
           ..write('userId: $userId, ')
           ..write('campaignId: $campaignId, ')
+          ..write('remoteCardId: $remoteCardId, ')
+          ..write('redeemToken: $redeemToken, ')
           ..write('stampsCollected: $stampsCollected, ')
           ..write('cycle: $cycle, ')
           ..write('completedAt: $completedAt, ')
@@ -6848,8 +6923,19 @@ class StampCard extends DataClass implements Insertable<StampCard> {
   }
 
   @override
-  int get hashCode => Object.hash(id, userId, campaignId, stampsCollected,
-      cycle, completedAt, redeemedAt, syncStatus, createdAt, updatedAt);
+  int get hashCode => Object.hash(
+      id,
+      userId,
+      campaignId,
+      remoteCardId,
+      redeemToken,
+      stampsCollected,
+      cycle,
+      completedAt,
+      redeemedAt,
+      syncStatus,
+      createdAt,
+      updatedAt);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -6857,6 +6943,8 @@ class StampCard extends DataClass implements Insertable<StampCard> {
           other.id == this.id &&
           other.userId == this.userId &&
           other.campaignId == this.campaignId &&
+          other.remoteCardId == this.remoteCardId &&
+          other.redeemToken == this.redeemToken &&
           other.stampsCollected == this.stampsCollected &&
           other.cycle == this.cycle &&
           other.completedAt == this.completedAt &&
@@ -6870,6 +6958,8 @@ class StampCardsCompanion extends UpdateCompanion<StampCard> {
   final Value<String> id;
   final Value<String> userId;
   final Value<String> campaignId;
+  final Value<String?> remoteCardId;
+  final Value<String?> redeemToken;
   final Value<int> stampsCollected;
   final Value<int> cycle;
   final Value<DateTime?> completedAt;
@@ -6882,6 +6972,8 @@ class StampCardsCompanion extends UpdateCompanion<StampCard> {
     this.id = const Value.absent(),
     this.userId = const Value.absent(),
     this.campaignId = const Value.absent(),
+    this.remoteCardId = const Value.absent(),
+    this.redeemToken = const Value.absent(),
     this.stampsCollected = const Value.absent(),
     this.cycle = const Value.absent(),
     this.completedAt = const Value.absent(),
@@ -6895,6 +6987,8 @@ class StampCardsCompanion extends UpdateCompanion<StampCard> {
     this.id = const Value.absent(),
     required String userId,
     required String campaignId,
+    this.remoteCardId = const Value.absent(),
+    this.redeemToken = const Value.absent(),
     this.stampsCollected = const Value.absent(),
     this.cycle = const Value.absent(),
     this.completedAt = const Value.absent(),
@@ -6909,6 +7003,8 @@ class StampCardsCompanion extends UpdateCompanion<StampCard> {
     Expression<String>? id,
     Expression<String>? userId,
     Expression<String>? campaignId,
+    Expression<String>? remoteCardId,
+    Expression<String>? redeemToken,
     Expression<int>? stampsCollected,
     Expression<int>? cycle,
     Expression<DateTime>? completedAt,
@@ -6922,6 +7018,8 @@ class StampCardsCompanion extends UpdateCompanion<StampCard> {
       if (id != null) 'id': id,
       if (userId != null) 'user_id': userId,
       if (campaignId != null) 'campaign_id': campaignId,
+      if (remoteCardId != null) 'remote_card_id': remoteCardId,
+      if (redeemToken != null) 'redeem_token': redeemToken,
       if (stampsCollected != null) 'stamps_collected': stampsCollected,
       if (cycle != null) 'cycle': cycle,
       if (completedAt != null) 'completed_at': completedAt,
@@ -6937,6 +7035,8 @@ class StampCardsCompanion extends UpdateCompanion<StampCard> {
       {Value<String>? id,
       Value<String>? userId,
       Value<String>? campaignId,
+      Value<String?>? remoteCardId,
+      Value<String?>? redeemToken,
       Value<int>? stampsCollected,
       Value<int>? cycle,
       Value<DateTime?>? completedAt,
@@ -6949,6 +7049,8 @@ class StampCardsCompanion extends UpdateCompanion<StampCard> {
       id: id ?? this.id,
       userId: userId ?? this.userId,
       campaignId: campaignId ?? this.campaignId,
+      remoteCardId: remoteCardId ?? this.remoteCardId,
+      redeemToken: redeemToken ?? this.redeemToken,
       stampsCollected: stampsCollected ?? this.stampsCollected,
       cycle: cycle ?? this.cycle,
       completedAt: completedAt ?? this.completedAt,
@@ -6971,6 +7073,12 @@ class StampCardsCompanion extends UpdateCompanion<StampCard> {
     }
     if (campaignId.present) {
       map['campaign_id'] = Variable<String>(campaignId.value);
+    }
+    if (remoteCardId.present) {
+      map['remote_card_id'] = Variable<String>(remoteCardId.value);
+    }
+    if (redeemToken.present) {
+      map['redeem_token'] = Variable<String>(redeemToken.value);
     }
     if (stampsCollected.present) {
       map['stamps_collected'] = Variable<int>(stampsCollected.value);
@@ -7005,6 +7113,8 @@ class StampCardsCompanion extends UpdateCompanion<StampCard> {
           ..write('id: $id, ')
           ..write('userId: $userId, ')
           ..write('campaignId: $campaignId, ')
+          ..write('remoteCardId: $remoteCardId, ')
+          ..write('redeemToken: $redeemToken, ')
           ..write('stampsCollected: $stampsCollected, ')
           ..write('cycle: $cycle, ')
           ..write('completedAt: $completedAt, ')
@@ -12955,6 +13065,8 @@ typedef $$StampCardsTableCreateCompanionBuilder = StampCardsCompanion Function({
   Value<String> id,
   required String userId,
   required String campaignId,
+  Value<String?> remoteCardId,
+  Value<String?> redeemToken,
   Value<int> stampsCollected,
   Value<int> cycle,
   Value<DateTime?> completedAt,
@@ -12968,6 +13080,8 @@ typedef $$StampCardsTableUpdateCompanionBuilder = StampCardsCompanion Function({
   Value<String> id,
   Value<String> userId,
   Value<String> campaignId,
+  Value<String?> remoteCardId,
+  Value<String?> redeemToken,
   Value<int> stampsCollected,
   Value<int> cycle,
   Value<DateTime?> completedAt,
@@ -13041,6 +13155,12 @@ class $$StampCardsTableFilterComposer
   });
   ColumnFilters<String> get id => $composableBuilder(
       column: $table.id, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get remoteCardId => $composableBuilder(
+      column: $table.remoteCardId, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get redeemToken => $composableBuilder(
+      column: $table.redeemToken, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<int> get stampsCollected => $composableBuilder(
       column: $table.stampsCollected,
@@ -13138,6 +13258,13 @@ class $$StampCardsTableOrderingComposer
   ColumnOrderings<String> get id => $composableBuilder(
       column: $table.id, builder: (column) => ColumnOrderings(column));
 
+  ColumnOrderings<String> get remoteCardId => $composableBuilder(
+      column: $table.remoteCardId,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get redeemToken => $composableBuilder(
+      column: $table.redeemToken, builder: (column) => ColumnOrderings(column));
+
   ColumnOrderings<int> get stampsCollected => $composableBuilder(
       column: $table.stampsCollected,
       builder: (column) => ColumnOrderings(column));
@@ -13212,6 +13339,12 @@ class $$StampCardsTableAnnotationComposer
   });
   GeneratedColumn<String> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get remoteCardId => $composableBuilder(
+      column: $table.remoteCardId, builder: (column) => column);
+
+  GeneratedColumn<String> get redeemToken => $composableBuilder(
+      column: $table.redeemToken, builder: (column) => column);
 
   GeneratedColumn<int> get stampsCollected => $composableBuilder(
       column: $table.stampsCollected, builder: (column) => column);
@@ -13325,6 +13458,8 @@ class $$StampCardsTableTableManager extends RootTableManager<
             Value<String> id = const Value.absent(),
             Value<String> userId = const Value.absent(),
             Value<String> campaignId = const Value.absent(),
+            Value<String?> remoteCardId = const Value.absent(),
+            Value<String?> redeemToken = const Value.absent(),
             Value<int> stampsCollected = const Value.absent(),
             Value<int> cycle = const Value.absent(),
             Value<DateTime?> completedAt = const Value.absent(),
@@ -13338,6 +13473,8 @@ class $$StampCardsTableTableManager extends RootTableManager<
             id: id,
             userId: userId,
             campaignId: campaignId,
+            remoteCardId: remoteCardId,
+            redeemToken: redeemToken,
             stampsCollected: stampsCollected,
             cycle: cycle,
             completedAt: completedAt,
@@ -13351,6 +13488,8 @@ class $$StampCardsTableTableManager extends RootTableManager<
             Value<String> id = const Value.absent(),
             required String userId,
             required String campaignId,
+            Value<String?> remoteCardId = const Value.absent(),
+            Value<String?> redeemToken = const Value.absent(),
             Value<int> stampsCollected = const Value.absent(),
             Value<int> cycle = const Value.absent(),
             Value<DateTime?> completedAt = const Value.absent(),
@@ -13364,6 +13503,8 @@ class $$StampCardsTableTableManager extends RootTableManager<
             id: id,
             userId: userId,
             campaignId: campaignId,
+            remoteCardId: remoteCardId,
+            redeemToken: redeemToken,
             stampsCollected: stampsCollected,
             cycle: cycle,
             completedAt: completedAt,

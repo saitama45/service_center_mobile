@@ -29,8 +29,10 @@ Details live in `docs/knowledge/*.md` — open only the note relevant to the tas
   command. If isolation cannot be proven, stop and report the unsafe connection.
 - Restoring, dropping, truncating, or bulk-deleting is executed by the user manually.
 - This repo has no Laravel/MySQL component; its store is on-device SQLite (see below).
-  Two local destructive paths still exist and need explicit approval:
-  `SeedRunner._runReset()` (wipes + reseeds) and `LoyaltyDao.resetMemberActivity()`.
+  One local destructive path still exists and needs explicit approval:
+  `SeedRunner._runReset()` (wipes + reseeds). `LoyaltyDao.resetMemberActivity()` and the
+  "Reset my stamp activity" row on Profile were **deleted 2026-09-05** — a member's history
+  is not disposable, so no in-app path clears it any more.
 
 ## What this is
 
@@ -77,7 +79,7 @@ are prefixed `Bms*`, the UI title is "TAS Service Center (SC)", the folder is
 
 ## Key components (exact paths)
 
-- Local DB: [lib/database/app_database.dart](lib/database/app_database.dart) — `schemaVersion 4`
+- Local DB: [lib/database/app_database.dart](lib/database/app_database.dart) — `schemaVersion 7`
 - Loyalty engine: [lib/database/daos/loyalty_dao.dart](lib/database/daos/loyalty_dao.dart)
   (`earnStamp`, `redeemReward`, `getCampaignProgress`, `getLedgerTotals`)
 - Permission resolution: [permission_matrix_dao.dart:90](lib/database/daos/permission_matrix_dao.dart#L90) → [resolve_permission_usecase.dart](lib/domain/usecases/permission/resolve_permission_usecase.dart) → [permission_cache.dart](lib/domain/entities/permission_cache.dart)
@@ -153,9 +155,49 @@ The suite in `test/` runs with `flutter.bat` + the `test` subcommand; it uses on
   Customer" flow), and `SyncManager._pullProgress` pulls the real count back down. The local
   `earnStamp`/`ScanToken` DAO machinery still exists (and is still unit-tested) but has no UI
   caller left — do not wire a new screen back into it without first checking whether the real
-  server flow already covers the need. Ghelpdesk's separate asset-based redemption
-  (`StampController::redeem`) is **not** mirrored down yet — a server `redeemed` status is
-  treated the same as `completed` locally rather than silently starting a new cycle.
+  server flow already covers the need.
+- **Redeeming is server-authoritative too, and works the same way** (added 2026-09-04).
+  "Redeem Now" no longer redeems on-device; it shows a signed, per-card code
+  (`LoyaltyRedeemQrService`, `LRDM1:{stamp_card_id}:{sig}`) that staff scan on the Stamps
+  module's **"Scan Redeem QR"** button — `StampController::resolveRedeemScan` verifies it and
+  opens the existing Redeem Reward modal for that exact card. It stops at the modal on
+  purpose: a redemption deducts specific coded inventory units, which only the person at the
+  counter can pick. The code is issued with the ordinary `my-cards` progress pull and cached
+  on the local card row, so it displays offline exactly like the member QR. Replay is
+  prevented by the card, not the code — a scanned card whose status has left `completed` is
+  refused. The sheet closes on a **positive** signal only: it follows the one card row it was
+  opened for through `campaignCardsProvider` (which keeps redeemed cards) and waits for
+  `redeemed_at`. Never infer it from the card vanishing out of `campaignProgressProvider` — a
+  provider being *refreshed* looks identical through `maybeWhen(data:)` while still reporting
+  `hasValue`, and the sync fired on open triggers exactly that, which made the sheet
+  congratulate the member a second after it opened. `LoyaltyDao.redeemReward` still exists and is still unit-tested, but like
+  `earnStamp` it now has **no UI caller**.
+- **Pre-v6 devices carried phantom redemptions in the ledger** (repaired 2026-09-04). The
+  retired on-device "Redeem Now" wrote a local `redeem` row with no server event behind it, so
+  once ghelpdesk's real redemption synced down a member saw the same claim twice (real "OREO
+  TUMBLER" `SR-4` **and** local "CBTL Campaign (Free Reward)" `TXN-…`) and History
+  double-counted it. The **v6 migration deletes never-synced `redeem` rows** — after v5 no
+  legitimate one can exist. Earn rows are deliberately left alone: a pending earn may be the
+  only record of a stamp, whereas a phantom redeem always has a server twin. Seeds create no
+  ledger rows at all, so any `TXN-` row came from the retired local paths. **v7** finishes the
+  job on the card side: it deletes closed cards with no `remote_card_id` that were never
+  synced and that no ledger row references — the retired path opened a replacement card too,
+  which showed up as a second "claimed" card in Rewards for a campaign ghelpdesk redeemed
+  once. Open cards with no `remote_card_id` are left alone (the server just hasn't caught up).
+- **A server-side redemption now closes the local card** (fixed 2026-09-04). `_pullProgress`
+  used to flatten `redeemed` into `completed`, so a reward staff had already handed over kept
+  showing "Redeem Now" in the app. Local cards are now keyed on ghelpdesk's own
+  `stamp_cards.id` (`stampCards.remoteCardId`, schema v5) rather than the campaign code —
+  after a redemption a member legitimately has two cards for one program, and code-keying let
+  them overwrite each other. Rows predating the column are adopted once, by matching the
+  still-open local card.
+- **Every QR must also show its exact code as text** (`BmsManualCode`,
+  `lib/core/widgets/bms_manual_code.dart`). Scanners fail — cracked screens, low
+  brightness, backlit displays — and every staff-side scan field in ghelpdesk is an
+  ordinary text input, so a cashier can key the same string and hit the identical
+  server-side verification. Applies to any new barcode/QR work, on both sides. Two rules
+  with it: never truncate a code, and **never name "ghelpdesk" in member-facing copy** —
+  to a member it is just "the cashier".
 - **The member QR works fully offline once fetched.** It's static (not rotating) specifically so
   a cached copy is exactly as valid as a fresh one — `MemberQrCache` (secure storage, keyed by
   user id) is what makes it survive with zero connectivity. It's proactively fetched right after

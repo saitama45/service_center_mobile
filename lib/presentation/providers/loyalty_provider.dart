@@ -31,12 +31,67 @@ final campaignProgressProvider =
 });
 
 /// The campaign shown on the home hero — furthest along, unlocked first.
-final featuredCampaignProvider =
-    FutureProvider<CampaignProgress?>((ref) async {
+final featuredCampaignProvider = FutureProvider<CampaignProgress?>((ref) async {
   ref.watch(loyaltyRevisionProvider);
   final user = ref.watch(currentUserProvider);
   if (user == null) return null;
   return ref.read(loyaltyDaoProvider).getFeaturedProgress(user.id);
+});
+
+/// Every stamp card the member holds, redeemed ones included — the Rewards
+/// tab's source. See `LoyaltyDao.getAllCardProgress` for why this is separate
+/// from [campaignProgressProvider] rather than replacing it: the home hero,
+/// the campaign picker and the redemption sheet all depend on redeemed cards
+/// dropping out.
+final campaignCardsProvider =
+    FutureProvider<List<CampaignProgress>>((ref) async {
+  ref.watch(loyaltyRevisionProvider);
+  final user = ref.watch(currentUserProvider);
+  if (user == null) return const [];
+  return ref.read(loyaltyDaoProvider).getAllCardProgress(user.id);
+});
+
+/// The campaigns the member can switch the home stamp card between — the ones
+/// they hold a live (non-expired) card for, in the same order the campaigns
+/// screen lists them.
+///
+/// Expired campaigns are excluded for the same reason `getFeaturedProgress`
+/// excludes them: you can't collect on them, so offering them as a choice
+/// would only be a dead end.
+final homeCampaignChoicesProvider =
+    FutureProvider<List<CampaignProgress>>((ref) async {
+  final all = await ref.watch(campaignProgressProvider.future);
+  return all.where((p) => !p.isExpired).toList();
+});
+
+/// Which campaign the member picked on Home, or null for "decide for me".
+///
+/// Session state on purpose — it resets to the automatic pick on a cold
+/// start rather than pinning a member to a card they chose once weeks ago.
+/// Holding the campaign id (not an index) is what makes it survive the list
+/// changing underneath: a stale id simply falls back, see
+/// [homeCampaignProvider].
+final selectedHomeCampaignIdProvider = StateProvider<String?>((ref) => null);
+
+/// The campaign the home stamp card shows: the member's pick when they've
+/// made one, otherwise the automatic choice (`getFeaturedProgress` — unlocked
+/// first, then furthest along).
+///
+/// Falls back rather than failing when the selected id is no longer in the
+/// list, which happens routinely: a redeemed card leaves
+/// `getCampaignProgress` entirely, so the campaign a member was looking at
+/// can vanish the moment staff hand over their reward.
+final homeCampaignProvider = FutureProvider<CampaignProgress?>((ref) async {
+  final choices = await ref.watch(homeCampaignChoicesProvider.future);
+  final selectedId = ref.watch(selectedHomeCampaignIdProvider);
+
+  if (selectedId != null) {
+    for (final p in choices) {
+      if (p.campaign.id == selectedId) return p;
+    }
+  }
+
+  return ref.watch(featuredCampaignProvider.future);
 });
 
 final transactionsProvider =
@@ -129,13 +184,6 @@ class LoyaltyActions {
       return 'Could not redeem that reward. Please try again.';
     }
   }
-
-  Future<void> resetActivity() async {
-    final userId = _userId;
-    if (userId == null) return;
-    await _dao.resetMemberActivity(userId);
-    _invalidate();
-  }
 }
 
 // ── Member QR ─────────────────────────────────────────────────────────────
@@ -145,7 +193,8 @@ class LoyaltyActions {
 /// offline, showing your last saved code" instead of silently passing off a
 /// cached value as fresh.
 class MemberQrResult {
-  const MemberQrResult({required this.token, required this.fromCache, this.error});
+  const MemberQrResult(
+      {required this.token, required this.fromCache, this.error});
 
   final String? token;
   final bool fromCache;
@@ -162,10 +211,12 @@ class MemberQrResult {
 /// every login/registration while the network call that got them signed in
 /// is still fresh, and again on app resume — not left until the member
 /// happens to open this screen while online).
-final memberQrProvider = FutureProvider.autoDispose<MemberQrResult>((ref) async {
+final memberQrProvider =
+    FutureProvider.autoDispose<MemberQrResult>((ref) async {
   final user = ref.watch(currentUserProvider);
   if (user == null) {
-    return const MemberQrResult(token: null, fromCache: false, error: 'You are not signed in.');
+    return const MemberQrResult(
+        token: null, fromCache: false, error: 'You are not signed in.');
   }
 
   final cache = ref.read(memberQrCacheProvider);
@@ -203,8 +254,9 @@ Future<void> prefetchMemberQr(WidgetRef ref) async {
   final user = ref.read(currentUserProvider);
   if (user == null) return;
   try {
-    final outcome =
-        await ref.read(loyaltyMemberRemoteDatasourceProvider).fetchMemberQrCard();
+    final outcome = await ref
+        .read(loyaltyMemberRemoteDatasourceProvider)
+        .fetchMemberQrCard();
     if (outcome case MemberQrSucceeded(:final token)) {
       await ref.read(memberQrCacheProvider).save(user.id, token);
     }

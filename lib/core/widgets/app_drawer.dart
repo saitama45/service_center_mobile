@@ -10,6 +10,7 @@ import '../../database/app_database.dart';
 import '../../presentation/providers/app_providers.dart';
 import '../../presentation/providers/auth_provider.dart';
 import '../../presentation/providers/permission_provider.dart';
+import '../../routing/route_names.dart';
 import 'confirmation_dialog.dart';
 
 class AppDrawer extends ConsumerWidget {
@@ -70,19 +71,50 @@ class AppDrawer extends ConsumerWidget {
           child: ListView(
             padding: const EdgeInsets.fromLTRB(12, 12, 12, 8),
             children: [
-              // Dashboard is always visible — not permission-controlled.
+              // Mirrors the bottom tab bar exactly — same four destinations,
+              // same icons, same labels, same order (see MainShellScreen).
+              // Two navigations that disagree about what the app contains is
+              // just two things to learn; a member opening the drawer should
+              // recognise it instantly.
               _DrawerItem(
-                icon: Icons.dashboard_outlined,
-                label: 'Dashboard',
-                route: '/dashboard',
+                icon: Icons.home_outlined,
+                label: 'Home',
+                route: RouteName.dashboard,
                 location: location,
                 exact: true,
               ),
+              _DrawerItem(
+                icon: Icons.card_giftcard_outlined,
+                label: 'Rewards',
+                route: RouteName.campaigns,
+                location: location,
+              ),
+              _DrawerItem(
+                icon: Icons.receipt_long_outlined,
+                label: 'History',
+                route: RouteName.ledger,
+                location: location,
+              ),
+              _DrawerItem(
+                icon: Icons.person_outline,
+                label: 'Profile',
+                route: RouteName.profile,
+                location: location,
+              ),
 
-              // ── Dynamic module items ───────────────────────────────────
-              // Iterates every active module from the DB in displayOrder.
-              // A module's item shows only when the user has VIEW permission.
+              // ── Admin module items ─────────────────────────────────────
+              // Everything above matches the tabs; anything below is extra
+              // ground the tabs don't cover. Each item shows only when the
+              // user has VIEW permission on that module, so a member sees
+              // nothing here and the drawer reads as exactly the four tabs.
               // To add a new module: seed it + add its icon to _iconMap above.
+              if (modules.any((m) =>
+                  cache != null && cache.check(m.code, PermissionCodes.view)))
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 10, horizontal: 4),
+                  child: Divider(color: AppColors.latte),
+                ),
+
               for (final module in modules)
                 if (cache != null &&
                     cache.check(module.code, PermissionCodes.view))
@@ -93,17 +125,6 @@ class AppDrawer extends ConsumerWidget {
                     location: location,
                   ),
 
-              const Padding(
-                padding: EdgeInsets.symmetric(vertical: 10, horizontal: 4),
-                child: Divider(color: AppColors.latte),
-              ),
-
-              _DrawerItem(
-                icon: Icons.person_outline,
-                label: 'Profile',
-                route: '/dashboard/profile',
-                location: location,
-              ),
             ],
           ),
         ),

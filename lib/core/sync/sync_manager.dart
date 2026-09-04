@@ -179,21 +179,28 @@ class SyncManager {
     );
   }
 
-  /// Pulls the member's real stamp progress and overwrites the local open
-  /// card's count to match — this is what makes a stamp ghelpdesk staff just
-  /// added on the "Scan Customer" flow show up here, instead of the app only
-  /// ever reflecting its own local (now largely vestigial) earn action.
+  /// Pulls the member's real stamp progress and makes the local card match —
+  /// this is what makes a stamp ghelpdesk staff just added on the "Scan
+  /// Customer QR" flow show up here, and equally what closes a card once
+  /// staff redeem it, instead of the app only ever reflecting its own local
+  /// (now vestigial) earn/redeem actions.
   ///
   /// Deliberately runs AFTER `_pullCatalog`: a remote card's `code` needs a
   /// matching local campaign row to attach to, or it's silently skipped and
   /// picked up on the next sync once the catalogue has caught up.
   ///
-  /// Only distinguishes "open" (active/completed) vs not — ghelpdesk's
-  /// separate asset-based redemption flow (`StampController::redeem`) isn't
-  /// mirrored down here yet, so a server-side `redeemed` status is treated
-  /// the same as `completed` (still shown as a full, unclaimed-looking card)
-  /// rather than silently starting a new local cycle the member never asked
-  /// for. Wiring that up is a separate, deliberately deferred change.
+  /// **Identity comes from the server** (`remoteCardId`), not from the
+  /// campaign code. Once a card is redeemed, ghelpdesk keeps the closed row
+  /// and the next scan creates a fresh one, so a member legitimately has two
+  /// cards for the same program — matching on code alone would let the new
+  /// card's count overwrite the closed one, or vice versa, depending on
+  /// which came back first. Rows created before this field existed are
+  /// adopted once, by matching the still-open local card.
+  ///
+  /// A server-side `redeemed` status now closes the local card properly
+  /// (previously it was flattened into `completed`, which left "Redeem Now"
+  /// showing on a reward that had already been handed over). The replacement
+  /// card arrives as its own row on a later `cycle`.
   Future<void> _pullProgress(String userId) async {
     final outcome = await _loyaltyMember.fetchMyCards();
 
@@ -207,37 +214,64 @@ class SyncManager {
                 .getSingleOrNull();
             if (campaign == null) continue;
 
-            final existing = await (_db.select(_db.stampCards)
-                  ..where((s) =>
-                      s.userId.equals(userId) &
-                      s.campaignId.equals(campaign.id) &
-                      s.redeemedAt.isNull()))
-                .getSingleOrNull();
+            final existing = await _localCardFor(
+              userId: userId,
+              campaignId: campaign.id,
+              remote: remote,
+            );
 
             final now = DateTime.now().toUtc();
-            final isFull = remote.status == 'completed' || remote.status == 'redeemed';
+            // A redeemed card is full by definition even if the server has
+            // since zeroed its count.
+            final isFull = remote.status == 'completed' || remote.isRedeemed;
+            final redeemedAt =
+                remote.isRedeemed ? (remote.redeemedAt ?? now) : null;
 
             if (existing == null) {
               await _db.into(_db.stampCards).insert(
                     StampCardsCompanion.insert(
                       userId: userId,
                       campaignId: campaign.id,
+                      remoteCardId: Value(remote.cardId),
+                      redeemToken: Value(remote.redeemToken),
                       stampsCollected: Value(remote.stampsCount),
+                      // A replacement card must not collide with the closed
+                      // one it succeeds — `(userId, campaignId, cycle)` is
+                      // unique, so continue the member's numbering.
+                      cycle: Value(await _nextCycle(userId, campaign.id)),
                       completedAt: Value(isFull ? now : null),
+                      redeemedAt: Value(redeemedAt),
                     ),
                   );
               changed = true;
-            } else if (existing.stampsCollected != remote.stampsCount ||
-                (existing.completedAt != null) != isFull) {
-              await (_db.update(_db.stampCards)..where((s) => s.id.equals(existing.id)))
-                  .write(
-                StampCardsCompanion(
-                  stampsCollected: Value(remote.stampsCount),
-                  completedAt: Value(isFull ? (existing.completedAt ?? now) : null),
-                  updatedAt: Value(now),
-                ),
-              );
-              changed = true;
+            } else {
+              // Never un-redeems a card: a redemption is a real-world event
+              // that already happened, so the server saying "not redeemed"
+              // (an older build, or a row the app closed locally before this
+              // was server-driven) leaves the local closure standing.
+              final resolvedRedeemedAt = redeemedAt ?? existing.redeemedAt;
+              final resolvedRemoteId = remote.cardId ?? existing.remoteCardId;
+
+              if (existing.stampsCollected != remote.stampsCount ||
+                  (existing.completedAt != null) != isFull ||
+                  existing.redeemedAt != resolvedRedeemedAt ||
+                  existing.remoteCardId != resolvedRemoteId ||
+                  existing.redeemToken != remote.redeemToken) {
+                await (_db.update(_db.stampCards)..where((s) => s.id.equals(existing.id)))
+                    .write(
+                  StampCardsCompanion(
+                    remoteCardId: Value(resolvedRemoteId),
+                    // Cleared the moment the card stops being redeemable, so
+                    // a stale code can't linger on a claimed reward.
+                    redeemToken: Value(remote.redeemToken),
+                    stampsCollected: Value(remote.stampsCount),
+                    completedAt: Value(isFull ? (existing.completedAt ?? now) : null),
+                    redeemedAt: Value(resolvedRedeemedAt),
+                    updatedAt: Value(now),
+                  ),
+                );
+                changed = true;
+              }
             }
           }
         });
@@ -254,6 +288,54 @@ class SyncManager {
         // clearing anything a member may currently be looking at.
         debugPrint('Sync: Progress pull failed: $message');
     }
+  }
+
+  /// The local row a remote card belongs to, or null if it's new here.
+  ///
+  /// Matches on ghelpdesk's card id first — that's the only identity that
+  /// stays correct once a member has several cards for one campaign. Falls
+  /// back to the still-open local card for the campaign, but only one that
+  /// hasn't been claimed by another remote id yet: that's the one-time
+  /// adoption path for rows written before `remoteCardId` existed (and for a
+  /// server too old to send one), and it must never re-point a row that is
+  /// already tied to a different server card.
+  Future<StampCard?> _localCardFor({
+    required String userId,
+    required String campaignId,
+    required RemoteCardProgress remote,
+  }) async {
+    if (remote.cardId != null) {
+      final byRemoteId = await (_db.select(_db.stampCards)
+            ..where((s) =>
+                s.userId.equals(userId) &
+                s.remoteCardId.equals(remote.cardId!)))
+          .getSingleOrNull();
+      if (byRemoteId != null) return byRemoteId;
+    }
+
+    final unclaimedOpen = await (_db.select(_db.stampCards)
+          ..where((s) =>
+              s.userId.equals(userId) &
+              s.campaignId.equals(campaignId) &
+              s.redeemedAt.isNull() &
+              s.remoteCardId.isNull())
+          ..orderBy([(s) => OrderingTerm.asc(s.cycle)])
+          ..limit(1))
+        .getSingleOrNull();
+
+    return unclaimedOpen;
+  }
+
+  /// Next free cycle number for a member's campaign. `(userId, campaignId,
+  /// cycle)` is unique, so a replacement card issued after a redemption has
+  /// to continue the sequence rather than reuse 1.
+  Future<int> _nextCycle(String userId, String campaignId) async {
+    final rows = await (_db.select(_db.stampCards)
+          ..where((s) => s.userId.equals(userId) & s.campaignId.equals(campaignId)))
+        .get();
+
+    if (rows.isEmpty) return 1;
+    return rows.map((r) => r.cycle).reduce((a, b) => a > b ? a : b) + 1;
   }
 
   /// Pulls the member's real earn/redeem events and upserts them into the

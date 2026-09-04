@@ -60,7 +60,7 @@ offline and merged later without collisions. Seeded rows instead use determinist
 |---|---|
 | `products` | `code` unique (PROD-00x), name, category, emoji, price, `is_active` |
 | `campaigns` | `code` unique, `required_stamps` (default 10), `eligible_product_codes` **CSV — empty means every product**, `tag`, `starts_at`/`ends_at`, `display_order` |
-| `stamp_cards` | unique `(user_id, campaign_id, cycle)`; `stamps_collected`, `completed_at`, `redeemed_at` |
+| `stamp_cards` | unique `(user_id, campaign_id, cycle)`; `stamps_collected`, `completed_at`, `redeemed_at`, `remote_card_id` (ghelpdesk's `stamp_cards.id` — the sync identity), `redeem_token` (signed code for staff to scan, full unredeemed cards only) |
 | `loyalty_transactions` | unique `reference`, unique `scan_token`; `type` `earn`/`redeem`; `points` +1 / −requiredStamps; `occurred_at` |
 
 The **unique index on `scan_token`** is the enforcement that a QR code cannot be replayed —
@@ -71,10 +71,24 @@ Sync-status constants (`loyalty_tables.dart`): `0 pending`, `1 synced`, `2 synci
 
 ## Migrations
 
-`schemaVersion = 4`. `onUpgrade` for `from < 4` drops the retired DTR tables
-(`offline_dtr_logs`, `cached_dtr_schedules`, `cached_attendance_logs`) and creates the four
-loyalty tables. Those legacy tables held only cached server data plus an upload queue, so
-dropping them lost nothing re-derivable.
+`schemaVersion = 7`.
+
+- `from < 4` drops the retired DTR tables (`offline_dtr_logs`, `cached_dtr_schedules`,
+  `cached_attendance_logs`) and creates the four loyalty tables. Those legacy tables held
+  only cached server data plus an upload queue, so dropping them lost nothing re-derivable.
+- `from < 7` deletes `stamp_cards` rows that are closed (`redeemed_at IS NOT NULL`), have no
+  `remote_card_id`, are still `sync_status = 0`, and that **no** `loyalty_transactions` row
+  references — the card half of the same phantom cleanup. The `NOT EXISTS` guard is
+  deliberate: orphaning real history would be worse than leaving a duplicate visible.
+- `from < 6` deletes `loyalty_transactions` rows with `type = 'redeem'` and
+  `sync_status = 0` — the phantom redemptions the retired on-device redeem path left behind,
+  which double-counted against the real `SR-…` rows pulled from ghelpdesk. Scoped to
+  redemptions on purpose (see CLAUDE.md), and it runs once at upgrade so it can only ever see
+  rows written before redemption became server-authoritative.
+- `from < 5` adds `stamp_cards.remote_card_id` and `stamp_cards.redeem_token`. Both are
+  additive and nullable, so existing rows stay valid and are backfilled by the next progress
+  pull. `remote_card_id` is what stops a redeemed card and its replacement — two cards for
+  one campaign — from overwriting each other.
 
 Bumping the schema means: edit the table class → add an `onUpgrade` branch → bump
 `schemaVersion` → `dart run build_runner build --delete-conflicting-outputs`.

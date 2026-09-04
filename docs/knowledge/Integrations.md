@@ -60,12 +60,28 @@ live on ghelpdesk. Two OTP routes the client calls **do not exist on the server 
 // LoyaltyMemberRemoteDatasource + memberQrProvider + MemberQrCache (offline).
 
 // GET /api/loyalty/my-cards  (auth:sanctum)
-// 200 { "cards": [ { "code": "SP-3", "stamps_count": 4, "stamps_required": 12,
-//   "status": "active" } ] }
+// 200 { "cards": [ { "code": "SP-3", "card_id": 77, "stamps_count": 4,
+//   "stamps_required": 12, "status": "active", "redeemed_at": null,
+//   "redeem_token": null } ] }
 // The member's REAL stamp progress (ghelpdesk stamp_cards), keyed by the same
 // `code` the catalogue pull upserts local campaigns by. Pulled by
 // SyncManager._pullProgress right after _pullCatalog, and only for entries
 // whose program is CBTL-scoped — same reasoning as /api/campaigns.
+//
+// `card_id` is the real sync identity: after a redemption a member has both a
+// closed card and its replacement under one `code`, so the app keys local rows
+// on this, not the code. `redeem_token` is the signed code the member shows
+// staff ("LRDM1:{card_id}:{sig}", LoyaltyRedeemQrService) and is non-null ONLY
+// on a `completed` card — issued here rather than from an on-demand endpoint so
+// the app can cache it and display it at the counter with no signal.
+
+// POST stamps/scan/resolve-redeem   (web session, can:stamps.redeem)
+// The staff side of that token. 200 { "card": { ...customer, ...program } }
+// → the Stamps page hands it to the existing Redeem Reward modal; the
+// redemption itself is still POST stamps/cards/{card}/redeem, which deducts
+// the coded inventory units staff pick. 422 for an unknown/forged code, a card
+// that is not full, or one already redeemed (that last is the replay guard —
+// the CARD carries the spent state, not the code).
 
 // GET /api/loyalty/my-transactions  (auth:sanctum)
 // 200 { "transactions": [ { "reference": "SE-42", "type": "earn", "points": 1,
