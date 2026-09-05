@@ -201,6 +201,58 @@ void main() {
     });
   });
 
+  group('getLedgerEntries', () {
+    test('carries the campaign name for each row', () async {
+      await dao.earnStamp(
+          userId: userId, campaignId: campaignId, scanToken: 'A');
+
+      final entries = await dao.getLedgerEntries(userId);
+
+      expect(entries, hasLength(1));
+      expect(entries.single.campaignName, 'Test Campaign',
+          reason: 'a member with several campaigns cannot otherwise tell '
+              'one "+3 stamps" row from another');
+      expect(entries.single.transaction.type, txnEarn);
+    });
+
+    test('names each row against its own campaign', () async {
+      final other = await db.into(db.campaigns).insertReturning(
+            CampaignsCompanion.insert(
+                code: 'OTHER', name: 'Other Campaign',
+                requiredStamps: const Value(5)),
+          );
+      await dao.earnStamp(
+          userId: userId, campaignId: campaignId, scanToken: 'A');
+      await dao.earnStamp(
+          userId: userId, campaignId: other.id, scanToken: 'B');
+
+      final entries = await dao.getLedgerEntries(userId);
+
+      expect(
+        entries.map((e) => e.campaignName).toSet(),
+        {'Test Campaign', 'Other Campaign'},
+      );
+    });
+
+    test('a row whose campaign is gone still renders', () async {
+      await dao.earnStamp(
+          userId: userId, campaignId: campaignId, scanToken: 'A');
+      // campaignId is nullable, and history must outlive the link.
+      await (db.update(db.loyaltyTransactions)
+            ..where((t) => t.userId.equals(userId)))
+          .write(const LoyaltyTransactionsCompanion(campaignId: Value(null)));
+
+      final entries = await dao.getLedgerEntries(userId);
+
+      expect(entries, hasLength(1));
+      expect(entries.single.campaignName, isNull);
+    });
+
+    test('no activity gives an empty list, not an error', () async {
+      expect(await dao.getLedgerEntries(userId), isEmpty);
+    });
+  });
+
   group('progress helpers', () {
     test('featured picks the unlocked campaign over a fuller one', () async {
       // A second campaign needing 10 stamps, which we part-fill.

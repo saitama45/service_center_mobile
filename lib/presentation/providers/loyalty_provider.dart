@@ -94,12 +94,12 @@ final homeCampaignProvider = FutureProvider<CampaignProgress?>((ref) async {
   return ref.watch(featuredCampaignProvider.future);
 });
 
-final transactionsProvider =
-    FutureProvider<List<LoyaltyTransaction>>((ref) async {
+/// History rows — each ledger entry with the campaign it belongs to.
+final transactionsProvider = FutureProvider<List<LedgerEntry>>((ref) async {
   ref.watch(loyaltyRevisionProvider);
   final user = ref.watch(currentUserProvider);
   if (user == null) return const [];
-  return ref.read(loyaltyDaoProvider).getTransactions(user.id);
+  return ref.read(loyaltyDaoProvider).getLedgerEntries(user.id);
 });
 
 final ledgerTotalsProvider =

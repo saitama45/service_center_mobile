@@ -8,7 +8,7 @@ import '../../../core/widgets/app_drawer.dart';
 import '../../../core/widgets/bms_app_bar.dart';
 import '../../../core/widgets/bms_card.dart';
 import '../../../core/widgets/bms_empty_state.dart';
-import '../../../database/app_database.dart';
+import '../../../database/daos/loyalty_dao.dart';
 import '../../../database/tables/loyalty_tables.dart';
 import '../../providers/app_providers.dart';
 import '../../providers/auth_provider.dart';
@@ -114,9 +114,9 @@ class LedgerScreen extends ConsumerWidget {
                     ),
                   )
                 else
-                  ...list.map((txn) => Padding(
+                  ...list.map((entry) => Padding(
                         padding: const EdgeInsets.only(bottom: 10),
-                        child: _TransactionRow(txn: txn),
+                        child: _TransactionRow(entry: entry),
                       )),
               ],
             );
@@ -158,11 +158,13 @@ class _Total extends StatelessWidget {
 }
 
 class _TransactionRow extends StatelessWidget {
-  const _TransactionRow({required this.txn});
-  final LoyaltyTransaction txn;
+  const _TransactionRow({required this.entry});
+
+  final LedgerEntry entry;
 
   @override
   Widget build(BuildContext context) {
+    final txn = entry.transaction;
     final isEarn = txn.type == txnEarn;
     final local = txn.occurredAt.toLocal();
 
@@ -209,6 +211,19 @@ class _TransactionRow extends StatelessWidget {
                     ),
                   ],
                 ),
+                // Which card this landed on. A member collecting on more
+                // than one campaign cannot otherwise tell "+3 stamps" apart
+                // from "+3 stamps" — the store says where, not what for.
+                if (entry.campaignName != null) ...[
+                  const SizedBox(height: 2),
+                  Text(
+                    entry.campaignName!,
+                    style: AppTextStyles.caption
+                        .copyWith(color: AppColors.espresso),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
                 if (txn.storeName != null) ...[
                   const SizedBox(height: 2),
                   Text(txn.storeName!, style: AppTextStyles.caption),

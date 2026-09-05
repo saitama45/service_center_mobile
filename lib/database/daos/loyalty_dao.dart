@@ -53,6 +53,18 @@ class CampaignProgress {
   }
 }
 
+/// One row of the History screen: a ledger entry plus the campaign it was
+/// earned or redeemed against.
+class LedgerEntry {
+  const LedgerEntry({required this.transaction, required this.campaignName});
+
+  final LoyaltyTransaction transaction;
+
+  /// Null when the campaign row is gone or was never linked — the entry still
+  /// shows, just without a campaign line.
+  final String? campaignName;
+}
+
 /// Raised when a stamp cannot be granted. Carries a message safe to show.
 class LoyaltyException implements Exception {
   LoyaltyException(this.message);
@@ -188,6 +200,47 @@ class LoyaltyDao extends DatabaseAccessor<AppDatabase> with _$LoyaltyDaoMixin {
           ..orderBy([(t) => OrderingTerm.desc(t.occurredAt)])
           ..limit(limit))
         .get();
+  }
+
+  /// The History screen's rows: each transaction with the campaign it belongs
+  /// to, so a member can tell which card a stamp landed on.
+  ///
+  /// Resolved with a second query keyed on the distinct campaign ids rather
+  /// than a join, because the ledger holds at most [limit] rows and a member
+  /// only ever has a handful of campaigns — one small extra SELECT keeps the
+  /// row type a plain `LoyaltyTransaction` instead of a generated join class
+  /// that every caller would then have to unpick.
+  ///
+  /// The name is nullable on purpose: a transaction can outlive its local
+  /// campaign row (`campaignId` is nullable, and a retired campaign is
+  /// deactivated rather than deleted), and history must still render.
+  Future<List<LedgerEntry>> getLedgerEntries(
+    String userId, {
+    int limit = 100,
+  }) async {
+    final txns = await getTransactions(userId, limit: limit);
+    if (txns.isEmpty) return const [];
+
+    final campaignIds =
+        txns.map((t) => t.campaignId).whereType<String>().toSet();
+
+    final names = <String, String>{};
+    if (campaignIds.isNotEmpty) {
+      final rows = await (select(campaigns)
+            ..where((c) => c.id.isIn(campaignIds)))
+          .get();
+      for (final row in rows) {
+        names[row.id] = row.name;
+      }
+    }
+
+    return [
+      for (final txn in txns)
+        LedgerEntry(
+          transaction: txn,
+          campaignName: txn.campaignId == null ? null : names[txn.campaignId],
+        ),
+    ];
   }
 
   /// Totals for the ledger summary strip: earned, redeemed, current balance.
