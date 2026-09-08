@@ -336,54 +336,67 @@ class _CampaignCard extends StatelessWidget {
         color: AppColors.white,
         borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
         border: Border.all(
-          color: unlocked ? AppColors.amber : AppColors.latte,
-          width: unlocked ? 1.5 : 1,
+          color: unlocked
+              ? AppColors.amber
+              : redeemed
+                  ? AppColors.success
+                  : AppColors.latte,
+          width: unlocked || redeemed ? 1.5 : 1,
         ),
       ),
       clipBehavior: Clip.antiAlias,
-      // A claimed card is kept as a record, not as something to act on — it
-      // reads as settled rather than competing with the cards still in play.
-      child: Opacity(
-        opacity: redeemed ? 0.75 : 1,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            if (unlocked)
-              Container(
-                width: double.infinity,
-                color: AppColors.amber,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                child: Text(
-                  '🎉  REWARD UNLOCKED — Ready to redeem!',
-                  style: AppTextStyles.chip.copyWith(color: AppColors.white),
-                ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (unlocked)
+            Container(
+              width: double.infinity,
+              color: AppColors.amber,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: Text(
+                '🎉  REWARD UNLOCKED — Ready to redeem!',
+                style: AppTextStyles.chip.copyWith(color: AppColors.white),
               ),
-            if (redeemed)
-              Container(
-                width: double.infinity,
-                color: AppColors.latteLight,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                child: Row(
-                  children: [
-                    const Icon(Icons.check_circle_outline,
-                        size: 14, color: AppColors.muted),
-                    const SizedBox(width: 7),
-                    Expanded(
-                      child: Text(
-                        redeemedAt == null
-                            ? 'REWARD CLAIMED'
-                            : 'REWARD CLAIMED — '
-                                '${DateFormat('MMM d, y').format(redeemedAt.toLocal())}',
-                        style:
-                            AppTextStyles.chip.copyWith(color: AppColors.muted),
+            ),
+
+          // A claimed reward is a settled fact, so it is stated as firmly as
+          // the amber "unlocked" bar states an unclaimed one: a solid success
+          // bar, white type, a filled seal. It previously whispered it — muted
+          // text on `latteLight` behind the 0.75 opacity below — which read as
+          // "greyed out / inactive" rather than "you received this".
+          if (redeemed)
+            Container(
+              width: double.infinity,
+              color: AppColors.success,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 9),
+              child: Row(
+                children: [
+                  const Icon(Icons.verified_rounded,
+                      size: 16, color: AppColors.white),
+                  const SizedBox(width: 7),
+                  Expanded(
+                    child: Text(
+                      redeemedAt == null
+                          ? 'REWARD CLAIMED'
+                          : 'REWARD CLAIMED — '
+                              '${DateFormat('MMM d, y').format(redeemedAt.toLocal())}',
+                      style: AppTextStyles.chip.copyWith(
+                        color: AppColors.white,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 0.6,
                       ),
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
-            Padding(
+            ),
+
+          // Only the card's *body* is dimmed. The claim banner stays at full
+          // strength — dimming the very label that says "redeemed" was what
+          // made it easy to miss.
+          Opacity(
+            opacity: redeemed ? 0.75 : 1,
+            child: Padding(
               padding: const EdgeInsets.all(AppDimensions.md),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -522,8 +535,8 @@ class _CampaignCard extends StatelessWidget {
                 ],
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
