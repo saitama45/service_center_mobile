@@ -296,6 +296,93 @@ void main() {
       final progress = await dao.getCampaignProgress(userId);
       expect(progress, isEmpty);
     });
+
+    // Staff can keep stamping while a full card waits to be redeemed, so a
+    // member legitimately holds two OPEN cards for one campaign. Home shows one
+    // entry per campaign, so which of the two it speaks for must be decided,
+    // not left to row order.
+    group('two open cards for one campaign', () {
+      Future<void> seedFullAndFresh() async {
+        // Full, awaiting redemption (cycle 1) + the replacement it opened.
+        await db.into(db.stampCards).insert(StampCardsCompanion.insert(
+              userId: userId,
+              campaignId: campaignId,
+              stampsCollected: const Value(3),
+              cycle: const Value(1),
+              completedAt: Value(DateTime.now().toUtc()),
+            ));
+        await db.into(db.stampCards).insert(StampCardsCompanion.insert(
+              userId: userId,
+              campaignId: campaignId,
+              stampsCollected: const Value(1),
+              cycle: const Value(2),
+            ));
+      }
+
+      test('the campaign is listed once, showing the collectable card',
+          () async {
+        await seedFullAndFresh();
+
+        final progress = await dao.getCampaignProgress(userId);
+        expect(progress, hasLength(1));
+        // The fresh card — the one the next scan lands on — not the full one.
+        expect(progress.single.stamps, 1);
+        expect(progress.single.isUnlocked, isFalse);
+      });
+
+      test('the full card is still reachable for redemption', () async {
+        await seedFullAndFresh();
+
+        final all = await dao.getAllCardProgress(userId);
+        expect(all, hasLength(2));
+        expect(all.where((p) => p.isUnlocked), hasLength(1));
+      });
+
+      test('a new stamp on the second card raises the total', () async {
+        await seedFullAndFresh();
+
+        // What scan_screen.dart watches. Per-campaign totals would report 1
+        // here (only the fresh card is listed), and would not move when the
+        // second card gained its stamp — so the celebration never fired.
+        expect(await dao.getTotalStampsOnCards(userId), 4);
+
+        await (db.update(db.stampCards)..where((s) => s.cycle.equals(2)))
+            .write(const StampCardsCompanion(stampsCollected: Value(2)));
+
+        expect(await dao.getTotalStampsOnCards(userId), 5);
+      });
+
+      test('redeemed cards keep counting, so the total never falls back',
+          () async {
+        await seedFullAndFresh();
+        final before = await dao.getTotalStampsOnCards(userId);
+
+        // Staff hand the reward over: the full card closes. A total that
+        // dropped here would need a fresh baseline to avoid a missed stamp.
+        await (db.update(db.stampCards)..where((s) => s.cycle.equals(1)))
+            .write(StampCardsCompanion(
+                redeemedAt: Value(DateTime.now().toUtc())));
+
+        expect(await dao.getTotalStampsOnCards(userId), before);
+      });
+    });
+
+    test('keeps an open card whose program was deactivated', () async {
+      // Deactivating a program in ghelpdesk leaves the cards already issued
+      // against it Active — staff can still add stamps. Hiding it here made a
+      // member's own in-progress card disappear from Home, which in turn hid
+      // the campaign picker (it needs two or more choices).
+      await db.into(db.stampCards).insert(
+            StampCardsCompanion.insert(userId: userId, campaignId: campaignId),
+          );
+      await (db.update(db.campaigns)..where((c) => c.id.equals(campaignId)))
+          .write(const CampaignsCompanion(isActive: Value(false)));
+
+      final progress = await dao.getCampaignProgress(userId);
+      expect(progress.single.campaign.id, campaignId);
+      // Expiry is a separate axis and still applies.
+      expect(progress.single.isExpired, isFalse);
+    });
   });
 
   // The Rewards tab's source. Unlike getCampaignProgress it keeps redeemed

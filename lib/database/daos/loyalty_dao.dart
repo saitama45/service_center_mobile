@@ -103,24 +103,92 @@ class LoyaltyDao extends DatabaseAccessor<AppDatabase> with _$LoyaltyDaoMixin {
   Future<Campaign?> getCampaignByCode(String code) =>
       (select(campaigns)..where((c) => c.code.equals(code))).getSingleOrNull();
 
-  /// Every active campaign the member has actually been enrolled in — i.e.
-  /// has a real card for, which only ever happens server-side (ghelpdesk
-  /// staff scanning the member's QR code the first time; see `scan_screen
-  /// .dart` and `SyncManager._pullProgress`). A campaign nobody has scanned
-  /// this member into yet is deliberately excluded rather than shown at
+  /// Every campaign the member has actually been enrolled in — i.e. has a
+  /// real card for, which only ever happens server-side (ghelpdesk staff
+  /// scanning the member's QR code the first time; see `scan_screen.dart`
+  /// and `SyncManager._pullProgress`). A campaign nobody has scanned this
+  /// member into yet is deliberately excluded rather than shown at
   /// "0/N stamps" — that would read as already-enrolled when nothing has
   /// actually started for them.
+  ///
+  /// The **card**, not `campaigns.is_active`, decides what appears here.
+  /// Deactivating a program in ghelpdesk does not close the cards already
+  /// issued against it: they stay `Active` on the Stamp Cards screen and
+  /// staff can still add stamps to them. Filtering on the program flag
+  /// therefore made a member's own in-progress card vanish from Home — and
+  /// with only one card left visible, the campaign picker (which needs two
+  /// or more choices) hid itself too. Expiry is still honoured, via
+  /// `CampaignProgress.isExpired` at the call sites.
   Future<List<CampaignProgress>> getCampaignProgress(String userId) async {
-    final all = await getCampaigns();
+    final all = await getCampaigns(activeOnly: false);
     final cards = await (select(stampCards)
           ..where((s) => s.userId.equals(userId) & s.redeemedAt.isNull()))
         .get();
 
-    final byCampaign = {for (final c in cards) c.campaignId: c};
+    final requiredById = {for (final c in all) c.id: c.requiredStamps};
+
+    // One entry per campaign, so two open cards for the same campaign have to
+    // be reduced to the one this screen speaks for. That pair is ordinary now:
+    // ghelpdesk lets a member keep earning while a full card waits to be
+    // redeemed, so they hold a `completed` card *and* a fresh one at once.
+    //
+    // Keying the map directly (`{for (final c in cards) c.campaignId: c}`) let
+    // whichever row the database happened to return last win, which made the
+    // member's visible progress flip between the two — and, because
+    // `scan_screen.dart` watches the sum of these to notice a new stamp, could
+    // make the total stay flat or fall after a scan, so the "stamp collected"
+    // celebration never fired.
+    //
+    // The card still being collected on wins: it is the one the next scan
+    // lands on. The full card is not lost — the Rewards tab lists every card
+    // separately (`getAllCardProgress`) and redeems it from there.
+    final byCampaign = <String, StampCard>{};
+    for (final card in cards) {
+      final existing = byCampaign[card.campaignId];
+      if (existing == null) {
+        byCampaign[card.campaignId] = card;
+        continue;
+      }
+
+      final required = requiredById[card.campaignId] ?? 0;
+      byCampaign[card.campaignId] = _preferredOpenCard(existing, card, required);
+    }
+
     return all
         .where((c) => byCampaign.containsKey(c.id))
         .map((c) => CampaignProgress(campaign: c, card: byCampaign[c.id]))
         .toList();
+  }
+
+  /// Which of two open cards for one campaign the member's progress views
+  /// should speak for. Collectable (not yet full) beats full, because that is
+  /// where the next stamp goes; between two of a kind the further-along one
+  /// wins, and `id` breaks an exact tie so the choice never depends on row
+  /// order.
+  StampCard _preferredOpenCard(StampCard a, StampCard b, int required) {
+    bool collectable(StampCard c) => required == 0 || c.stampsCollected < required;
+
+    if (collectable(a) != collectable(b)) return collectable(a) ? a : b;
+    if (a.stampsCollected != b.stampsCollected) {
+      return a.stampsCollected > b.stampsCollected ? a : b;
+    }
+    return a.id.compareTo(b.id) <= 0 ? a : b;
+  }
+
+  /// Every stamp the member currently holds across **all** their cards,
+  /// redeemed ones included.
+  ///
+  /// This is the signal `scan_screen.dart` watches to notice that staff just
+  /// scanned them. It deliberately counts cards, not campaigns: when a scan
+  /// opens a second card for a campaign the member already has one for, a
+  /// per-campaign total can stay flat (or drop) even though a stamp was
+  /// genuinely awarded. Counting redeemed cards too keeps it from falling when
+  /// staff hand a reward over, which would otherwise need a new baseline.
+  Future<int> getTotalStampsOnCards(String userId) async {
+    final rows = await (select(stampCards)
+          ..where((s) => s.userId.equals(userId)))
+        .get();
+    return rows.fold<int>(0, (sum, c) => sum + c.stampsCollected);
   }
 
   /// Every stamp card the member holds — **including redeemed ones** — as one

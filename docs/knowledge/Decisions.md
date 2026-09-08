@@ -99,3 +99,21 @@ deletes all of a member's transactions and stamp cards. It is reachable from Pro
 
 **P13 — `ResolvePermissionUseCase`'s doc comment is stale**: it describes a
 `user_module_permission_overrides` step that does not exist in the schema or the DAO.
+
+**P14 — A card outlives its program, and the app must respect that.**
+`stamp_programs.is_active = 0` in ghelpdesk does **not** close the cards already issued
+against that program: they keep `Active` status on the Stamp Cards screen and staff still get
+the **+** button to add stamps. `getCampaignProgress` used to intersect the member's open
+cards with `getCampaigns()` (active-only), so deactivating a program silently removed a
+member's own in-progress card from Home, the stats count and the picker — and because the
+campaign picker only renders `if (choices.length > 1)`, losing one card also hid the picker
+entirely, which read as "the campaign switcher disappeared". The card is now the authority:
+`getCampaignProgress` calls `getCampaigns(activeOnly: false)` and lets card ownership do the
+filtering. Expiry is unaffected — it is a separate axis, still applied through
+`CampaignProgress.isExpired` at the call sites — and `earnStamp` still refuses an inactive
+campaign, since that guard is about *earning*, not *displaying*. Covered by
+`test/unit/loyalty_dao_test.dart` ("keeps an open card whose program was deactivated").
+
+Note the member QR is **not** campaign-scoped: `memberQrProvider` returns one static signed
+member code, and staff choose the program on the ghelpdesk side. The picker selects which
+card the member *sees*; it does not change the QR payload.

@@ -65,9 +65,13 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
     super.dispose();
   }
 
+  /// Counts every card the member holds, not one card per campaign — see
+  /// `LoyaltyDao.getTotalStampsOnCards`. A scan can open a *second* card for a
+  /// campaign the member already has one for (staff can keep stamping while a
+  /// full card waits to be redeemed), and a per-campaign total misses that
+  /// stamp entirely: the celebration never fired even though the stamp landed.
   Future<int> _totalStamps(String userId) async {
-    final progress = await ref.read(loyaltyDaoProvider).getCampaignProgress(userId);
-    return progress.fold<int>(0, (sum, p) => sum + p.stamps);
+    return ref.read(loyaltyDaoProvider).getTotalStampsOnCards(userId);
   }
 
   Future<void> _armWatch() async {
@@ -122,8 +126,15 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
         backgroundColor: AppColors.white,
         foregroundColor: AppColors.espresso,
         elevation: 0,
+        // The app-wide `appBarTheme.iconTheme` is cream, for the espresso bar
+        // every other screen uses. It takes precedence over `foregroundColor`,
+        // so on this screen's white bar the back arrow was cream-on-white —
+        // present, tappable, and all but invisible. Set it explicitly here.
+        iconTheme: const IconThemeData(color: AppColors.espresso, size: 24),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
+          color: AppColors.espresso,
+          tooltip: 'Back',
           onPressed: () => context.pop(),
         ),
         title: Column(
