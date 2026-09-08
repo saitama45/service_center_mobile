@@ -337,6 +337,34 @@ class LoyaltyDao extends DatabaseAccessor<AppDatabase> with _$LoyaltyDaoMixin {
     return totals.earned;
   }
 
+  /// Stamps the member is actually holding right now, keyed by campaign —
+  /// every card that has not been redeemed, including a full one waiting at
+  /// the counter.
+  ///
+  /// History's third figure is read from this rather than from
+  /// `earned - redeemed`. That subtraction is arithmetic on the ledger, not a
+  /// count of anything: it silently drifts from reality whenever a stamp
+  /// reaches a card without a matching ledger row, and it cannot be scoped to
+  /// one campaign without re-deriving it. Counting the cards says what the
+  /// member can actually see on their cards, per campaign, and stays true by
+  /// construction.
+  ///
+  /// Every open card counts, so the two cards a member holds mid-rollover
+  /// (a full one awaiting redemption plus its successor) are summed rather
+  /// than collapsed — unlike [getCampaignProgress], which must pick one.
+  Future<Map<String, int>> getOpenCardStampsByCampaign(String userId) async {
+    final cards = await (select(stampCards)
+          ..where((s) => s.userId.equals(userId) & s.redeemedAt.isNull()))
+        .get();
+
+    final byCampaign = <String, int>{};
+    for (final card in cards) {
+      byCampaign[card.campaignId] =
+          (byCampaign[card.campaignId] ?? 0) + card.stampsCollected;
+    }
+    return byCampaign;
+  }
+
   // ── Writes ─────────────────────────────────────────────────────────────────
 
   /// Grants one stamp on [campaignId] for [productId].

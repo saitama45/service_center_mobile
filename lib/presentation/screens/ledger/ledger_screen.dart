@@ -25,7 +25,6 @@ class LedgerScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final txns = ref.watch(transactionsProvider);
-    final totals = ref.watch(ledgerTotalsProvider);
 
     return Scaffold(
       backgroundColor: AppColors.cream,
@@ -52,10 +51,50 @@ class LedgerScreen extends ConsumerWidget {
             icon: Icons.error_outline,
           ),
           data: (list) {
-            final t = totals.valueOrNull;
+            final selectedId = ref.watch(ledgerCampaignFilterProvider);
+            final onCards = ref.watch(openCardStampsProvider).valueOrNull ?? {};
 
-            final earned = t?.earned ?? 0;
-            final redeemed = t?.redeemed ?? 0;
+            // The campaigns this member actually has history for, in the order
+            // they last appeared — offering a campaign with nothing to show
+            // would just be a dead end.
+            final campaigns = <String, String>{};
+            for (final e in list) {
+              final id = e.transaction.campaignId;
+              if (id != null) campaigns[id] = e.campaignName ?? 'Campaign';
+            }
+
+            // A filter that no longer matches anything (its campaign dropped
+            // out of the window of rows we hold) falls back to "All" rather
+            // than showing an empty screen with no way back.
+            final activeId =
+                selectedId != null && campaigns.containsKey(selectedId)
+                    ? selectedId
+                    : null;
+
+            final rows = activeId == null
+                ? list
+                : list
+                    .where((e) => e.transaction.campaignId == activeId)
+                    .toList();
+
+            // Totals are computed from the rows on screen, so the numbers can
+            // never disagree with the list under them.
+            var earned = 0;
+            var rewards = 0;
+            for (final e in rows) {
+              if (e.transaction.type == txnEarn) {
+                earned += e.transaction.points;
+              } else {
+                // Counted as rewards, not as the stamps they consumed. "−36"
+                // was arithmetically true but nobody thinks "I spent 36
+                // stamps"; they think "I claimed 3 rewards".
+                rewards += 1;
+              }
+            }
+
+            final held = activeId == null
+                ? onCards.values.fold<int>(0, (sum, v) => sum + v)
+                : (onCards[activeId] ?? 0);
 
             return ListView(
               physics: const AlwaysScrollableScrollPhysics(),
@@ -67,7 +106,7 @@ class LedgerScreen extends ConsumerWidget {
                   children: [
                     Expanded(
                       child: _Total(
-                        label: 'Earned',
+                        label: 'Stamps earned',
                         value: _signed(earned, '+'),
                         // Zero is neutral — colouring it green implies activity.
                         color: earned > 0
@@ -78,43 +117,61 @@ class LedgerScreen extends ConsumerWidget {
                     const SizedBox(width: 8),
                     Expanded(
                       child: _Total(
-                        label: 'Redeemed',
-                        value: _signed(redeemed, '−'),
-                        color: redeemed > 0
-                            ? AppColors.danger
+                        label: rewards == 1 ? 'Reward claimed' : 'Rewards claimed',
+                        value: '$rewards',
+                        color: rewards > 0
+                            ? AppColors.amber
                             : AppColors.espresso,
                       ),
                     ),
                     const SizedBox(width: 8),
                     Expanded(
                       child: _Total(
-                        // Not "how many more to my next reward" — that's
-                        // campaign-specific and already on Home ("9 more to
-                        // unlock"). This is a lifetime net total across
-                        // every campaign, so it needs its own, unambiguous
-                        // label rather than borrowing "Balance", which reads
-                        // like the former to most people.
-                        label: 'Total Stamps',
-                        value: '${t?.balance ?? 0}',
+                        // Counted off the member's actual cards, not derived
+                        // as `earned - redeemed` — see
+                        // `LoyaltyDao.getOpenCardStampsByCampaign`. This is
+                        // the one figure they can check against the cards in
+                        // front of them.
+                        label: 'On your cards',
+                        value: '$held',
                         color: AppColors.espresso,
                       ),
                     ),
                   ],
                 ),
+
+                // ── Campaign filter ────────────────────────────────────────
+                // Stamps are not interchangeable between campaigns, so a
+                // single pooled figure answers nothing a member can act on.
+                // Scoping the whole screen — list and totals together — is
+                // what turns it into "how am I doing on this one?".
+                if (campaigns.length > 1) ...[
+                  const SizedBox(height: AppDimensions.sm + 2),
+                  _CampaignFilterBar(
+                    campaigns: campaigns,
+                    selectedId: activeId,
+                    onSelect: (id) => ref
+                        .read(ledgerCampaignFilterProvider.notifier)
+                        .state = id,
+                  ),
+                ],
                 const SizedBox(height: AppDimensions.md),
 
-                if (list.isEmpty)
-                  const Padding(
-                    padding: EdgeInsets.only(top: 48),
+                if (rows.isEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 48),
                     child: BmsEmptyState(
-                      title: 'No activity yet',
-                      message:
-                          'Scan the code at checkout to collect your first stamp.',
+                      title: list.isEmpty
+                          ? 'No activity yet'
+                          : 'Nothing on this campaign yet',
+                      message: list.isEmpty
+                          ? 'Scan the code at checkout to collect your first stamp.'
+                          : 'Stamps you collect on this campaign will show up here.',
                       icon: Icons.receipt_long_outlined,
                     ),
                   )
                 else
-                  ...list.map((entry) => Padding(
+                  ...rows.map((entry) => Padding(
                         padding: const EdgeInsets.only(bottom: 10),
                         child: _TransactionRow(entry: entry),
                       )),
@@ -122,6 +179,61 @@ class LedgerScreen extends ConsumerWidget {
             );
           },
         ),
+      ),
+    );
+  }
+}
+
+/// Horizontal chips scoping History to one campaign — "All" plus every
+/// campaign the member has activity on.
+class _CampaignFilterBar extends StatelessWidget {
+  const _CampaignFilterBar({
+    required this.campaigns,
+    required this.selectedId,
+    required this.onSelect,
+  });
+
+  /// Campaign id → display name.
+  final Map<String, String> campaigns;
+  final String? selectedId;
+  final ValueChanged<String?> onSelect;
+
+  @override
+  Widget build(BuildContext context) {
+    final entries = campaigns.entries.toList();
+
+    return SizedBox(
+      height: 34,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        itemCount: entries.length + 1,
+        separatorBuilder: (_, __) => const SizedBox(width: 8),
+        itemBuilder: (_, i) {
+          final id = i == 0 ? null : entries[i - 1].key;
+          final label = i == 0 ? 'All' : entries[i - 1].value;
+          final selected = id == selectedId;
+
+          return GestureDetector(
+            onTap: () => onSelect(id),
+            child: Container(
+              alignment: Alignment.center,
+              padding: const EdgeInsets.symmetric(horizontal: 14),
+              decoration: BoxDecoration(
+                color: selected ? AppColors.espresso : AppColors.white,
+                borderRadius: BorderRadius.circular(999),
+                border: Border.all(
+                  color: selected ? AppColors.espresso : AppColors.latte,
+                ),
+              ),
+              child: Text(
+                label,
+                style: AppTextStyles.chip.copyWith(
+                  color: selected ? AppColors.cream : AppColors.espresso,
+                ),
+              ),
+            ),
+          );
+        },
       ),
     );
   }

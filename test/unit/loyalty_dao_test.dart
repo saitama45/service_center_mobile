@@ -367,6 +367,48 @@ void main() {
       });
     });
 
+    // History's "On your cards" figure. Counted off the cards rather than as
+    // `earned - redeemed`, so it stays true even when a stamp reaches a card
+    // without a matching ledger row.
+    group('getOpenCardStampsByCampaign', () {
+      test('sums BOTH open cards when a member is mid-rollover', () async {
+        await db.into(db.stampCards).insert(StampCardsCompanion.insert(
+              userId: userId,
+              campaignId: campaignId,
+              stampsCollected: const Value(3),
+              cycle: const Value(1),
+              completedAt: Value(DateTime.now().toUtc()),
+            ));
+        await db.into(db.stampCards).insert(StampCardsCompanion.insert(
+              userId: userId,
+              campaignId: campaignId,
+              stampsCollected: const Value(2),
+              cycle: const Value(2),
+            ));
+
+        final held = await dao.getOpenCardStampsByCampaign(userId);
+        // Both cards are the member's to see — not collapsed to one.
+        expect(held[campaignId], 5);
+      });
+
+      test('a redeemed card stops counting', () async {
+        await db.into(db.stampCards).insert(StampCardsCompanion.insert(
+              userId: userId,
+              campaignId: campaignId,
+              stampsCollected: const Value(3),
+              cycle: const Value(1),
+              redeemedAt: Value(DateTime.now().toUtc()),
+            ));
+
+        final held = await dao.getOpenCardStampsByCampaign(userId);
+        expect(held[campaignId], isNull);
+      });
+
+      test('a member with no cards gets an empty map, not an error', () async {
+        expect(await dao.getOpenCardStampsByCampaign(userId), isEmpty);
+      });
+    });
+
     test('keeps an open card whose program was deactivated', () async {
       // Deactivating a program in ghelpdesk leaves the cards already issued
       // against it Active — staff can still add stamps. Hiding it here made a

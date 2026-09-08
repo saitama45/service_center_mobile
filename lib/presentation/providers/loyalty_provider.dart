@@ -110,6 +110,25 @@ final ledgerTotalsProvider =
   return ref.read(loyaltyDaoProvider).getLedgerTotals(user.id);
 });
 
+/// Stamps sitting on the member's open cards, keyed by campaign id — the
+/// source for History's "On your cards" figure. See
+/// `LoyaltyDao.getOpenCardStampsByCampaign` for why this is counted from the
+/// cards instead of derived as `earned - redeemed`.
+final openCardStampsProvider =
+    FutureProvider<Map<String, int>>((ref) async {
+  ref.watch(loyaltyRevisionProvider);
+  final user = ref.watch(currentUserProvider);
+  if (user == null) return const {};
+  return ref.read(loyaltyDaoProvider).getOpenCardStampsByCampaign(user.id);
+});
+
+/// Which campaign History is scoped to, or null for "everything".
+///
+/// Session state, like [selectedHomeCampaignIdProvider]: a filter is a way of
+/// asking one question, not a setting the member should find still applied
+/// days later.
+final ledgerCampaignFilterProvider = StateProvider<String?>((ref) => null);
+
 final productsProvider = FutureProvider<List<Product>>((ref) async {
   return ref.read(loyaltyDaoProvider).getProducts();
 });
