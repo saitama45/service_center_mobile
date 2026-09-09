@@ -5,7 +5,7 @@ plugins {
 }
 
 android {
-    namespace "com.dpwh.bms"
+    namespace "com.coffeebean.cbtl"
     compileSdk flutter.compileSdkVersion
 
     compileOptions {
@@ -22,7 +22,7 @@ android {
     }
 
     defaultConfig {
-        applicationId "com.dpwh.bms"
+        applicationId "com.coffeebean.cbtl"
         // Android 10+ (API 29)
         minSdk 29
         targetSdk flutter.targetSdkVersion

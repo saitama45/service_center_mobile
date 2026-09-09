@@ -14,7 +14,9 @@
       "Bash(cmd.exe /c \"flutter --version 2>&1\")",
       "Bash(powershell.exe -Command \"Get-Command flutter -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Source\")",
       "Bash(powershell.exe -Command \"Get-ChildItem -Path ''C:\\\\'', ''D:\\\\'' -Recurse -Filter ''flutter.bat'' -ErrorAction SilentlyContinue | Select-Object -First 5 -ExpandProperty FullName\")",
-      "Bash(powershell.exe -NoProfile -Command \":*)"
+      "Bash(powershell.exe -NoProfile -Command \":*)",
+      "Bash(xcodebuild -version)",
+      "Bash(flutter --version)"
     ]
   }
 }
