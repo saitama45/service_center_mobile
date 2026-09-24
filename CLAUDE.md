@@ -140,9 +140,12 @@ The suite in `test/` runs with `flutter.bat` + the `test` subcommand; it uses on
   The offline/seeded `admin` (role UUID `...0001`) resolves normally.
 - **OTP is now a real two-channel second factor** (email server-issued online, TOTP
   authenticator app offline) — see `docs/knowledge/Authentication.md`. The email channel's
-  server routes (`POST /api/otp/send|verify`) are **not deployed yet**; until they are,
-  `OtpPolicy.allowSkipWhenServerHasNoOtp` (in `auth_flow_provider.dart`) lets online sign-in
-  through without a code. Flip that flag once the backend ships.
+  server routes (`POST /api/otp/send|verify`) **are live on production** (verified
+  2026-09-10: both answer 401, not 404), so every online sign-in now emails a 5-minute
+  code. `OtpPolicy.allowSkipWhenServerHasNoOtp` (in `auth_flow_provider.dart`) only skips on
+  404/501, so it no longer fires in practice; flipping it to `false` is still pending the
+  user's go-ahead. Play reviewers cannot receive that email — the review account needs a
+  server-side fixed-code bypass, which does not exist yet.
 - **`SyncManager` pulls the campaign catalogue AND real stamp progress** (`GET /api/campaigns`,
   `GET /api/loyalty/my-cards` — mirrors ghelpdesk's `stamp_programs`/`stamp_cards`, see
   `docs/knowledge/Integrations.md`), but **upload is still a deliberate no-op**; the
