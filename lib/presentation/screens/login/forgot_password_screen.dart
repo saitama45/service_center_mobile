@@ -221,6 +221,9 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
           appBar: AppBar(
             backgroundColor: AppColors.cream,
             foregroundColor: AppColors.espresso,
+            // The app theme paints app-bar icons cream (for espresso bars),
+            // which would make the back arrow invisible on this cream one.
+            iconTheme: const IconThemeData(color: AppColors.espresso),
             elevation: 0,
             leading: IconButton(
               icon: const Icon(Icons.arrow_back),
