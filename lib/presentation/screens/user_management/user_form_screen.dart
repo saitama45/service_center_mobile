@@ -6,10 +6,10 @@ import '../../../core/constants/app_dimensions.dart';
 import '../../../core/constants/app_strings.dart';
 import '../../../core/constants/app_text_styles.dart';
 import '../../../core/utils/bcrypt_util.dart';
-import '../../../core/widgets/bms_app_bar.dart';
-import '../../../core/widgets/bms_button.dart';
-import '../../../core/widgets/bms_loading_overlay.dart';
-import '../../../core/widgets/bms_text_field.dart';
+import '../../../core/widgets/cbtl_app_bar.dart';
+import '../../../core/widgets/cbtl_button.dart';
+import '../../../core/widgets/cbtl_loading_overlay.dart';
+import '../../../core/widgets/cbtl_text_field.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/role_management_provider.dart';
 import '../../providers/user_management_provider.dart';
@@ -133,7 +133,7 @@ class _UserFormScreenState extends ConsumerState<UserFormScreen> {
       content: Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-      BmsTextField(
+      CbtlTextField(
         label: AppStrings.newPassword,
         controller: newPassCtrl,
         obscureText: true,
@@ -186,7 +186,7 @@ class _UserFormScreenState extends ConsumerState<UserFormScreen> {
 
     return Scaffold(
       backgroundColor: AppColors.cream,
-      appBar: BmsAppBar(
+      appBar: CbtlAppBar(
         title: isEditing ? AppStrings.editUser : AppStrings.addUser,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: AppColors.white),
@@ -213,7 +213,7 @@ class _UserFormScreenState extends ConsumerState<UserFormScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   _buildCard(children: [
-                    BmsTextField(
+                    CbtlTextField(
                       label: AppStrings.fullName,
                       controller: _fullNameCtrl,
                       prefixIcon: Icons.person_outline,
@@ -221,7 +221,7 @@ class _UserFormScreenState extends ConsumerState<UserFormScreen> {
                           (v == null || v.trim().isEmpty) ? 'Required' : null,
                     ),
                     const SizedBox(height: AppDimensions.md),
-                    BmsTextField(
+                    CbtlTextField(
                       label: AppStrings.username,
                       controller: _usernameCtrl,
                       prefixIcon: Icons.alternate_email,
@@ -236,7 +236,7 @@ class _UserFormScreenState extends ConsumerState<UserFormScreen> {
                     ),
                     if (!isEditing) ...[
                       const SizedBox(height: AppDimensions.md),
-                      BmsTextField(
+                      CbtlTextField(
                         label: AppStrings.password,
                         controller: _passwordCtrl,
                         obscureText: true,
@@ -275,14 +275,14 @@ class _UserFormScreenState extends ConsumerState<UserFormScreen> {
                       error: (e, _) => Text('Error: $e'),
                     ),
                     const SizedBox(height: AppDimensions.md),
-                    BmsTextField(
+                    CbtlTextField(
                       label: AppStrings.employeeId,
                       controller: _employeeIdCtrl,
                       hint: 'ID # (optional)',
                       prefixIcon: Icons.badge_outlined,
                     ),
                     const SizedBox(height: AppDimensions.md),
-                    BmsTextField(
+                    CbtlTextField(
                       label: AppStrings.email,
                       controller: _emailCtrl,
                       prefixIcon: Icons.email_outlined,
@@ -333,7 +333,7 @@ class _UserFormScreenState extends ConsumerState<UserFormScreen> {
                     ),
                   ],
                   const SizedBox(height: AppDimensions.lg),
-                  BmsButton(
+                  CbtlButton(
                     label: AppStrings.save,
                     onPressed: _onSave,
                     isFullWidth: true,
@@ -344,7 +344,7 @@ class _UserFormScreenState extends ConsumerState<UserFormScreen> {
               ),
             ),
           ),
-          if (_isLoading) const BmsLoadingOverlay(),
+          if (_isLoading) const CbtlLoadingOverlay(),
         ],
       ),
     );

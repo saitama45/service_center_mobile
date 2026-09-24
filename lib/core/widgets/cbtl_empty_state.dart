@@ -3,8 +3,8 @@ import '../constants/app_colors.dart';
 import '../constants/app_dimensions.dart';
 import '../constants/app_text_styles.dart';
 
-class BmsEmptyState extends StatelessWidget {
-  const BmsEmptyState({
+class CbtlEmptyState extends StatelessWidget {
+  const CbtlEmptyState({
     super.key,
     required this.message,
     this.title,

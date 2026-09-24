@@ -3,11 +3,11 @@ import 'package:drift/native.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:bms/database/app_database.dart';
-import 'package:bms/database/daos/loyalty_dao.dart';
-import 'package:bms/presentation/providers/auth_provider.dart';
-import 'package:bms/presentation/providers/loyalty_provider.dart';
-import 'package:bms/presentation/screens/campaigns/redeem_qr_sheet.dart';
+import 'package:cbtl/database/app_database.dart';
+import 'package:cbtl/database/daos/loyalty_dao.dart';
+import 'package:cbtl/presentation/providers/auth_provider.dart';
+import 'package:cbtl/presentation/providers/loyalty_provider.dart';
+import 'package:cbtl/presentation/screens/campaigns/redeem_qr_sheet.dart';
 
 /// The "Redeem Now" sheet must stay open until ghelpdesk staff actually
 /// redeem the card.

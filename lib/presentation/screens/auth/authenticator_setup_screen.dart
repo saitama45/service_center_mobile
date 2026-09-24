@@ -8,12 +8,13 @@ import '../../../core/constants/app_text_styles.dart';
 import '../../../core/utils/date_format_util.dart';
 import '../../../core/utils/totp_util.dart';
 import '../../../core/widgets/app_drawer.dart';
-import '../../../core/widgets/bms_app_bar.dart';
-import '../../../core/widgets/bms_button.dart';
-import '../../../core/widgets/bms_card.dart';
+import '../../../core/widgets/cbtl_app_bar.dart';
+import '../../../core/widgets/cbtl_button.dart';
+import '../../../core/widgets/cbtl_card.dart';
 import '../../../core/widgets/confirmation_dialog.dart';
 import '../../providers/auth_flow_provider.dart';
 import '../../providers/auth_provider.dart';
+import '../../providers/app_providers.dart';
 
 /// Enrol or remove the Google-Authenticator-compatible TOTP secret used to
 /// verify sign-in when the device has no connection to the server.
@@ -55,8 +56,10 @@ class _AuthenticatorSetupScreenState
 
     return Scaffold(
       backgroundColor: AppColors.cream,
-      drawer: const AppDrawer(),
-      appBar: const BmsAppBar(title: 'Authenticator App'),
+      // Members see no hamburger: the drawer's only unique content is the
+      // admin module links.
+      drawer: ref.watch(hasAdminModulesProvider) ? const AppDrawer() : null,
+      appBar: const CbtlAppBar(title: 'Authenticator App'),
       body: enrolledAsync.when(
         loading: () => const Center(child: CircularProgressIndicator(color: AppColors.amber)),
         error: (e, _) => Center(child: Text('Could not check enrolment: $e')),
@@ -150,7 +153,7 @@ class _EnrollView extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          BmsCard(
+          CbtlCard(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -168,14 +171,14 @@ class _EnrollView extends ConsumerWidget {
           ),
           const SizedBox(height: AppDimensions.md),
           if (secret == null)
-            BmsButton(
+            CbtlButton(
               label: 'Set Up Authenticator',
               isFullWidth: true,
               icon: Icons.qr_code_2,
               onPressed: onGenerate,
             )
           else ...[
-            BmsCard(
+            CbtlCard(
               child: Column(
                 children: [
                   const Text('1. Scan this with your authenticator app',
@@ -216,7 +219,7 @@ class _EnrollView extends ConsumerWidget {
               ),
             ),
             const SizedBox(height: AppDimensions.md),
-            BmsCard(
+            CbtlCard(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
@@ -240,7 +243,7 @@ class _EnrollView extends ConsumerWidget {
                     Text(error!, style: AppTextStyles.errorText, textAlign: TextAlign.center),
                   ],
                   const SizedBox(height: AppDimensions.md),
-                  BmsButton(
+                  CbtlButton(
                     label: 'Confirm & Enable',
                     isFullWidth: true,
                     isLoading: busy,
@@ -271,7 +274,7 @@ class _EnrolledView extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          BmsCard(
+          CbtlCard(
             child: Column(
               children: [
                 const Icon(Icons.verified_user, size: 40, color: AppColors.success),
@@ -294,9 +297,9 @@ class _EnrolledView extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: AppDimensions.md),
-          BmsButton(
+          CbtlButton(
             label: 'Remove Authenticator',
-            variant: BmsButtonVariant.danger,
+            variant: CbtlButtonVariant.danger,
             isFullWidth: true,
             icon: Icons.delete_outline,
             onPressed: () => _confirmRemove(context, ref),

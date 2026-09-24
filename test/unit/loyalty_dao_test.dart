@@ -3,9 +3,9 @@
 import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:bms/database/app_database.dart';
-import 'package:bms/database/daos/loyalty_dao.dart';
-import 'package:bms/database/tables/loyalty_tables.dart';
+import 'package:cbtl/database/app_database.dart';
+import 'package:cbtl/database/daos/loyalty_dao.dart';
+import 'package:cbtl/database/tables/loyalty_tables.dart';
 
 void main() {
   late AppDatabase db;

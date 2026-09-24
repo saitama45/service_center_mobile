@@ -5,8 +5,8 @@
 
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:bms/database/app_database.dart';
-import 'package:bms/database/daos/user_dao.dart';
+import 'package:cbtl/database/app_database.dart';
+import 'package:cbtl/database/daos/user_dao.dart';
 
 void main() {
   late AppDatabase db;

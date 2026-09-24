@@ -89,7 +89,7 @@ List<PermissionsCompanion> permissionsSeedData() => [
   const PermissionsCompanion(
     code: Value('ASSIGN'), name: Value('Assign'),
     category: Value('WORKFLOW'),
-    description: Value('Assign bridges or tasks to inspectors'),
+    description: Value('Assign tasks to staff'),
     displayOrder: Value(25),
   ),
 
@@ -97,7 +97,7 @@ List<PermissionsCompanion> permissionsSeedData() => [
   const PermissionsCompanion(
     code: Value('SYNC'), name: Value('Sync'),
     category: Value('SYSTEM'),
-    description: Value('Trigger data sync with central BMS server'),
+    description: Value('Trigger data sync with the central server'),
     displayOrder: Value(30),
   ),
   const PermissionsCompanion(

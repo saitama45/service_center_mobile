@@ -2,6 +2,10 @@
 abstract class AppStrings {
   // App identity
   static const String appName = 'Coffee Bean & Tea Leaf';
+
+  /// Full brand name, with the leading article. Used on the Home header;
+  /// [appName] stays as-is for the login splash and tighter spots.
+  static const String appNameFull = 'The Coffee Bean & Tea Leaf';
   static const String appFullName = 'TAS Service Center';
   static const String organizationShort = 'TAS';
 

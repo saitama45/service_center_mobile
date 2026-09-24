@@ -6,7 +6,7 @@ import 'package:go_router/go_router.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_dimensions.dart';
 import '../../../core/constants/app_text_styles.dart';
-import '../../../core/widgets/bms_button.dart';
+import '../../../core/widgets/cbtl_button.dart';
 import '../../providers/auth_flow_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../../routing/route_names.dart';
@@ -268,7 +268,7 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
           ],
           const SizedBox(height: AppDimensions.lg),
 
-          BmsButton(
+          CbtlButton(
             label: 'Verify Code',
             isFullWidth: true,
             isLoading: otp.isVerifying,

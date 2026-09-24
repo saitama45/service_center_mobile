@@ -33,7 +33,7 @@ Future<void> main() async {
       overrides: [
         appDatabaseProvider.overrideWithValue(db),
       ],
-      child: const BmsApp(),
+      child: const CbtlApp(),
     ),
   );
 }

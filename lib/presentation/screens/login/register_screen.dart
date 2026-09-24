@@ -7,9 +7,9 @@ import '../../../core/constants/app_strings.dart';
 import '../../../core/constants/app_text_styles.dart';
 import '../../../core/constants/app_dimensions.dart';
 import '../../../core/utils/bcrypt_util.dart';
-import '../../../core/widgets/bms_button.dart';
-import '../../../core/widgets/bms_text_field.dart';
-import '../../../core/widgets/bms_loading_overlay.dart';
+import '../../../core/widgets/cbtl_button.dart';
+import '../../../core/widgets/cbtl_text_field.dart';
+import '../../../core/widgets/cbtl_loading_overlay.dart';
 import '../../../core/errors/failures.dart';
 import '../../../domain/usecases/auth/login_usecase.dart';
 import '../../providers/auth_flow_provider.dart';
@@ -136,7 +136,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                       const SizedBox(height: AppDimensions.lg),
 
                       // ── Name ──────────────────────────────────────────
-                      BmsTextField(
+                      CbtlTextField(
                         label: 'Full Name',
                         controller: _nameCtrl,
                         hint: 'Enter your full name',
@@ -152,7 +152,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                       const SizedBox(height: AppDimensions.md),
 
                       // ── Email ─────────────────────────────────────────
-                      BmsTextField(
+                      CbtlTextField(
                         label: 'Email',
                         controller: _emailCtrl,
                         hint: 'Enter your email',
@@ -175,7 +175,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                       const SizedBox(height: AppDimensions.md),
 
                       // ── Phone (optional) ─────────────────────────────
-                      BmsTextField(
+                      CbtlTextField(
                         label: 'Phone',
                         controller: _phoneCtrl,
                         hint: 'Optional',
@@ -189,7 +189,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                       const SizedBox(height: AppDimensions.md),
 
                       // ── Password ──────────────────────────────────────
-                      BmsTextField(
+                      CbtlTextField(
                         label: AppStrings.newPassword,
                         controller: _passwordCtrl,
                         hint: 'Create a password',
@@ -236,7 +236,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
                       const SizedBox(height: AppDimensions.md),
 
-                      BmsButton(
+                      CbtlButton(
                         label: 'Create Account',
                         onPressed: _onSubmit,
                         isFullWidth: true,
@@ -273,7 +273,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
               ),
             ),
             if (_isLoading)
-              const BmsLoadingOverlay(message: 'Creating your account…'),
+              const CbtlLoadingOverlay(message: 'Creating your account…'),
           ],
         ),
       ),

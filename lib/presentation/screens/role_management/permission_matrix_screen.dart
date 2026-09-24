@@ -6,9 +6,9 @@ import '../../../core/constants/app_dimensions.dart';
 import '../../../core/constants/app_strings.dart';
 import '../../../core/constants/app_text_styles.dart';
 import '../../../core/constants/permission_codes.dart';
-import '../../../core/widgets/bms_app_bar.dart';
-import '../../../core/widgets/bms_button.dart';
-import '../../../core/widgets/bms_loading_overlay.dart';
+import '../../../core/widgets/cbtl_app_bar.dart';
+import '../../../core/widgets/cbtl_button.dart';
+import '../../../core/widgets/cbtl_loading_overlay.dart';
 import '../../providers/app_providers.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/role_management_provider.dart';
@@ -117,7 +117,7 @@ class _PermissionMatrixScreenState
   Widget build(BuildContext context) {
     if (_localMatrix == null) {
       return Scaffold(
-        appBar: BmsAppBar(title: AppStrings.permissionMatrix),
+        appBar: CbtlAppBar(title: AppStrings.permissionMatrix),
         body: const Center(
             child: CircularProgressIndicator(
                 color: AppColors.primaryBlue)),
@@ -138,7 +138,7 @@ class _PermissionMatrixScreenState
 
     return Scaffold(
       backgroundColor: AppColors.cream,
-      appBar: BmsAppBar(
+      appBar: CbtlAppBar(
         title: AppStrings.permissionMatrix,
         subtitle: _roleName,
         leading: IconButton(
@@ -147,10 +147,10 @@ class _PermissionMatrixScreenState
         ),
         actions: [
           if (_isDirty)
-            BmsButton(
+            CbtlButton(
               label: AppStrings.savePermissions,
               onPressed: _onSave,
-              variant: BmsButtonVariant.ghost,
+              variant: CbtlButtonVariant.ghost,
             ),
         ],
       ),
@@ -191,7 +191,7 @@ class _PermissionMatrixScreenState
                 SafeArea(
                   child: Padding(
                     padding: const EdgeInsets.all(AppDimensions.md),
-                    child: BmsButton(
+                    child: CbtlButton(
                       label: AppStrings.savePermissions,
                       onPressed: _onSave,
                       isFullWidth: true,
@@ -202,7 +202,7 @@ class _PermissionMatrixScreenState
             ],
           ),
           if (_isSaving)
-            const BmsLoadingOverlay(message: 'Saving permissions…'),
+            const CbtlLoadingOverlay(message: 'Saving permissions…'),
         ],
       ),
     );

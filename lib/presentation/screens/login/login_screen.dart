@@ -6,9 +6,11 @@ import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_strings.dart';
 import '../../../core/constants/app_text_styles.dart';
 import '../../../core/constants/app_dimensions.dart';
-import '../../../core/widgets/bms_button.dart';
-import '../../../core/widgets/bms_text_field.dart';
-import '../../../core/widgets/bms_loading_overlay.dart';
+import '../../../core/constants/app_urls.dart';
+import '../../../core/utils/external_link.dart';
+import '../../../core/widgets/cbtl_button.dart';
+import '../../../core/widgets/cbtl_text_field.dart';
+import '../../../core/widgets/cbtl_loading_overlay.dart';
 import '../../../core/errors/failures.dart';
 import '../../../domain/usecases/auth/login_usecase.dart';
 import '../../providers/auth_flow_provider.dart';
@@ -150,7 +152,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               ),
             ),
           ),
-          if (_isLoading) const BmsLoadingOverlay(message: 'Signing in…'),
+          if (_isLoading) const CbtlLoadingOverlay(message: 'Signing in…'),
         ],
       ),
       ),
@@ -289,7 +291,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               const SizedBox(height: AppDimensions.lg),
 
               // ── Username ──────────────────────────────────────────────
-              BmsTextField(
+              CbtlTextField(
                 label: AppStrings.username,
                 controller: _usernameCtrl,
                 hint: 'Enter your username',
@@ -305,7 +307,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               const SizedBox(height: AppDimensions.md),
 
               // ── Password ──────────────────────────────────────────────
-              BmsTextField(
+              CbtlTextField(
                 label: AppStrings.password,
                 controller: _passwordCtrl,
                 hint: 'Enter your password',
@@ -327,8 +329,32 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
               const SizedBox(height: AppDimensions.md),
 
+              // ── Forgot password ───────────────────────────────────────
+              // Opens the backend's reset page, which emails a tokenised
+              // link. The new password works here straight away because
+              // sign-in authenticates against that same backend.
+              Align(
+                alignment: Alignment.centerRight,
+                child: TextButton(
+                  onPressed: _isLoading
+                      ? null
+                      : () => openExternalUrl(
+                            context,
+                            AppUrls.forgotPassword,
+                          ),
+                  child: Text(
+                    'Forgot Password?',
+                    style: AppTextStyles.bodySmall.copyWith(
+                      color: AppColors.amber,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: AppDimensions.sm),
+
               // ── Sign in button ────────────────────────────────────────
-              BmsButton(
+              CbtlButton(
                 label: AppStrings.signIn,
                 onPressed: isLocked ? null : _onSubmit,
                 isFullWidth: true,

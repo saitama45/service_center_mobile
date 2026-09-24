@@ -1,8 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:bms/core/utils/totp_util.dart';
-import 'package:bms/data/datasources/local/totp_secret_store.dart';
-import 'package:bms/data/datasources/remote/otp_remote_datasource.dart';
-import 'package:bms/presentation/providers/auth_flow_provider.dart';
+import 'package:cbtl/core/utils/totp_util.dart';
+import 'package:cbtl/data/datasources/local/totp_secret_store.dart';
+import 'package:cbtl/data/datasources/remote/otp_remote_datasource.dart';
+import 'package:cbtl/presentation/providers/auth_flow_provider.dart';
 
 /// In-memory stand-in for the keystore-backed store — overrides every method
 /// so no platform channel is touched.

@@ -4,8 +4,8 @@ import '../constants/app_dimensions.dart';
 import '../constants/app_strings.dart';
 import '../constants/app_text_styles.dart';
 
-class BmsLoadingOverlay extends StatelessWidget {
-  const BmsLoadingOverlay({super.key, this.message = AppStrings.loading});
+class CbtlLoadingOverlay extends StatelessWidget {
+  const CbtlLoadingOverlay({super.key, this.message = AppStrings.loading});
 
   final String message;
 

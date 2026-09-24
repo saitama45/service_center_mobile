@@ -18,8 +18,8 @@ import '../constants/app_text_styles.dart';
 /// Shown as [SelectableText] with a copy button because the member may need
 /// to send it rather than show it — and because a code you cannot select is a
 /// code you cannot check character by character when someone mistypes it.
-class BmsManualCode extends StatelessWidget {
-  const BmsManualCode({
+class CbtlManualCode extends StatelessWidget {
+  const CbtlManualCode({
     super.key,
     required this.code,
     this.label = 'MANUAL ENTRY CODE',

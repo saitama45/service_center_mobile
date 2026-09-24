@@ -2,10 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/constants/app_strings.dart';
 import '../../../core/constants/app_dimensions.dart';
 import '../../../core/constants/app_text_styles.dart';
 import '../../../core/widgets/app_drawer.dart';
-import '../../../core/widgets/bms_card.dart';
+import '../../../core/widgets/cbtl_card.dart';
 import '../../../database/daos/loyalty_dao.dart';
 import '../../providers/app_providers.dart';
 import '../../providers/auth_provider.dart';
@@ -31,7 +32,9 @@ class HomeScreen extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: AppColors.cream,
-      drawer: const AppDrawer(),
+      // Members see no hamburger: the drawer's only unique content is the
+      // admin module links.
+      drawer: ref.watch(hasAdminModulesProvider) ? const AppDrawer() : null,
       appBar: AppBar(
         backgroundColor: AppColors.cream,
         foregroundColor: AppColors.espresso,
@@ -65,7 +68,6 @@ class HomeScreen extends ConsumerWidget {
           children: [
             _Greeting(
               name: user?.fullName ?? '',
-              initials: user?.initials ?? '',
               tier: _tierFor(totals.valueOrNull?.earned ?? 0),
             ),
             const SizedBox(height: AppDimensions.md),
@@ -87,7 +89,7 @@ class HomeScreen extends ConsumerWidget {
             // ── Stamp card hero ────────────────────────────────────────────
             featured.when(
               loading: () => const _HeroSkeleton(),
-              error: (e, _) => BmsCard(
+              error: (e, _) => CbtlCard(
                 child: Text('Could not load your stamp card.\n$e',
                     style: AppTextStyles.bodySmall),
               ),
@@ -169,20 +171,14 @@ class HomeScreen extends ConsumerWidget {
 class _Greeting extends StatelessWidget {
   const _Greeting({
     required this.name,
-    required this.initials,
     required this.tier,
   });
 
   final String name;
-  final String initials;
   final String tier;
 
-  String get _greeting {
-    final h = DateTime.now().hour;
-    if (h < 12) return 'Good morning';
-    if (h < 18) return 'Good afternoon';
-    return 'Good evening';
-  }
+  /// Set to true to bring the loyalty tier badge back.
+  static const bool _showTierBadge = false;
 
   @override
   Widget build(BuildContext context) {
@@ -192,7 +188,10 @@ class _Greeting extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(_greeting, style: AppTextStyles.bodySmall),
+              const Text(AppStrings.appNameFull,
+                  style: AppTextStyles.bodySmall,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis),
               const SizedBox(height: 2),
               Text(
                 name.isEmpty ? 'Welcome' : name.split(' ').first,
@@ -203,32 +202,37 @@ class _Greeting extends StatelessWidget {
             ],
           ),
         ),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-          decoration: BoxDecoration(
-            color: AppColors.gold,
-            borderRadius: BorderRadius.circular(AppDimensions.radiusRound),
+        // Tier badge (Bronze/Silver/Gold/Platinum) is hidden for now — the
+        // tiers still compute, so flipping this back to true restores it.
+        if (_showTierBadge) ...[
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+            decoration: BoxDecoration(
+              color: AppColors.gold,
+              borderRadius: BorderRadius.circular(AppDimensions.radiusRound),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.star, size: 11, color: AppColors.espresso),
+                const SizedBox(width: 4),
+                Text(tier,
+                    style:
+                        AppTextStyles.chip.copyWith(color: AppColors.espresso)),
+              ],
+            ),
           ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(Icons.star, size: 11, color: AppColors.espresso),
-              const SizedBox(width: 4),
-              Text(tier,
-                  style:
-                      AppTextStyles.chip.copyWith(color: AppColors.espresso)),
-            ],
+          const SizedBox(width: 10),
+        ],
+        // App logo stands in for the user's initials here — the avatar was
+        // decorative, and the mark reads as the brand at this size.
+        ClipOval(
+          child: Image.asset(
+            'assets/images/app_logo.jpg',
+            width: 40,
+            height: 40,
+            fit: BoxFit.cover,
           ),
-        ),
-        const SizedBox(width: 10),
-        Container(
-          width: 40,
-          height: 40,
-          alignment: Alignment.center,
-          decoration: const BoxDecoration(
-              color: AppColors.brown, shape: BoxShape.circle),
-          child: Text(initials,
-              style: AppTextStyles.h3.copyWith(color: AppColors.cream)),
         ),
       ],
     );
@@ -324,7 +328,7 @@ class _StampCardHero extends StatelessWidget {
   Widget build(BuildContext context) {
     final pct = (progress.progress * 100).round();
 
-    return BmsHeroCard(
+    return CbtlHeroCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -409,7 +413,7 @@ class _HeroSkeleton extends StatelessWidget {
   const _HeroSkeleton();
 
   @override
-  Widget build(BuildContext context) => BmsHeroCard(
+  Widget build(BuildContext context) => CbtlHeroCard(
         child: SizedBox(
           height: 168,
           child: Center(
@@ -428,7 +432,7 @@ class _NoCampaignsCard extends StatelessWidget {
   const _NoCampaignsCard();
 
   @override
-  Widget build(BuildContext context) => BmsHeroCard(
+  Widget build(BuildContext context) => CbtlHeroCard(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -459,7 +463,7 @@ class _StatCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BmsCard(
+    return CbtlCard(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -485,7 +489,7 @@ class _CampaignTeaser extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BmsCard(
+    return CbtlCard(
       onTap: onTap,
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -515,7 +519,7 @@ class _CampaignTeaser extends StatelessWidget {
                   style: AppTextStyles.caption,
                 ),
                 const SizedBox(height: 9),
-                BmsProgressBar(value: progress.progress, height: 6),
+                CbtlProgressBar(value: progress.progress, height: 6),
               ],
             ),
           ),

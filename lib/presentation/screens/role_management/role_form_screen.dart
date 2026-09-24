@@ -5,10 +5,10 @@ import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_dimensions.dart';
 import '../../../core/constants/app_strings.dart';
 import '../../../core/constants/app_text_styles.dart';
-import '../../../core/widgets/bms_app_bar.dart';
-import '../../../core/widgets/bms_button.dart';
-import '../../../core/widgets/bms_loading_overlay.dart';
-import '../../../core/widgets/bms_text_field.dart';
+import '../../../core/widgets/cbtl_app_bar.dart';
+import '../../../core/widgets/cbtl_button.dart';
+import '../../../core/widgets/cbtl_loading_overlay.dart';
+import '../../../core/widgets/cbtl_text_field.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/role_management_provider.dart';
 
@@ -106,7 +106,7 @@ class _RoleFormScreenState extends ConsumerState<RoleFormScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.cream,
-      appBar: BmsAppBar(
+      appBar: CbtlAppBar(
         title: isEditing ? AppStrings.editRole : AppStrings.addRole,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: AppColors.white),
@@ -122,7 +122,7 @@ class _RoleFormScreenState extends ConsumerState<RoleFormScreen> {
               child: Column(
                 children: [
                   _buildCard(children: [
-                    BmsTextField(
+                    CbtlTextField(
                       label: AppStrings.roleCode,
                       controller: _codeCtrl,
                       readOnly: isEditing, // code is immutable after creation
@@ -136,7 +136,7 @@ class _RoleFormScreenState extends ConsumerState<RoleFormScreen> {
                       },
                     ),
                     const SizedBox(height: AppDimensions.md),
-                    BmsTextField(
+                    CbtlTextField(
                       label: AppStrings.role,
                       controller: _nameCtrl,
                       prefixIcon: Icons.badge_outlined,
@@ -144,7 +144,7 @@ class _RoleFormScreenState extends ConsumerState<RoleFormScreen> {
                           (v == null || v.trim().isEmpty) ? 'Required' : null,
                     ),
                     const SizedBox(height: AppDimensions.md),
-                    BmsTextField(
+                    CbtlTextField(
                       label: AppStrings.roleDescription,
                       controller: _descCtrl,
                       maxLines: 3,
@@ -224,7 +224,7 @@ class _RoleFormScreenState extends ConsumerState<RoleFormScreen> {
                     ),
                   ],
                   const SizedBox(height: AppDimensions.lg),
-                  BmsButton(
+                  CbtlButton(
                     label: AppStrings.save,
                     onPressed: _onSave,
                     isFullWidth: true,
@@ -235,7 +235,7 @@ class _RoleFormScreenState extends ConsumerState<RoleFormScreen> {
               ),
             ),
           ),
-          if (_isLoading) const BmsLoadingOverlay(),
+          if (_isLoading) const CbtlLoadingOverlay(),
         ],
       ),
     );

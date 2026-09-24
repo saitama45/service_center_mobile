@@ -3,16 +3,19 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_dimensions.dart';
+import '../../../core/constants/app_urls.dart';
+import '../../../core/utils/external_link.dart';
 import '../../../core/constants/app_strings.dart';
 import '../../../core/constants/app_text_styles.dart';
 import '../../../core/utils/date_format_util.dart';
 import '../../../core/widgets/app_drawer.dart';
-import '../../../core/widgets/bms_app_bar.dart';
-import '../../../core/widgets/bms_button.dart';
-import '../../../core/widgets/bms_card.dart';
+import '../../../core/widgets/cbtl_app_bar.dart';
+import '../../../core/widgets/cbtl_button.dart';
+import '../../../core/widgets/cbtl_card.dart';
 import '../../providers/auth_flow_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../../routing/route_names.dart';
+import '../../providers/app_providers.dart';
 
 class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
@@ -28,8 +31,10 @@ class ProfileScreen extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: AppColors.cream,
-      drawer: const AppDrawer(),
-      appBar: const BmsAppBar(
+      // Members see no hamburger: the drawer's only unique content is the
+      // admin module links.
+      drawer: ref.watch(hasAdminModulesProvider) ? const AppDrawer() : null,
+      appBar: const CbtlAppBar(
         title: AppStrings.profile,
       ),
       body: SingleChildScrollView(
@@ -39,7 +44,7 @@ class ProfileScreen extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // ── Identity hero ────────────────────────────────────────────
-            BmsHeroCard(
+            CbtlHeroCard(
               padding: const EdgeInsets.all(AppDimensions.md + 2),
               child: Row(
                 children: [
@@ -85,7 +90,7 @@ class ProfileScreen extends ConsumerWidget {
             const SizedBox(height: AppDimensions.md),
 
             // ── Account details ──────────────────────────────────────────
-            BmsSectionCard(
+            CbtlSectionCard(
               title: 'Account Details',
               icon: Icons.badge_outlined,
               child: Column(
@@ -116,7 +121,7 @@ class ProfileScreen extends ConsumerWidget {
             const SizedBox(height: AppDimensions.md),
 
             // ── Security actions ─────────────────────────────────────────
-            BmsCard(
+            CbtlCard(
               padding: EdgeInsets.zero,
               child: _NavRow(
                 icon: Icons.lock_outline,
@@ -130,11 +135,42 @@ class ProfileScreen extends ConsumerWidget {
             const SizedBox(height: AppDimensions.md),
             _AuthenticatorCard(userId: user.id),
 
+            const SizedBox(height: AppDimensions.md),
+
+            // ── Privacy policy ───────────────────────────────────────────
+            CbtlCard(
+              padding: EdgeInsets.zero,
+              child: _NavRow(
+                icon: Icons.privacy_tip_outlined,
+                label: 'Privacy Policy',
+                sub: 'How we collect, use and protect your data',
+                onTap: () =>
+                    context.go('/dashboard/profile/privacy-policy'),
+              ),
+            ),
+
+            const SizedBox(height: AppDimensions.md),
+
+            // ── Account deletion ─────────────────────────────────────────
+            // Required by App Store Review Guideline 5.1.1(v): account
+            // deletion must be reachable from inside the app. The request
+            // itself is completed on the web page.
+            CbtlCard(
+              padding: EdgeInsets.zero,
+              child: _NavRow(
+                icon: Icons.person_remove_outlined,
+                label: 'Delete Account',
+                sub: 'Request permanent deletion of your account',
+                onTap: () =>
+                    openExternalUrl(context, AppUrls.accountDeletion),
+              ),
+            ),
+
             const SizedBox(height: AppDimensions.lg),
 
-            BmsButton(
+            CbtlButton(
               label: AppStrings.signOut,
-              variant: BmsButtonVariant.danger,
+              variant: CbtlButtonVariant.danger,
               isFullWidth: true,
               icon: Icons.logout,
               onPressed: () => _confirmLogout(context, ref),
@@ -184,7 +220,7 @@ class _BiometricToggleCard extends ConsumerWidget {
 
     final enabled = ref.watch(biometricEnabledProvider).valueOrNull ?? false;
 
-    return BmsCard(
+    return CbtlCard(
       child: Row(
         children: [
           Container(
@@ -247,7 +283,7 @@ class _AuthenticatorCard extends ConsumerWidget {
     final enrolled =
         ref.watch(authenticatorEnrolledProvider(userId)).valueOrNull ?? false;
 
-    return BmsCard(
+    return CbtlCard(
       padding: EdgeInsets.zero,
       child: _NavRow(
         icon: enrolled ? Icons.verified_user_outlined : Icons.qr_code_2,

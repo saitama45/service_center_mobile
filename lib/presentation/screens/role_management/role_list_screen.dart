@@ -7,16 +7,17 @@ import '../../../core/constants/app_strings.dart';
 import '../../../core/constants/app_text_styles.dart';
 import '../../../core/constants/module_codes.dart';
 import '../../../core/constants/permission_codes.dart';
-import '../../../core/widgets/bms_app_bar.dart';
+import '../../../core/widgets/cbtl_app_bar.dart';
 import '../../../core/widgets/app_drawer.dart';
-import '../../../core/widgets/bms_empty_state.dart';
+import '../../../core/widgets/cbtl_empty_state.dart';
 import '../../../core/widgets/permission_gate.dart';
 import '../../../core/widgets/confirmation_dialog.dart';
-import '../../../core/widgets/bms_button.dart';
+import '../../../core/widgets/cbtl_button.dart';
 import '../../../domain/entities/role_entity.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/permission_provider.dart';
 import '../../providers/role_management_provider.dart';
+import '../../providers/app_providers.dart';
 
 class RoleListScreen extends ConsumerWidget {
   const RoleListScreen({super.key});
@@ -27,8 +28,10 @@ class RoleListScreen extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: AppColors.cream,
-      drawer: const AppDrawer(),
-      appBar: const BmsAppBar(
+      // Members see no hamburger: the drawer's only unique content is the
+      // admin module links.
+      drawer: ref.watch(hasAdminModulesProvider) ? const AppDrawer() : null,
+      appBar: const CbtlAppBar(
         title: AppStrings.roleManagement,
         subtitle: AppStrings.roles,
       ),
@@ -45,7 +48,7 @@ class RoleListScreen extends ConsumerWidget {
       ),
       body: rolesAsync.when(
         data: (roles) => roles.isEmpty
-            ? const BmsEmptyState(
+            ? const CbtlEmptyState(
                 message: AppStrings.noData,
                 icon: Icons.admin_panel_settings_outlined,
               )
@@ -201,7 +204,7 @@ class _RoleTile extends ConsumerWidget {
       title: 'Delete Role',
       message: 'Are you sure you want to permanently delete role "${role.name}"?',
       confirmLabel: 'Delete',
-      confirmVariant: BmsButtonVariant.danger,
+      confirmVariant: CbtlButtonVariant.danger,
     );
     if (!confirmed || !context.mounted) return false;
 

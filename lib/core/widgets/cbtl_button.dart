@@ -3,7 +3,7 @@ import '../constants/app_colors.dart';
 import '../constants/app_dimensions.dart';
 import '../constants/app_text_styles.dart';
 
-enum BmsButtonVariant {
+enum CbtlButtonVariant {
   /// Espresso fill — the single primary action on a screen.
   primary,
 
@@ -20,12 +20,12 @@ enum BmsButtonVariant {
   ghost,
 }
 
-class BmsButton extends StatelessWidget {
-  const BmsButton({
+class CbtlButton extends StatelessWidget {
+  const CbtlButton({
     super.key,
     required this.label,
     required this.onPressed,
-    this.variant = BmsButtonVariant.primary,
+    this.variant = CbtlButtonVariant.primary,
     this.icon,
     this.isLoading = false,
     this.isFullWidth = false,
@@ -33,7 +33,7 @@ class BmsButton extends StatelessWidget {
 
   final String label;
   final VoidCallback? onPressed;
-  final BmsButtonVariant variant;
+  final CbtlButtonVariant variant;
   final IconData? icon;
   final bool isLoading;
   final bool isFullWidth;
@@ -98,22 +98,22 @@ class BmsButton extends StatelessWidget {
         : button;
   }
 
-  _ButtonColors _variantColors(BmsButtonVariant v) => switch (v) {
-        BmsButtonVariant.primary =>
+  _ButtonColors _variantColors(CbtlButtonVariant v) => switch (v) {
+        CbtlButtonVariant.primary =>
           const _ButtonColors(AppColors.espresso, AppColors.cream),
-        BmsButtonVariant.secondary => const _ButtonColors(
+        CbtlButtonVariant.secondary => const _ButtonColors(
             AppColors.white,
             AppColors.espresso,
             border: AppColors.latte,
           ),
-        BmsButtonVariant.accent =>
+        CbtlButtonVariant.accent =>
           const _ButtonColors(AppColors.amber, AppColors.white),
-        BmsButtonVariant.danger => const _ButtonColors(
+        CbtlButtonVariant.danger => const _ButtonColors(
             AppColors.dangerSurface,
             AppColors.danger,
             border: AppColors.dangerBorder,
           ),
-        BmsButtonVariant.ghost =>
+        CbtlButtonVariant.ghost =>
           const _ButtonColors(Colors.transparent, AppColors.amber),
       };
 }

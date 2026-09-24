@@ -5,9 +5,9 @@ import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_dimensions.dart';
 import '../../../core/constants/app_text_styles.dart';
 import '../../../core/widgets/app_drawer.dart';
-import '../../../core/widgets/bms_app_bar.dart';
-import '../../../core/widgets/bms_card.dart';
-import '../../../core/widgets/bms_empty_state.dart';
+import '../../../core/widgets/cbtl_app_bar.dart';
+import '../../../core/widgets/cbtl_card.dart';
+import '../../../core/widgets/cbtl_empty_state.dart';
 import '../../../database/daos/loyalty_dao.dart';
 import '../../../database/tables/loyalty_tables.dart';
 import '../../providers/app_providers.dart';
@@ -28,8 +28,10 @@ class LedgerScreen extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: AppColors.cream,
-      drawer: const AppDrawer(),
-      appBar: const BmsAppBar(
+      // Members see no hamburger: the drawer's only unique content is the
+      // admin module links.
+      drawer: ref.watch(hasAdminModulesProvider) ? const AppDrawer() : null,
+      appBar: const CbtlAppBar(
         title: 'History',
         subtitle: 'Your stamp activity',
       ),
@@ -45,7 +47,7 @@ class LedgerScreen extends ConsumerWidget {
         child: txns.when(
           loading: () =>
               const Center(child: CircularProgressIndicator(color: AppColors.amber)),
-          error: (e, _) => BmsEmptyState(
+          error: (e, _) => CbtlEmptyState(
             title: 'Could not load history',
             message: '$e',
             icon: Icons.error_outline,
@@ -160,7 +162,7 @@ class LedgerScreen extends ConsumerWidget {
                 if (rows.isEmpty)
                   Padding(
                     padding: const EdgeInsets.only(top: 48),
-                    child: BmsEmptyState(
+                    child: CbtlEmptyState(
                       title: list.isEmpty
                           ? 'No activity yet'
                           : 'Nothing on this campaign yet',
@@ -252,7 +254,7 @@ class _Total extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BmsCard(
+    return CbtlCard(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
       child: Column(
         children: [
@@ -280,7 +282,7 @@ class _TransactionRow extends StatelessWidget {
     final isEarn = txn.type == txnEarn;
     final local = txn.occurredAt.toLocal();
 
-    return BmsCard(
+    return CbtlCard(
       padding: const EdgeInsets.all(13),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,

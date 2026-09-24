@@ -1,5 +1,5 @@
-name: bms
-description: Bridge Management System — DPWH Mobile Application
+name: cbtl
+description: Coffee Bean & Tea Leaf loyalty and service mobile application.
 version: 1.0.0+1
 publish_to: none
 
@@ -39,21 +39,14 @@ dependencies:
   freezed_annotation: ^2.4.1
   json_annotation: ^4.9.0
   crypto: ^3.0.3
+  http: ^1.6.0
 
   # Loyalty
   qr_flutter: ^4.1.0 # renders the member's rotating scan token
   local_auth: ^2.3.0 # Face ID / fingerprint unlock
 
   # UI
-  flutter_svg: ^2.0.10+1
-  cached_network_image: ^3.3.1
-  image_picker: ^1.2.1
-  camera: ^0.11.0+2
-  google_maps_flutter: ^2.10.0
-  geolocator: ^14.0.2
-  image: ^4.8.0
-  screenshot: ^3.0.0
-  url_launcher: ^6.3.0
+  url_launcher: ^6.3.0 # opens the web account-deletion and password-reset pages
 
 dev_dependencies:
   flutter_test:

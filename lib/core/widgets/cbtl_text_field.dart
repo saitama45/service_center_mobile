@@ -3,8 +3,8 @@ import '../constants/app_colors.dart';
 import '../constants/app_dimensions.dart';
 import '../constants/app_text_styles.dart';
 
-class BmsTextField extends StatefulWidget {
-  const BmsTextField({
+class CbtlTextField extends StatefulWidget {
+  const CbtlTextField({
     super.key,
     required this.label,
     this.controller,
@@ -46,10 +46,10 @@ class BmsTextField extends StatefulWidget {
   final FocusNode? focusNode;
 
   @override
-  State<BmsTextField> createState() => _BmsTextFieldState();
+  State<CbtlTextField> createState() => _BmsTextFieldState();
 }
 
-class _BmsTextFieldState extends State<BmsTextField> {
+class _BmsTextFieldState extends State<CbtlTextField> {
   late bool _obscure;
 
   @override

@@ -17,6 +17,7 @@ import '../presentation/screens/login/login_screen.dart';
 import '../presentation/screens/login/register_screen.dart';
 import '../presentation/screens/main_shell.dart';
 import '../presentation/screens/profile/change_password_screen.dart';
+import '../presentation/screens/profile/privacy_policy_screen.dart';
 import '../presentation/screens/profile/profile_screen.dart';
 import '../presentation/screens/role_management/permission_matrix_screen.dart';
 import '../presentation/screens/role_management/role_form_screen.dart';
@@ -231,6 +232,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                   GoRoute(
                     path: 'authenticator',
                     builder: (ctx, state) => const AuthenticatorSetupScreen(),
+                  ),
+                  GoRoute(
+                    path: 'privacy-policy',
+                    builder: (ctx, state) => const PrivacyPolicyScreen(),
                   ),
                 ],
               ),

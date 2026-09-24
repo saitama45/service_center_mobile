@@ -2,9 +2,9 @@ import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:drift/native.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:bms/database/app_database.dart';
-import 'package:bms/database/daos/loyalty_dao.dart';
-import 'package:bms/presentation/providers/loyalty_provider.dart';
+import 'package:cbtl/database/app_database.dart';
+import 'package:cbtl/database/daos/loyalty_dao.dart';
+import 'package:cbtl/presentation/providers/loyalty_provider.dart';
 
 /// Home's campaign switcher: which card the hero shows when a member is
 /// collecting on more than one campaign at a time.

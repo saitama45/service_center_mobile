@@ -9,10 +9,10 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 
-import 'package:bms/core/errors/failures.dart';
-import 'package:bms/data/datasources/remote/api_client.dart';
-import 'package:bms/database/app_database.dart';
-import 'package:bms/domain/usecases/auth/login_usecase.dart';
+import 'package:cbtl/core/errors/failures.dart';
+import 'package:cbtl/data/datasources/remote/api_client.dart';
+import 'package:cbtl/database/app_database.dart';
+import 'package:cbtl/domain/usecases/auth/login_usecase.dart';
 
 /// Scripted stand-in for the server round trip — same pattern as the fakes in
 /// sync_manager_test.dart, one level lower (the raw HTTP response).

@@ -5,8 +5,8 @@ import 'core/constants/app_dimensions.dart';
 import 'core/constants/app_text_styles.dart';
 import 'routing/app_router.dart';
 
-class BmsApp extends ConsumerWidget {
-  const BmsApp({super.key});
+class CbtlApp extends ConsumerWidget {
+  const CbtlApp({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

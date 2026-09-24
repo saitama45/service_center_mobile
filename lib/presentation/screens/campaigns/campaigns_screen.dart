@@ -5,9 +5,9 @@ import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_dimensions.dart';
 import '../../../core/constants/app_text_styles.dart';
 import '../../../core/widgets/app_drawer.dart';
-import '../../../core/widgets/bms_app_bar.dart';
-import '../../../core/widgets/bms_card.dart';
-import '../../../core/widgets/bms_empty_state.dart';
+import '../../../core/widgets/cbtl_app_bar.dart';
+import '../../../core/widgets/cbtl_card.dart';
+import '../../../core/widgets/cbtl_empty_state.dart';
 import '../../../database/daos/loyalty_dao.dart';
 import '../../providers/app_providers.dart';
 import '../../providers/auth_provider.dart';
@@ -42,22 +42,24 @@ class _CampaignsScreenState extends ConsumerState<CampaignsScreen> {
 
     return Scaffold(
       backgroundColor: AppColors.cream,
-      drawer: const AppDrawer(),
-      appBar: const BmsAppBar(
+      // Members see no hamburger: the drawer's only unique content is the
+      // admin module links.
+      drawer: ref.watch(hasAdminModulesProvider) ? const AppDrawer() : null,
+      appBar: const CbtlAppBar(
         title: 'Campaigns',
         subtitle: 'Earn stamps, unlock rewards',
       ),
       body: async.when(
         loading: () => const Center(
             child: CircularProgressIndicator(color: AppColors.amber)),
-        error: (e, _) => BmsEmptyState(
+        error: (e, _) => CbtlEmptyState(
           title: 'Could not load campaigns',
           message: '$e',
           icon: Icons.error_outline,
         ),
         data: (all) {
           if (all.isEmpty) {
-            return const BmsEmptyState(
+            return const CbtlEmptyState(
               title: "You haven't started a card yet",
               message: 'Show your member code at checkout and staff will '
                   'add your first stamp — your campaigns will show up here.',
@@ -118,7 +120,7 @@ class _CampaignsScreenState extends ConsumerState<CampaignsScreen> {
                       .read(syncManagerProvider)
                       .sync(userId: ref.read(currentUserProvider)?.id),
                   child: visible.isEmpty
-                      ? BmsEmptyState(
+                      ? CbtlEmptyState(
                           title: switch (_filter) {
                             _CardFilter.current => 'No cards in play',
                             _CardFilter.redeemed => 'No rewards claimed yet',
@@ -429,7 +431,7 @@ class _CampaignCard extends StatelessWidget {
                                 ),
                                 if (c.tag != null) ...[
                                   const SizedBox(width: 8),
-                                  BmsStatusPill.neutral(c.tag!),
+                                  CbtlStatusPill.neutral(c.tag!),
                                 ],
                               ],
                             ),
@@ -463,7 +465,7 @@ class _CampaignCard extends StatelessWidget {
                     ],
                   ),
                   const SizedBox(height: 7),
-                  BmsProgressBar(
+                  CbtlProgressBar(
                     value: progress.progress,
                     gradient: unlocked
                         ? const LinearGradient(

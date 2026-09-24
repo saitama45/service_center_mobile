@@ -22,11 +22,11 @@ class SeedRunner {
       final resetVersion = await _db.settingsDao.getSetting('arch_reset_v7');
       debugPrint('SeedRunner: Current reset version is "$resetVersion"');
 
-      if (resetVersion != '12') {
-        debugPrint('SeedRunner: Reset version mismatch (v12). Wiping database...');
+      if (resetVersion != '13') {
+        debugPrint('SeedRunner: Reset version mismatch (v13). Wiping database...');
         await _runReset();
         await _runSeeds();
-        await _db.settingsDao.setSetting('arch_reset_v7', '12');
+        await _db.settingsDao.setSetting('arch_reset_v7', '13');
         debugPrint('SeedRunner: Database reset and seeded successfully.');
         return;
       }

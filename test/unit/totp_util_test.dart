@@ -1,7 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:bms/core/utils/totp_util.dart';
+import 'package:cbtl/core/utils/totp_util.dart';
 
 void main() {
   // RFC 6238 Appendix B uses the ASCII secret "12345678901234567890" for the

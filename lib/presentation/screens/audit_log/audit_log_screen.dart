@@ -6,9 +6,9 @@ import '../../../core/constants/app_dimensions.dart';
 import '../../../core/constants/app_strings.dart';
 import '../../../core/constants/app_text_styles.dart';
 import '../../../core/utils/date_format_util.dart';
-import '../../../core/widgets/bms_app_bar.dart';
+import '../../../core/widgets/cbtl_app_bar.dart';
 import '../../../core/widgets/app_drawer.dart';
-import '../../../core/widgets/bms_empty_state.dart';
+import '../../../core/widgets/cbtl_empty_state.dart';
 import '../../providers/app_providers.dart';
 
 // ── Constants ─────────────────────────────────────────────────────────────────
@@ -177,8 +177,10 @@ class AuditLogScreen extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: AppColors.cream,
-      drawer: const AppDrawer(),
-      appBar: BmsAppBar(
+      // Members see no hamburger: the drawer's only unique content is the
+      // admin module links.
+      drawer: ref.watch(hasAdminModulesProvider) ? const AppDrawer() : null,
+      appBar: CbtlAppBar(
         title: AppStrings.auditLog,
         actions: [
           IconButton(
@@ -197,7 +199,7 @@ class AuditLogScreen extends ConsumerWidget {
           Expanded(
             child: logsAsync.when(
               data: (logs) => logs.isEmpty && filter.page == 0
-                  ? const BmsEmptyState(
+                  ? const CbtlEmptyState(
                       message: AppStrings.noAuditLogs,
                       icon: Icons.history_outlined,
                     )

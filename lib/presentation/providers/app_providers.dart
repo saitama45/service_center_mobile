@@ -9,6 +9,8 @@ import '../../data/datasources/remote/api_client.dart';
 import '../../data/datasources/remote/loyalty_member_remote_datasource.dart';
 import '../../data/datasources/remote/otp_remote_datasource.dart';
 import '../../core/sync/sync_manager.dart';
+import '../../core/constants/permission_codes.dart';
+import 'permission_provider.dart';
 
 // ── Singleton providers ───────────────────────────────────────────────────────
 
@@ -95,4 +97,18 @@ bool _isOffline(List<ConnectivityResult> results) {
 final activeModulesProvider = FutureProvider<List<Module>>((ref) {
   final db = ref.read(appDatabaseProvider);
   return db.moduleDao.getAllModules(activeOnly: true);
+});
+
+/// True when the signed-in user can VIEW at least one admin module.
+///
+/// The drawer's only non-redundant content is those module links — its top
+/// four entries duplicate the bottom tabs. So screens hide the drawer (and
+/// with it the hamburger) unless this is true, leaving members with tabs
+/// alone while admins keep their way into User Management, Role Management
+/// and Audit Log. Mirrors the per-item check inside AppDrawer.
+final hasAdminModulesProvider = Provider<bool>((ref) {
+  final modules = ref.watch(activeModulesProvider).valueOrNull;
+  final cache = ref.watch(userPermissionsProvider).valueOrNull;
+  if (modules == null || cache == null) return false;
+  return modules.any((m) => cache.check(m.code, PermissionCodes.view));
 });

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import '../constants/app_colors.dart';
 
-class BmsImageViewer extends StatefulWidget {
-  const BmsImageViewer({super.key, required this.imageProvider});
+class CbtlImageViewer extends StatefulWidget {
+  const CbtlImageViewer({super.key, required this.imageProvider});
 
   final ImageProvider imageProvider;
 
@@ -10,15 +10,15 @@ class BmsImageViewer extends StatefulWidget {
     showDialog(
       context: context,
       useSafeArea: false,
-      builder: (context) => BmsImageViewer(imageProvider: imageProvider),
+      builder: (context) => CbtlImageViewer(imageProvider: imageProvider),
     );
   }
 
   @override
-  State<BmsImageViewer> createState() => _BmsImageViewerState();
+  State<CbtlImageViewer> createState() => _BmsImageViewerState();
 }
 
-class _BmsImageViewerState extends State<BmsImageViewer> {
+class _BmsImageViewerState extends State<CbtlImageViewer> {
   final TransformationController _transformationController = TransformationController();
   double _currentScale = 1.0;
 

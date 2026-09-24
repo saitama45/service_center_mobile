@@ -4,8 +4,8 @@ import '../constants/app_colors.dart';
 import '../constants/app_text_styles.dart';
 
 /// Branded AppBar — espresso surface, serif title, flat.
-class BmsAppBar extends StatelessWidget implements PreferredSizeWidget {
-  const BmsAppBar({
+class CbtlAppBar extends StatelessWidget implements PreferredSizeWidget {
+  const CbtlAppBar({
     super.key,
     required this.title,
     this.subtitle,

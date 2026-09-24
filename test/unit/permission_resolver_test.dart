@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:bms/domain/entities/permission_cache.dart';
-import 'package:bms/database/daos/permission_matrix_dao.dart';
+import 'package:cbtl/domain/entities/permission_cache.dart';
+import 'package:cbtl/database/daos/permission_matrix_dao.dart';
 
 void main() {
   group('PermissionCache', () {

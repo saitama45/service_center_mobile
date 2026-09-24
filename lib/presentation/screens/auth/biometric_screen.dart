@@ -5,7 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_dimensions.dart';
 import '../../../core/constants/app_text_styles.dart';
-import '../../../core/widgets/bms_button.dart';
+import '../../../core/widgets/cbtl_button.dart';
 import '../../providers/app_providers.dart';
 import '../../providers/auth_flow_provider.dart';
 import '../../providers/auth_provider.dart';
@@ -191,16 +191,16 @@ class _BiometricScreenState extends ConsumerState<BiometricScreen> {
 
                 const SizedBox(height: AppDimensions.lg),
 
-                BmsButton(
+                CbtlButton(
                   label: 'Enable Biometric Login',
                   isFullWidth: true,
                   isLoading: _scanning,
                   onPressed: isAvailable ? _enable : null,
                 ),
                 const SizedBox(height: AppDimensions.sm),
-                BmsButton(
+                CbtlButton(
                   label: 'Skip for now',
-                  variant: BmsButtonVariant.ghost,
+                  variant: CbtlButtonVariant.ghost,
                   isFullWidth: true,
                   onPressed: _finish,
                 ),

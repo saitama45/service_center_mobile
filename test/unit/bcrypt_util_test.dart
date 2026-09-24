@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:bms/core/utils/bcrypt_util.dart';
+import 'package:cbtl/core/utils/bcrypt_util.dart';
 
 void main() {
   group('BcryptUtil', () {

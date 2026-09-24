@@ -7,9 +7,9 @@ import 'package:qr_flutter/qr_flutter.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_dimensions.dart';
 import '../../../core/constants/app_text_styles.dart';
-import '../../../core/widgets/bms_button.dart';
-import '../../../core/widgets/bms_card.dart';
-import '../../../core/widgets/bms_manual_code.dart';
+import '../../../core/widgets/cbtl_button.dart';
+import '../../../core/widgets/cbtl_card.dart';
+import '../../../core/widgets/cbtl_manual_code.dart';
 import '../../providers/app_providers.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/loyalty_provider.dart';
@@ -222,7 +222,7 @@ class _RetryState extends StatelessWidget {
           const SizedBox(height: AppDimensions.md),
           Text(message, style: AppTextStyles.bodyMedium, textAlign: TextAlign.center),
           const SizedBox(height: AppDimensions.md),
-          BmsButton(label: 'Try Again', onPressed: onRetry),
+          CbtlButton(label: 'Try Again', onPressed: onRetry),
         ],
       ),
     );
@@ -296,10 +296,10 @@ class _MemberCode extends StatelessWidget {
         // The same code in plain text — the fallback when a scanner won't
         // read the screen. Staff type it into the very same field the
         // scanner would have typed into.
-        BmsManualCode(code: token),
+        CbtlManualCode(code: token),
         const SizedBox(height: AppDimensions.lg),
 
-        BmsSectionCard(
+        CbtlSectionCard(
           title: 'How to earn a stamp',
           icon: Icons.storefront_outlined,
           child: Text(

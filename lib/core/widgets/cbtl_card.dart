@@ -5,8 +5,8 @@ import '../constants/app_text_styles.dart';
 
 /// The standard surface of the app: white, softly rounded, hairline latte
 /// border, no Material elevation. Everything that is not a hero sits in one.
-class BmsCard extends StatelessWidget {
-  const BmsCard({
+class CbtlCard extends StatelessWidget {
+  const CbtlCard({
     super.key,
     required this.child,
     this.padding = const EdgeInsets.all(AppDimensions.md),
@@ -62,10 +62,10 @@ class BmsCard extends StatelessWidget {
   }
 }
 
-/// A [BmsCard] with a title row above its body — used for the grouped
+/// A [CbtlCard] with a title row above its body — used for the grouped
 /// "section" blocks that make up most detail screens.
-class BmsSectionCard extends StatelessWidget {
-  const BmsSectionCard({
+class CbtlSectionCard extends StatelessWidget {
+  const CbtlSectionCard({
     super.key,
     required this.title,
     required this.child,
@@ -84,7 +84,7 @@ class BmsSectionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BmsCard(
+    return CbtlCard(
       margin: margin,
       padding: padding,
       child: Column(
@@ -110,8 +110,8 @@ class BmsSectionCard extends StatelessWidget {
 
 /// The signature dark gradient card. Reserved for the one hero element on a
 /// screen — a stamp card in the mock, the clock/status panel here.
-class BmsHeroCard extends StatelessWidget {
-  const BmsHeroCard({
+class CbtlHeroCard extends StatelessWidget {
+  const CbtlHeroCard({
     super.key,
     required this.child,
     this.padding = const EdgeInsets.all(AppDimensions.md + 2),
@@ -138,8 +138,8 @@ class BmsHeroCard extends StatelessWidget {
 }
 
 /// Small uppercase caption used above values inside cards.
-class BmsFieldLabel extends StatelessWidget {
-  const BmsFieldLabel(this.text, {super.key, this.color});
+class CbtlFieldLabel extends StatelessWidget {
+  const CbtlFieldLabel(this.text, {super.key, this.color});
 
   final String text;
   final Color? color;
@@ -154,8 +154,8 @@ class BmsFieldLabel extends StatelessWidget {
 }
 
 /// Rounded status pill — the badge vocabulary used across lists and tables.
-class BmsStatusPill extends StatelessWidget {
-  const BmsStatusPill({
+class CbtlStatusPill extends StatelessWidget {
+  const CbtlStatusPill({
     super.key,
     required this.label,
     required this.color,
@@ -165,23 +165,23 @@ class BmsStatusPill extends StatelessWidget {
   });
 
   /// Convenience constructors for the three states used most often.
-  factory BmsStatusPill.success(String label, {bool showDot = true}) =>
-      BmsStatusPill(
+  factory CbtlStatusPill.success(String label, {bool showDot = true}) =>
+      CbtlStatusPill(
         label: label,
         color: AppColors.success,
         background: AppColors.successSurface,
         showDot: showDot,
       );
 
-  factory BmsStatusPill.danger(String label, {bool showDot = true}) =>
-      BmsStatusPill(
+  factory CbtlStatusPill.danger(String label, {bool showDot = true}) =>
+      CbtlStatusPill(
         label: label,
         color: AppColors.danger,
         background: AppColors.dangerSurface,
         showDot: showDot,
       );
 
-  factory BmsStatusPill.neutral(String label) => BmsStatusPill(
+  factory CbtlStatusPill.neutral(String label) => CbtlStatusPill(
         label: label,
         color: AppColors.caramel,
         background: AppColors.latteLight,
@@ -224,8 +224,8 @@ class BmsStatusPill extends StatelessWidget {
 }
 
 /// Horizontal progress bar with the amber accent gradient.
-class BmsProgressBar extends StatelessWidget {
-  const BmsProgressBar({
+class CbtlProgressBar extends StatelessWidget {
+  const CbtlProgressBar({
     super.key,
     required this.value,
     this.height = 7,

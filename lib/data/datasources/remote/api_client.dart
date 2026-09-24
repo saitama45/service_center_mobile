@@ -21,6 +21,11 @@ class ApiClient {
 
   String get baseUrl => _baseUrl;
 
+  /// Same origin as the API, for the web pages that complement it
+  /// (account deletion, password reset). Honours the same
+  /// API_BASE_URL override so a local backend gets local links.
+  static const String origin = _baseUrl;
+
   Future<Map<String, String>> _getHeaders() async {
     final token = await _secureStorage.read(key: _tokenKey);
     return {

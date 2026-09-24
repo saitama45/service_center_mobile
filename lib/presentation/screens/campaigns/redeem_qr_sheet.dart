@@ -7,7 +7,7 @@ import 'package:qr_flutter/qr_flutter.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_dimensions.dart';
 import '../../../core/constants/app_text_styles.dart';
-import '../../../core/widgets/bms_manual_code.dart';
+import '../../../core/widgets/cbtl_manual_code.dart';
 import '../../../database/daos/loyalty_dao.dart';
 import '../../providers/app_providers.dart';
 import '../../providers/auth_provider.dart';
@@ -265,7 +265,7 @@ class _RedeemCode extends StatelessWidget {
 
         // Same fallback as the member code screen: if the scanner won't read
         // the QR, the cashier keys this into "Scan Redeem QR" instead.
-        BmsManualCode(
+        CbtlManualCode(
           code: token,
           label: 'MANUAL ENTRY CODE',
           // Never name the back-office system in member-facing copy — to a

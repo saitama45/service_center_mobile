@@ -3,8 +3,8 @@
 import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:bms/database/app_database.dart';
-import 'package:bms/database/tables/loyalty_tables.dart';
+import 'package:cbtl/database/app_database.dart';
+import 'package:cbtl/database/tables/loyalty_tables.dart';
 
 /// The v6 migration, which clears the phantom redemptions the retired
 /// on-device "Redeem Now" path left behind.
