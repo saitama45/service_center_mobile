@@ -1,6 +1,6 @@
 name: cbtl
 description: Coffee Bean & Tea Leaf loyalty and service mobile application.
-version: 1.0.0+2
+version: 1.0.0+3
 publish_to: none
 
 environment:
