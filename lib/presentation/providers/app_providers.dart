@@ -8,6 +8,7 @@ import '../../data/datasources/local/totp_secret_store.dart';
 import '../../data/datasources/remote/api_client.dart';
 import '../../data/datasources/remote/loyalty_member_remote_datasource.dart';
 import '../../data/datasources/remote/otp_remote_datasource.dart';
+import '../../data/datasources/remote/password_reset_remote_datasource.dart';
 import '../../core/sync/sync_manager.dart';
 import '../../core/constants/permission_codes.dart';
 import 'permission_provider.dart';
@@ -33,6 +34,11 @@ final apiClientProvider = Provider<ApiClient>((ref) {
 
 final otpRemoteDatasourceProvider = Provider<OtpRemoteDatasource>((ref) {
   return OtpRemoteDatasource(ref.read(apiClientProvider));
+});
+
+final passwordResetRemoteDatasourceProvider =
+    Provider<PasswordResetRemoteDatasource>((ref) {
+  return PasswordResetRemoteDatasource(ref.read(apiClientProvider));
 });
 
 final totpSecretStoreProvider = Provider<TotpSecretStore>((ref) {

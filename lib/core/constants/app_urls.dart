@@ -15,10 +15,5 @@ class AppUrls {
   static Uri get accountDeletion =>
       Uri.parse('${ApiClient.origin}/account-deletion');
 
-  /// Password reset request form. Submitting it emails a tokenised
-  /// `/reset-password/{token}` link; the new password works in the app
-  /// immediately afterwards because sign-in authenticates against this
-  /// same backend.
-  static Uri get forgotPassword =>
-      Uri.parse('${ApiClient.origin}/forgot-password');
+  // Password reset is in-app now (ForgotPasswordScreen), not a web link.
 }

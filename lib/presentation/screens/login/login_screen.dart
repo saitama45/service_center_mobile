@@ -6,8 +6,6 @@ import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_strings.dart';
 import '../../../core/constants/app_text_styles.dart';
 import '../../../core/constants/app_dimensions.dart';
-import '../../../core/constants/app_urls.dart';
-import '../../../core/utils/external_link.dart';
 import '../../../core/widgets/cbtl_button.dart';
 import '../../../core/widgets/cbtl_text_field.dart';
 import '../../../core/widgets/cbtl_loading_overlay.dart';
@@ -330,18 +328,15 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               const SizedBox(height: AppDimensions.md),
 
               // ── Forgot password ───────────────────────────────────────
-              // Opens the backend's reset page, which emails a tokenised
-              // link. The new password works here straight away because
-              // sign-in authenticates against that same backend.
+              // In-app reset: emailed code, then a new password. The new
+              // password works here straight away because sign-in
+              // authenticates against that same backend.
               Align(
                 alignment: Alignment.centerRight,
                 child: TextButton(
                   onPressed: _isLoading
                       ? null
-                      : () => openExternalUrl(
-                            context,
-                            AppUrls.forgotPassword,
-                          ),
+                      : () => context.go(RouteName.forgotPassword),
                   child: Text(
                     'Forgot Password?',
                     style: AppTextStyles.bodySmall.copyWith(

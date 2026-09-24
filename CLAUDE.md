@@ -146,6 +146,13 @@ The suite in `test/` runs with `flutter.bat` + the `test` subcommand; it uses on
   404/501, so it no longer fires in practice; flipping it to `false` is still pending the
   user's go-ahead. Play reviewers cannot receive that email — the review account needs a
   server-side fixed-code bypass, which does not exist yet.
+- **Forgot Password is in-app** (added 2026-09-24, `ForgotPasswordScreen`, public route
+  `/forgot-password`) — email → emailed 6-digit code → new password, via ghelpdesk's
+  public `POST /api/password/forgot|verify|reset` (`PasswordResetOtpController`). Reset
+  codes share `otp_codes` with the login OTP but carry `purpose = password_reset`, so
+  neither flow retires the other's code. `/forgot` answers an unknown email exactly like a
+  real one (no account enumeration); a reset revokes every Sanctum token. **Needs the
+  ghelpdesk migration + routes deployed** — until then production answers 404.
 - **`SyncManager` pulls the campaign catalogue AND real stamp progress** (`GET /api/campaigns`,
   `GET /api/loyalty/my-cards` — mirrors ghelpdesk's `stamp_programs`/`stamp_cards`, see
   `docs/knowledge/Integrations.md`), but **upload is still a deliberate no-op**; the

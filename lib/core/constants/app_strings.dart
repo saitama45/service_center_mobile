@@ -1,11 +1,12 @@
 /// All user-visible strings in one place for easy localization later
 abstract class AppStrings {
   // App identity
-  static const String appName = 'Coffee Bean & Tea Leaf';
+  /// The brand's proper name always carries the leading article — splash,
+  /// sign-in and drawer all show it this way.
+  static const String appName = 'The Coffee Bean & Tea Leaf';
 
-  /// Full brand name, with the leading article. Used on the Home header;
-  /// [appName] stays as-is for the login splash and tighter spots.
-  static const String appNameFull = 'The Coffee Bean & Tea Leaf';
+  /// Same as [appName]; kept for the Home header's existing reference.
+  static const String appNameFull = appName;
   static const String appFullName = 'TAS Service Center';
   static const String organizationShort = 'TAS';
 

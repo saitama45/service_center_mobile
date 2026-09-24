@@ -13,6 +13,7 @@ import '../presentation/screens/auth/otp_screen.dart';
 import '../presentation/screens/campaigns/campaigns_screen.dart';
 import '../presentation/screens/home/home_screen.dart';
 import '../presentation/screens/ledger/ledger_screen.dart';
+import '../presentation/screens/login/forgot_password_screen.dart';
 import '../presentation/screens/login/login_screen.dart';
 import '../presentation/screens/login/register_screen.dart';
 import '../presentation/screens/main_shell.dart';
@@ -51,12 +52,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       final location = state.matchedLocation;
       final step = ref.read(postLoginStepProvider);
 
-      // Splash, login and sign-up need no session.
+      // Splash, login, sign-up and password reset need no session.
       if (location == RouteName.splash ||
           location == RouteName.login ||
-          location == RouteName.register) {
-        if (isAuthenticated &&
-            (location == RouteName.login || location == RouteName.register)) {
+          location == RouteName.register ||
+          location == RouteName.forgotPassword) {
+        if (isAuthenticated && location != RouteName.splash) {
           return RouteName.dashboard;
         }
         return null;
@@ -117,6 +118,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: RouteName.register,
         builder: (ctx, state) => const RegisterScreen(),
+      ),
+      GoRoute(
+        path: RouteName.forgotPassword,
+        builder: (ctx, state) => const ForgotPasswordScreen(),
       ),
       GoRoute(
         path: RouteName.otp,
