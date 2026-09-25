@@ -17,7 +17,7 @@ void main() {
           home: Scaffold(
             body: Builder(
               builder: (context) => TextButton(
-                onPressed: () => showDialog<bool>(
+                onPressed: () => showDialog<String?>(
                   context: context,
                   barrierDismissible: false,
                   builder: (_) => const DeleteAccountDialog(),

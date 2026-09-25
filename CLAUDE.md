@@ -60,12 +60,19 @@ advance or cancel, the second re-authenticates. A single tap can never delete an
 the row no longer opens the web page immediately. Guarded by
 `test/unit/delete_account_dialog_test.dart`. From there: `AuthNotifier.deleteAccount` →
 [delete_account_usecase.dart](lib/domain/usecases/auth/delete_account_usecase.dart) →
-`DELETE /api/account`. The server archives the account and revokes every token; only after it
-confirms does the use case wipe local state, including the **local `users` row** (otherwise
-`LoginUseCase`'s offline bcrypt fallback would still let a closed account sign in) and the
-member's stamp cards and ledger via `LoyaltyDao.purgeMemberData`. That purge is NOT the
-deliberately removed "Reset my stamp activity" — it only ever runs on account closure.
-`/account-deletion` on the web is still linked from the dialog as the policy text.
+`DELETE /api/account`. The server files the support ticket that records the closure, archives
+the account and revokes every token, then answers with that ticket key — which the dialog pops
+and Profile shows in the confirmation, because it is the only handle the member has left if the
+deletion was not theirs. Only after the server confirms does the use case wipe local state,
+including the **local `users` row** (otherwise `LoginUseCase`'s offline bcrypt fallback would
+still let a closed account sign in) and the member's stamp cards and ledger via
+`LoyaltyDao.purgeMemberData`. That purge is NOT the deliberately removed "Reset my stamp
+activity" — it only ever runs on account closure.
+
+`/account-deletion` on the web is still linked from the dialog as the policy text, and is still
+the route for someone who has lost access to the app — but it is a different request: it emails
+a code and leaves the account open for the support desk to archive, whereas the app, having just
+re-authenticated, closes it there and then.
 
 The post-login email OTP has a server-side allowlist (`APP_REVIEW_EMAIL` / `APP_REVIEW_OTP`
 on the backend) so a reviewer's demo account gets a fixed code; nothing in this app changes.

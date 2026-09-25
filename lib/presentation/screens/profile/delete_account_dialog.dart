@@ -59,8 +59,8 @@ class DeleteAccountDialogState extends ConsumerState<DeleteAccountDialog> {
     if (!mounted) return;
 
     switch (outcome) {
-      case AccountDeleted():
-        Navigator.pop(context, true);
+      case AccountDeleted(:final reference):
+        Navigator.pop(context, reference ?? '');
       case AccountDeletionWrongPassword(:final message):
       case AccountDeletionRefused(:final message):
       case AccountDeletionFailed(:final message):
@@ -124,7 +124,7 @@ class DeleteAccountDialogState extends ConsumerState<DeleteAccountDialog> {
       ),
       actions: [
         TextButton(
-          onPressed: () => Navigator.pop(context, false),
+          onPressed: () => Navigator.pop(context, null),
           child: const Text('Keep My Account'),
         ),
         TextButton(

@@ -215,15 +215,23 @@ class ProfileScreen extends ConsumerWidget {
       BuildContext context, WidgetRef ref) async {
     // barrierDismissible stays false so the dialog is left deliberately, by
     // one of its own buttons, rather than by a stray tap outside it.
-    final deleted = await showDialog<bool>(
+    final reference = await showDialog<String?>(
       context: context,
       barrierDismissible: false,
       builder: (ctx) => const DeleteAccountDialog(),
     );
 
-    if (deleted == true && context.mounted) {
+    if (reference != null && context.mounted) {
+      // The reference is the support ticket the closure was filed under, and
+      // the only handle the member has left if it was not them — so it is worth
+      // showing even though they are on their way out of the app.
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Your account has been closed.')),
+        SnackBar(
+          content: Text(reference.isEmpty
+              ? 'Your account has been closed.'
+              : 'Your account has been closed. Reference $reference'),
+          duration: const Duration(seconds: 6),
+        ),
       );
       context.go(RouteName.login);
     }

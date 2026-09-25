@@ -10,15 +10,18 @@ import 'api_client.dart';
 ///
 /// ```
 /// DELETE /api/account   { "password": "..." }        (auth:sanctum)
-///   200 { "message": "Your account has been closed." }
+///   200 { "message": "Your account has been closed.",
+///         "reference": "TGI-5404" }                  support ticket key
 ///   422 { "message": "That password is incorrect." }
 ///   403 { "message": "Staff accounts are closed by your administrator..." }
 ///   429 { "message": "..." }                          throttle:5,1
 /// ```
 ///
-/// The server archives the member's `users` + `customers` pair and revokes
-/// every token it had issued, so the session this call was made with is dead
-/// by the time the response arrives. The caller must therefore clear local
+/// The server archives the member's `users` + `customers` pair, files the
+/// support ticket that records the closure, and revokes every token it had
+/// issued — so the session this call was made with is dead by the time the
+/// response arrives. The reference it returns is that ticket's key, which the
+/// member quotes if the deletion was not theirs. The caller must therefore clear local
 /// state unconditionally after [AccountDeleted] — there is nothing left to
 /// sign out of.
 ///
@@ -40,7 +43,7 @@ class AccountRemoteDatasource {
         case 200:
         case 202:
         case 204:
-          return const AccountDeleted();
+          return AccountDeleted(reference: body['reference'] as String?);
         case 401:
           return const AccountDeletionFailed(
               'Your sign-in expired. Please sign in again and retry.');
@@ -82,7 +85,11 @@ sealed class AccountDeletionOutcome {
 /// The account is closed. Local state must be wiped and the member returned
 /// to the login screen.
 class AccountDeleted extends AccountDeletionOutcome {
-  const AccountDeleted();
+  const AccountDeleted({this.reference});
+
+  /// The support ticket key recording the closure. Null when an older backend
+  /// answered, so nothing may depend on it being there.
+  final String? reference;
 }
 
 /// Re-authentication failed; the account is untouched and the member can retry.
