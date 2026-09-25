@@ -1,6 +1,7 @@
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import '../../database/app_database.dart';
 import '../../database/seeds/seed_runner.dart';
 import '../../data/datasources/local/member_qr_cache.dart';
@@ -19,6 +20,15 @@ final appDatabaseProvider = Provider<AppDatabase>((ref) {
   final db = AppDatabase();
   ref.onDispose(db.close);
   return db;
+});
+
+/// "Version 1.0.1 (5)" — the pubspec `version` as actually installed, so a
+/// tester can tell exactly which Play build they're running. The build number
+/// in brackets is the Play version code; the name alone doesn't change between
+/// test builds.
+final appVersionProvider = FutureProvider<String>((ref) async {
+  final info = await PackageInfo.fromPlatform();
+  return 'Version ${info.version} (${info.buildNumber})';
 });
 
 final secureStorageProvider = Provider<FlutterSecureStorage>((ref) {

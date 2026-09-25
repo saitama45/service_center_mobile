@@ -1,6 +1,6 @@
 name: cbtl
 description: Coffee Bean & Tea Leaf loyalty and service mobile application.
-version: 1.0.0+3
+version: 1.0.1+5
 publish_to: none
 
 environment:
@@ -47,6 +47,8 @@ dependencies:
 
   # UI
   url_launcher: ^6.3.0 # opens the web account-deletion and password-reset pages
+  in_app_update: ^5.0.0 # Play Store "update available" prompt (Android only)
+  package_info_plus: ^9.0.1 # installed version shown on Splash + Profile
 
 dev_dependencies:
   flutter_test:

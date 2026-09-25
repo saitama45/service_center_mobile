@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_text_styles.dart';
 import '../../../core/constants/app_strings.dart';
+import '../../../core/widgets/app_version_text.dart';
 import '../../../database/seeds/seed_runner.dart';
 import '../../providers/app_providers.dart';
 import '../../providers/auth_provider.dart';
@@ -146,6 +147,8 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                     strokeWidth: 2.5,
                   ),
                 ),
+                const SizedBox(height: 24),
+                const AppVersionText(color: AppColors.latte),
               ],
             ),
           ),

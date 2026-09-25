@@ -46,9 +46,9 @@ catalogue + real progress synced down; card redemption + cycle restart; ledger w
 earned/redeemed/balance; remote-first login with offline fallback; OTP + biometric post-login
 steps; module × permission RBAC.
 
-Naming carries history: pubspec `name: bms` (imports are `package:bms/...`), shared widgets
-are prefixed `Bms*`, the UI title is "TAS Service Center (SC)", the folder is
-`loyalty_campaign`. All four refer to this one app.
+Naming carries history: pubspec `name: cbtl` (imports are `package:cbtl/...`; it was `bms`
+until the CBTL rebrand), shared widgets are prefixed `Bms*`, the UI title is "TAS Service
+Center (SC)", the folder is `loyalty_campaign`. All four refer to this one app.
 
 ## Entry points
 
@@ -221,7 +221,16 @@ The suite in `test/` runs with `flutter.bat` + the `test` subcommand; it uses on
   as a connection error, or the member retries into "the email has already been taken".
 - Stamp replay protection is the **unique index on `loyalty_transactions.scan_token`**, not the
   friendly pre-check inside `earnStamp`.
-- `package:bms/...` is the import prefix everywhere, including in `test/`.
+- `package:cbtl/...` is the import prefix everywhere, including in `test/`.
+- **Play Store in-app update prompt** (added 2026-09-24, `AppUpdateChecker`,
+  `lib/core/utils/app_update_checker.dart`) runs on launch and every resume from `CbtlApp`.
+  Prefers Play's full-screen immediate update, falls back to flexible; a decline is
+  re-asked after 1 hour. Works only on Play-installed builds (any testing track) — debug
+  and sideloaded runs throw inside Play and are silently skipped, so test it through
+  Internal testing / internal app sharing, never `flutter run`.
+- **`flutter build appbundle` ends with "failed to strip debug symbols"** on this machine —
+  a false alarm: `cmdline-tools/latest` has no `bin/apkanalyzer`. The AAB is written,
+  signed and stripped; confirm with `unzip -l … | grep .sym`.
 - **`insertOnConflictUpdate` resolves on the primary key, not a table's business unique key.**
   Every Drift table here has a client-generated UUID `id`, which never collides — an upsert
   meant to key on something else (e.g. `campaigns.code`) needs the explicit form:

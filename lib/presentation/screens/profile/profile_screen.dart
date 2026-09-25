@@ -9,6 +9,7 @@ import '../../../core/constants/app_strings.dart';
 import '../../../core/constants/app_text_styles.dart';
 import '../../../core/utils/date_format_util.dart';
 import '../../../core/widgets/app_drawer.dart';
+import '../../../core/widgets/app_version_text.dart';
 import '../../../core/widgets/cbtl_app_bar.dart';
 import '../../../core/widgets/cbtl_button.dart';
 import '../../../core/widgets/cbtl_card.dart';
@@ -175,6 +176,9 @@ class ProfileScreen extends ConsumerWidget {
               icon: Icons.logout,
               onPressed: () => _confirmLogout(context, ref),
             ),
+
+            const SizedBox(height: AppDimensions.md),
+            const AppVersionText(),
           ],
         ),
       ),
