@@ -6,6 +6,7 @@ import '../../database/app_database.dart';
 import '../../database/seeds/seed_runner.dart';
 import '../../data/datasources/local/member_qr_cache.dart';
 import '../../data/datasources/local/totp_secret_store.dart';
+import '../../data/datasources/remote/account_remote_datasource.dart';
 import '../../data/datasources/remote/api_client.dart';
 import '../../data/datasources/remote/loyalty_member_remote_datasource.dart';
 import '../../data/datasources/remote/otp_remote_datasource.dart';
@@ -40,6 +41,11 @@ final secureStorageProvider = Provider<FlutterSecureStorage>((ref) {
 
 final apiClientProvider = Provider<ApiClient>((ref) {
   return ApiClient(ref.read(secureStorageProvider));
+});
+
+final accountRemoteDatasourceProvider =
+    Provider<AccountRemoteDatasource>((ref) {
+  return AccountRemoteDatasource(ref.read(apiClientProvider));
 });
 
 final otpRemoteDatasourceProvider = Provider<OtpRemoteDatasource>((ref) {

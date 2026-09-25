@@ -44,11 +44,31 @@ matrix, audit log) inherited from the app's earlier life as a DPWH bridge/DTR ap
 Features: static signed member QR staff scan on ghelpdesk to award a real stamp; campaign
 catalogue + real progress synced down; card redemption + cycle restart; ledger with
 earned/redeemed/balance; remote-first login with offline fallback; OTP + biometric post-login
-steps; module × permission RBAC.
+steps; in-app account deletion; module × permission RBAC.
 
 Naming carries history: pubspec `name: cbtl` (imports are `package:cbtl/...`; it was `bms`
 until the CBTL rebrand), shared widgets are prefixed `Bms*`, the UI title is "TAS Service
 Center (SC)", the folder is `loyalty_campaign`. All four refer to this one app.
+
+## Store review (App Store / Play)
+
+Account deletion is initiated **in the app** — App Store Review Guideline 5.1.1(v) — from
+Profile → Delete Account. The row opens a **two-stage** confirmation
+([delete_account_dialog.dart](lib/presentation/screens/profile/delete_account_dialog.dart),
+`DeleteAccountStage.confirm` → `.password`): the first stage explains the cost and can only
+advance or cancel, the second re-authenticates. A single tap can never delete anything, and
+the row no longer opens the web page immediately. Guarded by
+`test/unit/delete_account_dialog_test.dart`. From there: `AuthNotifier.deleteAccount` →
+[delete_account_usecase.dart](lib/domain/usecases/auth/delete_account_usecase.dart) →
+`DELETE /api/account`. The server archives the account and revokes every token; only after it
+confirms does the use case wipe local state, including the **local `users` row** (otherwise
+`LoginUseCase`'s offline bcrypt fallback would still let a closed account sign in) and the
+member's stamp cards and ledger via `LoyaltyDao.purgeMemberData`. That purge is NOT the
+deliberately removed "Reset my stamp activity" — it only ever runs on account closure.
+`/account-deletion` on the web is still linked from the dialog as the policy text.
+
+The post-login email OTP has a server-side allowlist (`APP_REVIEW_EMAIL` / `APP_REVIEW_OTP`
+on the backend) so a reviewer's demo account gets a fixed code; nothing in this app changes.
 
 ## Entry points
 

@@ -3,8 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_dimensions.dart';
-import '../../../core/constants/app_urls.dart';
-import '../../../core/utils/external_link.dart';
 import '../../../core/constants/app_strings.dart';
 import '../../../core/constants/app_text_styles.dart';
 import '../../../core/utils/date_format_util.dart';
@@ -16,6 +14,7 @@ import '../../../core/widgets/cbtl_card.dart';
 import '../../providers/auth_flow_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../../routing/route_names.dart';
+import 'delete_account_dialog.dart';
 import '../../providers/app_providers.dart';
 
 class ProfileScreen extends ConsumerWidget {
@@ -153,17 +152,18 @@ class ProfileScreen extends ConsumerWidget {
             const SizedBox(height: AppDimensions.md),
 
             // ── Account deletion ─────────────────────────────────────────
-            // Required by App Store Review Guideline 5.1.1(v): account
-            // deletion must be reachable from inside the app. The request
-            // itself is completed on the web page.
+            // Required by App Store Review Guideline 5.1.1(v): an app that
+            // creates accounts must let the member delete theirs from inside
+            // the app. The whole request happens here — the web page is still
+            // published (the stores' listings link to it) but it is now the
+            // policy text, not the only way to ask.
             CbtlCard(
               padding: EdgeInsets.zero,
               child: _NavRow(
                 icon: Icons.person_remove_outlined,
                 label: 'Delete Account',
-                sub: 'Request permanent deletion of your account',
-                onTap: () =>
-                    openExternalUrl(context, AppUrls.accountDeletion),
+                sub: 'Permanently close your account and delete your data',
+                onTap: () => _confirmDeleteAccount(context, ref),
               ),
             ),
 
@@ -208,6 +208,24 @@ class ProfileScreen extends ConsumerWidget {
     if (confirmed == true && context.mounted) {
       await ref.read(authProvider.notifier).logout();
       if (context.mounted) context.go(RouteName.login);
+    }
+  }
+
+  Future<void> _confirmDeleteAccount(
+      BuildContext context, WidgetRef ref) async {
+    // barrierDismissible stays false so the dialog is left deliberately, by
+    // one of its own buttons, rather than by a stray tap outside it.
+    final deleted = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => const DeleteAccountDialog(),
+    );
+
+    if (deleted == true && context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Your account has been closed.')),
+      );
+      context.go(RouteName.login);
     }
   }
 }
@@ -395,4 +413,3 @@ class _NavRow extends StatelessWidget {
     );
   }
 }
-

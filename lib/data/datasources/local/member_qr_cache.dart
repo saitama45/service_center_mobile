@@ -36,4 +36,14 @@ class MemberQrCache {
       debugPrint('MemberQrCache: could not save cache for $userId: $e');
     }
   }
+
+  /// Drops the cached code — used when the account it identifies is closed, so
+  /// a member code cannot outlive the account on the handset.
+  Future<void> clear(String userId) async {
+    try {
+      await _storage.delete(key: _key(userId));
+    } catch (e) {
+      debugPrint('MemberQrCache: could not clear cache for $userId: $e');
+    }
+  }
 }

@@ -521,6 +521,38 @@ void main() {
       expect(await dao.getAllCardProgress(userId), isEmpty);
     });
   });
+
+  group('purgeMemberData', () {
+    test('clears this member\'s cards and ledger, and nobody else\'s',
+        () async {
+      await db.customStatement(
+        'INSERT INTO users (id, role_id, username, password_hash, full_name, '
+        'is_active, failed_login_count, created_at, updated_at) '
+        'VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        ['user-2', 'role-1', 'other', 'x', 'Other Member', 1, 0, _now, _now],
+      );
+
+      await dao.earnStamp(
+        userId: userId,
+        campaignId: campaignId,
+        scanToken: 'TOKEN-MINE',
+        productName: 'Flat White',
+      );
+      await dao.earnStamp(
+        userId: 'user-2',
+        campaignId: campaignId,
+        scanToken: 'TOKEN-THEIRS',
+        productName: 'Flat White',
+      );
+
+      await dao.purgeMemberData(userId);
+
+      expect(await dao.getAllCardProgress(userId), isEmpty);
+      expect(await dao.getTransactions(userId), isEmpty);
+      expect(await dao.getAllCardProgress('user-2'), hasLength(1));
+      expect(await dao.getTransactions('user-2'), hasLength(1));
+    });
+  });
 }
 
 final String _now = DateTime.now().toUtc().toIso8601String();

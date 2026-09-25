@@ -68,10 +68,19 @@ class ApiClient {
     ).timeout(_timeout);
   }
 
-  Future<http.Response> delete(String path) async {
+  /// [body] is optional because most DELETEs carry none, but account deletion
+  /// re-checks the member's password, and Laravel reads that from the request
+  /// body on a DELETE exactly as it would on a POST.
+  Future<http.Response> delete(String path, [dynamic body]) async {
     final normalizedPath = path.startsWith('/') ? path : '/$path';
     final url = Uri.parse('$_baseUrl$normalizedPath');
     final headers = await _getHeaders();
-    return http.delete(url, headers: headers).timeout(_timeout);
+    return http
+        .delete(
+          url,
+          headers: headers,
+          body: body == null ? null : jsonEncode(body),
+        )
+        .timeout(_timeout);
   }
 }

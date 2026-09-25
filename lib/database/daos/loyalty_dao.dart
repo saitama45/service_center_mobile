@@ -523,6 +523,22 @@ class LoyaltyDao extends DatabaseAccessor<AppDatabase> with _$LoyaltyDaoMixin {
     return id;
   }
 
+  /// Drop this member's on-device stamp cards and ledger.
+  ///
+  /// Only for account closure (`DeleteAccountUseCase`). This is NOT the old
+  /// "Reset my stamp activity" row that was removed on purpose: a member's
+  /// history is not disposable while their account is open. Once the account
+  /// is closed the rows here are an orphaned cache of data the member asked us
+  /// to delete, and the privacy policy says the app's copy goes with it.
+  /// The server keeps whatever its own retention window requires.
+  Future<void> purgeMemberData(String userId) async {
+    await transaction(() async {
+      await (delete(loyaltyTransactions)..where((t) => t.userId.equals(userId)))
+          .go();
+      await (delete(stampCards)..where((s) => s.userId.equals(userId))).go();
+    });
+  }
+
   /// TXN-XXXXXX, matching the reference format used in the ledger design.
   String _newReference() => 'TXN-${(100000 + _rand.nextInt(900000))}';
 }

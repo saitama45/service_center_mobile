@@ -4,6 +4,8 @@ import '../../domain/usecases/auth/login_usecase.dart';
 import '../../domain/usecases/auth/logout_usecase.dart';
 import '../../domain/usecases/auth/check_session_usecase.dart';
 import '../../domain/usecases/auth/change_password_usecase.dart';
+import '../../domain/usecases/auth/delete_account_usecase.dart';
+import '../../data/datasources/remote/account_remote_datasource.dart';
 import 'app_providers.dart';
 import 'auth_flow_provider.dart';
 import 'permission_provider.dart';
@@ -42,6 +44,16 @@ final checkSessionUseCaseProvider = Provider<CheckSessionUseCase>((ref) {
 
 final changePasswordUseCaseProvider = Provider<ChangePasswordUseCase>((ref) {
   return ChangePasswordUseCase(ref.read(appDatabaseProvider));
+});
+
+final deleteAccountUseCaseProvider = Provider<DeleteAccountUseCase>((ref) {
+  return DeleteAccountUseCase(
+    ref.read(appDatabaseProvider),
+    ref.read(secureStorageProvider),
+    ref.read(accountRemoteDatasourceProvider),
+    ref.read(totpSecretStoreProvider),
+    ref.read(memberQrCacheProvider),
+  );
 });
 
 // ── Auth state ────────────────────────────────────────────────────────────────
@@ -151,6 +163,32 @@ class AuthNotifier extends StateNotifier<AuthState> {
     _ref.read(postLoginStepProvider.notifier).reset();
     _ref.read(otpControllerProvider.notifier).reset();
     state = const AuthUnauthenticated();
+  }
+
+  /// Closes the member's account and, on success, leaves this notifier in the
+  /// same state a sign-out would: there is no session left to keep.
+  Future<AccountDeletionOutcome> deleteAccount(String password) async {
+    final currentUser = state is AuthAuthenticated
+        ? (state as AuthAuthenticated).user
+        : null;
+    if (currentUser == null) {
+      return const AccountDeletionFailed(
+          'You are not signed in. Please sign in again and retry.');
+    }
+
+    final outcome = await _ref.read(deleteAccountUseCaseProvider).call(
+          userId: currentUser.id,
+          password: password,
+        );
+
+    if (outcome is AccountDeleted) {
+      _ref.invalidate(userPermissionsProvider);
+      _ref.read(postLoginStepProvider.notifier).reset();
+      _ref.read(otpControllerProvider.notifier).reset();
+      state = const AuthUnauthenticated();
+    }
+
+    return outcome;
   }
 
   UserEntity? get currentUser =>
