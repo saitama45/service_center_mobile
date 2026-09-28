@@ -36,7 +36,7 @@ class _CbtlAppState extends ConsumerState<CbtlApp> {
     final router = ref.watch(appRouterProvider);
 
     return MaterialApp.router(
-      title: 'TAS Service Center (SC)',
+      title: 'CBTL',
       debugShowCheckedModeBanner: false,
       routerConfig: router,
       theme: _buildTheme(),

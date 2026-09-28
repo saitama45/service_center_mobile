@@ -54,13 +54,4 @@ class SettingsDao extends DatabaseAccessor<AppDatabase>
       return false;
     }
   }
-
-  Future<bool> isAdminPasswordChanged() async {
-    try {
-      final val = await getSetting('admin_password_changed');
-      return val == '1';
-    } catch (_) {
-      return false;
-    }
-  }
 }

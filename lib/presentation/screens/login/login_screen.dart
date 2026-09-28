@@ -288,19 +288,28 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               ),
               const SizedBox(height: AppDimensions.lg),
 
-              // ── Username ──────────────────────────────────────────────
+              // ── Email ─────────────────────────────────────────────────
+              // The server signs members in by email only (`/api/login`), so
+              // the field says so — a "Username" label sent reviewers and
+              // members guessing at a name that could never work.
               CbtlTextField(
-                label: AppStrings.username,
+                label: AppStrings.email,
                 controller: _usernameCtrl,
-                hint: 'Enter your username',
-                prefixIcon: Icons.person_outline,
-                keyboardType: TextInputType.text,
+                hint: 'Enter your email',
+                prefixIcon: Icons.mail_outline,
+                keyboardType: TextInputType.emailAddress,
                 textInputAction: TextInputAction.next,
                 enabled: !isLocked && !_isLoading,
                 autofocus: true,
                 onSubmitted: (_) => _passwordFocus.requestFocus(),
-                validator: (v) =>
-                    (v == null || v.trim().isEmpty) ? 'Required' : null,
+                validator: (v) {
+                  final value = v?.trim() ?? '';
+                  if (value.isEmpty) return 'Required';
+                  if (!RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(value)) {
+                    return 'Enter a valid email address';
+                  }
+                  return null;
+                },
               ),
               const SizedBox(height: AppDimensions.md),
 

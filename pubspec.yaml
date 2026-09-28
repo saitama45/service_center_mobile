@@ -1,6 +1,6 @@
 name: cbtl
 description: Coffee Bean & Tea Leaf loyalty and service mobile application.
-version: 1.0.1+5
+version: 1.0.1+6
 publish_to: none
 
 environment:
@@ -79,7 +79,6 @@ flutter:
 
   assets:
     - assets/images/
-    - assets/data/
 
   fonts:
     # Body / UI typeface

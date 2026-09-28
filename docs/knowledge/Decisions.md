@@ -29,8 +29,8 @@ stay immutable history, and `(user, campaign, cycle)` is unique.
 grant a second stamp. The in-code check is only for a nicer error message.
 
 **D8 — A single resolved `PermissionCache`, never ad-hoc permission queries.** Resolution runs
-once per session in `userPermissionsProvider`; the router, `PermissionGate`, and the drawer
-all read it. Deny-by-default: a missing matrix row means no access.
+once per session in `userPermissionsProvider`. Deny-by-default: a missing matrix row means no
+access. Since the admin console was removed (2026-09-28) nothing in the UI reads it.
 
 **D9 — Explicit `loyaltyRevisionProvider` instead of Drift streams.** One integer bump
 refreshes every derived loyalty provider, keeping refresh points visible and cheap.
@@ -48,18 +48,19 @@ manual uninstalls.
 
 ## Pitfalls (verified against source)
 
-**P1 — Stale admin route constants.**
-`RouteName.users` = `/users`, `RouteName.roles` = `/roles`, `RouteName.auditLog` =
-`/audit-log`, but the actual `GoRoute`s are nested under `/dashboard`. Screens and the guard
-map hardcode `/dashboard/users`, `/dashboard/roles`, `/dashboard/audit-log`. Navigating with
-those constants lands on the error page. `RouteName.comingSoon` is also unrouted.
+**P1 — No admin console, no seeded login (2026-09-28).** The users/roles/permission-matrix/
+audit-log screens, `AppDrawer`, their routes and `RouteName` constants, and the seeded
+`admin` / fixed-password login are gone. Offline, that login passed `LoginUseCase`'s bcrypt
+fallback and skipped OTP, so it reached the console: a hidden feature (App Store Guideline
+2.3.1) and a password readable from the binary. Never seed a login or re-add a staff screen
+here. `RouteName.comingSoon` is still unrouted.
 
 **P2 — Empty permissions after a server login.**
 `LoginUseCase._handleRemoteSuccess` sets `roleId = roleName` (e.g. `"user"`). No `roles.id`
-matches, so `resolveAllForUser` returns nothing and the cache denies everything. Only the
-seeded offline `admin` resolves. See Authentication.md for the fix sketch.
+matches, so `resolveAllForUser` returns nothing and the cache denies everything. Inert while
+no screen reads permissions.
 
-**P3 — Bumping `arch_reset_v7` wipes the device database.** Current expected value `'12'`
+**P3 — Bumping `arch_reset_v7` wipes the device database.** Current expected value `'13'`
 (note the setting *key* still says v7 — key and value are unrelated). Change it only when you
 intend every installed device to lose local data on next launch.
 
@@ -68,7 +69,7 @@ entirely on-device.
 
 **P5 — Seeds use handwritten `customStatement` INSERTs.** Adding a non-nullable column without
 a default silently breaks seeding — the `SeedRunner` catch block swallows it and only
-`debugPrint`s. If a fresh install has no admin user, look there first.
+`debugPrint`s. If a fresh install has no roles or campaigns, look there first.
 
 **P6 — `setRolePermissionsBatch` deletes before inserting** because
 `insertAllOnConflictUpdate` targets the PK, not the `(role, module, permission)` unique key.
@@ -90,8 +91,7 @@ it directly.
 nothing connects to Supabase. Reference only.
 
 **P11 — Dead weight from the previous app.** `google_maps_flutter`, `geolocator`, `camera`,
-`image_picker`, `screenshot`, `url_launcher`, `assets/data/defect_rules.json`,
-`mobile-dtr-guide.md`, `db_backup.db*`, and `Runner.app.zip` (48 MB, committed) are all
+`image_picker`, `screenshot`, `mobile-dtr-guide.md`, `db_backup.db*`, and `Runner.app.zip` (48 MB, committed) are all
 leftovers. `google_maps_flutter_ios` is what pins the iOS deployment target to 14.0.
 
 **P12 — `LoyaltyDao.resetMemberActivity` swallows errors** (`try/catch` + `debugPrint`) and

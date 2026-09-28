@@ -118,11 +118,10 @@ Flow: `userPermissionsProvider` → `ResolvePermissionUseCase` → `PermissionMa
 .resolveAllForUser` → `PermissionCache.fromResolved`. The cache keys on
 `'MODULE_CODE:PERMISSION_CODE'` and also records the source.
 
-Three enforcement points, all reading the same cache:
-- **Router** — `_routeGuards` map plus two regexes in `app_router.dart` (edit-user, edit-role).
-  A denied route redirects to `/dashboard`. Note the guards key on `/dashboard/users` etc.
-- **`PermissionGate` widget** — hides or replaces a subtree.
-- **`AppDrawer`** — builds its module list from `activeModulesProvider` ∩ the cache.
+**Nothing reads the cache any more.** The router guards, `AppDrawer` and the admin screens
+(users, roles, permission matrix, audit log) were removed on 2026-09-28 — a member app may not
+ship a hidden admin console (App Store Guideline 2.3.1). `PermissionGate` is still in
+`lib/core/widgets/` but has no caller.
 
 Codes live in `lib/core/constants/module_codes.dart` (`USER_MANAGEMENT`, `ROLE_MANAGEMENT`,
 `AUDIT_LOG`) and `permission_codes.dart` (19 codes across DATA/ACTION/WORKFLOW/SYSTEM).
@@ -134,14 +133,11 @@ Codes live in `lib/core/constants/module_codes.dart` (`USER_MANAGEMENT`, `ROLE_M
 
 Remote login sets `users.role_id` to the role **name** returned by the server
 (`userJson['roles'][0]`, e.g. `"user"`), not a `roles.id`. No matrix rows match that value, so
-a server-authenticated user resolves to an **empty** `PermissionCache` — every admin module is
-hidden and every guarded route redirects. Only the seeded offline `admin` (role UUID
-`00000000-0000-0000-0000-000000000001`) currently resolves permissions. Fixing this means
-mapping the server role name to a local role row (`roleDao.getRoleByCode`) during
-`_handleRemoteSuccess`.
+a server-authenticated user resolves to an **empty** `PermissionCache`. That is inert now that
+no screen reads permissions. There is no seeded offline `admin` any more: the seed stopped
+creating it and the v8 migration deletes it (see Database.md).
 
 ## Password rules
 
 `ChangePasswordUseCase` + `BcryptUtil`. Policy (per `AppStrings.passwordTooWeak`): at least 8
-characters, 1 uppercase, 1 number, 1 special character. The seeded admin password is
-`Admin@2026!` and `app_settings['admin_password_changed']` starts at `'0'`.
+characters, 1 uppercase, 1 number, 1 special character.

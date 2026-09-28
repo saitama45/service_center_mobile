@@ -16,18 +16,6 @@ abstract class RouteName {
   /// Pushed above the shell so the bottom nav is hidden while scanning.
   static const String scan = '/scan';
 
-  // ── Admin ──────────────────────────────────────────────────────────────────
-  static const String users = '/users';
-  static const String userNew = '/users/new';
-  static const String userDetail = '/users/:id';
-
-  static const String roles = '/roles';
-  static const String roleNew = '/roles/new';
-  static const String roleEdit = '/roles/:id';
-  static const String rolePermissions = '/roles/:id/permissions';
-
-  static const String auditLog = '/audit-log';
-
   // ── Profile ────────────────────────────────────────────────────────────────
   static const String profile = '/dashboard/profile';
   static const String changePassword = '/profile/change-password';

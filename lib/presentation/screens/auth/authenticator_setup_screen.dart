@@ -7,14 +7,12 @@ import '../../../core/constants/app_dimensions.dart';
 import '../../../core/constants/app_text_styles.dart';
 import '../../../core/utils/date_format_util.dart';
 import '../../../core/utils/totp_util.dart';
-import '../../../core/widgets/app_drawer.dart';
 import '../../../core/widgets/cbtl_app_bar.dart';
 import '../../../core/widgets/cbtl_button.dart';
 import '../../../core/widgets/cbtl_card.dart';
 import '../../../core/widgets/confirmation_dialog.dart';
 import '../../providers/auth_flow_provider.dart';
 import '../../providers/auth_provider.dart';
-import '../../providers/app_providers.dart';
 
 /// Enrol or remove the Google-Authenticator-compatible TOTP secret used to
 /// verify sign-in when the device has no connection to the server.
@@ -58,7 +56,6 @@ class _AuthenticatorSetupScreenState
       backgroundColor: AppColors.cream,
       // Members see no hamburger: the drawer's only unique content is the
       // admin module links.
-      drawer: ref.watch(hasAdminModulesProvider) ? const AppDrawer() : null,
       appBar: const CbtlAppBar(title: 'Authenticator App'),
       body: enrolledAsync.when(
         loading: () => const Center(child: CircularProgressIndicator(color: AppColors.amber)),

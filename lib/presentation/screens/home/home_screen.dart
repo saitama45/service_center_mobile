@@ -5,7 +5,6 @@ import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_strings.dart';
 import '../../../core/constants/app_dimensions.dart';
 import '../../../core/constants/app_text_styles.dart';
-import '../../../core/widgets/app_drawer.dart';
 import '../../../core/widgets/cbtl_card.dart';
 import '../../../database/daos/loyalty_dao.dart';
 import '../../providers/app_providers.dart';
@@ -34,7 +33,6 @@ class HomeScreen extends ConsumerWidget {
       backgroundColor: AppColors.cream,
       // Members see no hamburger: the drawer's only unique content is the
       // admin module links.
-      drawer: ref.watch(hasAdminModulesProvider) ? const AppDrawer() : null,
       appBar: AppBar(
         backgroundColor: AppColors.cream,
         foregroundColor: AppColors.espresso,

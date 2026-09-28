@@ -7,7 +7,6 @@ import 'modules_seed.dart' as mod_seed;
 import 'roles_seed.dart';
 import 'role_permissions_seed.dart';
 import 'loyalty_seed.dart';
-import '../../core/utils/bcrypt_util.dart';
 
 class SeedRunner {
   const SeedRunner(this._db);
@@ -137,33 +136,12 @@ class SeedRunner {
       );
     }
 
-    // ── 4. Default admin user ──────────────────────────────────────────────
-    debugPrint('SeedRunner: Seeding admin user...');
-    final passwordHash = BcryptUtil.hash('Admin@2026!');
-    // Fixed ID for the admin user to prevent duplicates
-    final adminUserId = uuid.v5(Uuid.NAMESPACE_URL, 'user_admin');
-    final seededAt = DateTime.now().toUtc().toIso8601String();
-
-    // last_login_at is seeded deliberately. LoginUseCase's offline path rejects
-    // any account whose last successful login is null or older than 14 days —
-    // without this the bootstrap account can never sign in on a fresh install
-    // with no reachable server, which is the exact case it exists for.
-    await _db.customStatement(
-      'INSERT INTO users (id, role_id, username, password_hash, full_name, is_active, failed_login_count, last_login_at, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-      [
-        adminUserId,
-        adminRoleId,
-        'admin',
-        passwordHash,
-        'System Administrator',
-        1,
-        0,
-        seededAt,
-        seededAt,
-        seededAt,
-      ]
-    );
-    debugPrint('SeedRunner: Admin user created.');
+    // ── 4. No bootstrap login ─────────────────────────────────────────────
+    // Earlier builds seeded an `admin` account with a fixed password here. It
+    // could sign in offline and opened the RBAC admin console, a hidden
+    // feature in a member app (App Store Guideline 2.3.1). Every login now
+    // comes from the server. The v8 migration removes the old row from
+    // devices that already have it.
 
     // ── 5. Permission matrix ──────────────────────────────────────────────
     debugPrint('SeedRunner: Seeding permission matrix...');
@@ -200,7 +178,6 @@ class SeedRunner {
 
     // ── 7. Finalize ───────────────────────────────────────────────────────
     await _db.settingsDao.setSetting('db_initialized', '1');
-    await _db.settingsDao.setSetting('admin_password_changed', '0');
     debugPrint('SeedRunner: Initialization complete.');
   }
 }

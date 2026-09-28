@@ -37,7 +37,6 @@ Provider families by concern:
 | `auth_flow_provider.dart` | `PostLoginStep`, OTP controller, biometric availability/enable |
 | `permission_provider.dart` | `userPermissionsProvider` → the single `PermissionCache` |
 | `loyalty_provider.dart` | campaign progress, ledger, totals, products, `ScanToken`, `LoyaltyActions` |
-| `user_management_provider.dart`, `role_management_provider.dart` | admin CRUD screens |
 
 ### The loyalty refresh convention
 
@@ -63,7 +62,7 @@ read through `PermissionGate` or `ref.watch`, never by querying the matrix direc
 2. Unauthenticated → `/login`.
 3. `PostLoginStep != done` → pinned to `/otp` or `/biometric`.
 4. Verified users are bounced out of `/otp` and `/biometric`.
-5. Static `_routeGuards` map and two regexes guard the admin routes against `PermissionCache`.
+(The admin routes and their `_routeGuards` were removed on 2026-09-28 along with the admin console.)
 
 Shell layout — `StatefulShellRoute.indexedStack` with four branches:
 

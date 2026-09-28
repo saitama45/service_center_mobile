@@ -57,9 +57,6 @@ class ChangePasswordUseCase {
     final newHash = BcryptUtil.hash(newPassword);
     await _db.userDao.updatePassword(userId, newHash);
 
-    // Mark admin password as changed
-    await _db.settingsDao.setSetting('admin_password_changed', '1');
-
     // Audit
     await _db.auditLogDao.insertLog(
       AuditLogsCompanion.insert(

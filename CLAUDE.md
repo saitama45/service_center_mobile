@@ -38,17 +38,20 @@ Details live in `docs/knowledge/*.md` — open only the note relevant to the tas
 
 Flutter (Dart) **offline-first mobile app** — a coffee-shop style **stamp-card loyalty
 program**. Members collect stamps per campaign, redeem rewards when a card fills, and view a
-transaction ledger. Bundled with it is a full **RBAC admin console** (users, roles, permission
-matrix, audit log) inherited from the app's earlier life as a DPWH bridge/DTR application.
+transaction ledger. The app's earlier life as a DPWH bridge/DTR application left RBAC
+tables, DAOs and seeds behind (roles, modules, permissions, matrix, audit log). They are
+**data only**: the admin console screens, side drawer, admin routes and the seeded `admin`
+login were removed on 2026-09-28 (App Store Guideline 2.3.1, hidden features). Don't add a
+staff/admin screen back to this member app.
 
 Features: static signed member QR staff scan on ghelpdesk to award a real stamp; campaign
 catalogue + real progress synced down; card redemption + cycle restart; ledger with
 earned/redeemed/balance; remote-first login with offline fallback; OTP + biometric post-login
-steps; in-app account deletion; module × permission RBAC.
+steps; in-app account deletion. Portrait only; the iOS build is iPhone-only.
 
 Naming carries history: pubspec `name: cbtl` (imports are `package:cbtl/...`; it was `bms`
-until the CBTL rebrand), shared widgets are prefixed `Bms*`, the UI title is "TAS Service
-Center (SC)", the folder is `loyalty_campaign`. All four refer to this one app.
+until the CBTL rebrand), shared widgets are prefixed `Bms*`, the folder is `loyalty_campaign`.
+All three refer to this one app, whose display name is "CBTL".
 
 ## Store review (App Store / Play)
 
@@ -71,8 +74,8 @@ activity" — it only ever runs on account closure.
 
 **A closed account's email cannot sign up again** until ghelpdesk's retention purge removes
 it (2026-09-28, `RegisterController::closedAccountExists()`; self-deleted, staff-closed, and
-archived walk-in customers alike). Only the `APP_REVIEW_EMAIL` demo account is exempt, so the
-App Store Connect review notes must steer reviewers to it. The register screen shows the
+archived walk-in customers alike). Only the `APP_REVIEW_EMAIL` demo accounts are exempt, so the
+App Store Connect review notes must steer reviewers to them. The register screen shows the
 server's 422 message verbatim, so there is no app-side logic for it.
 
 `/account-deletion` on the web is still linked from the dialog as the policy text, and is still
@@ -82,6 +85,12 @@ re-authenticated, closes it there and then.
 
 The post-login email OTP has a server-side allowlist (`APP_REVIEW_EMAIL` / `APP_REVIEW_OTP`
 on the backend) so a reviewer's demo account gets a fixed code; nothing in this app changes.
+`APP_REVIEW_EMAIL` takes a comma-separated list (ghelpdesk `App\Support\AppReviewAccounts`):
+the review notes name **two** accounts, one pre-loaded with stamps that must not be deleted and
+one for the reviewer's deletion test. A reviewer cannot earn stamps (only counter staff can),
+so the kept account is the only way they see cards, redemption and history.
+
+Login asks for **Email**, not "Username" — `/api/login` accepts nothing else.
 
 ## Entry points
 
@@ -96,7 +105,7 @@ on the backend) so a reviewer's demo account gets a fixed code; nothing in this 
 | Path | Responsibility |
 |---|---|
 | `lib/core/constants/` | Colors, dimensions, text styles, strings, `ModuleCodes`, `PermissionCodes` |
-| `lib/core/widgets/` | Shared UI (`Bms*`, `AppDrawer`, `PermissionGate`, dialogs) |
+| `lib/core/widgets/` | Shared UI (`Bms*`, `PermissionGate` (currently unused), dialogs) |
 | `lib/core/utils/` | `TokenUtil` (SHA-256), `BcryptUtil`, date/device/watermark helpers |
 | `lib/core/sync/` | `SyncManager` — offline push queue |
 | `lib/data/datasources/remote/` | `ApiClient` (HTTP), `SupabaseSyncDatasource` (stub) |
@@ -105,14 +114,14 @@ on the backend) so a reviewer's demo account gets a fixed code; nothing in this 
 | `lib/database/seeds/` | First-run seed data + `SeedRunner` |
 | `lib/domain/entities/` | `UserEntity`, `RoleEntity`, `PermissionCache`, `AuditLogEntity` |
 | `lib/domain/usecases/` | Auth (login/logout/session/password) + permission resolution |
-| `lib/presentation/providers/` | Riverpod state — auth, auth-flow, permissions, loyalty, admin |
+| `lib/presentation/providers/` | Riverpod state — auth, auth-flow, permissions, loyalty |
 | `lib/presentation/screens/` | One folder per screen |
 | `supabase/migrations/` | Postgres mirror of the RBAC schema (**not wired up**) |
 | `test/unit/` | Drift in-memory DAO checks + util checks |
 
 ## Key components (exact paths)
 
-- Local DB: [lib/database/app_database.dart](lib/database/app_database.dart) — `schemaVersion 7`
+- Local DB: [lib/database/app_database.dart](lib/database/app_database.dart) — `schemaVersion 8`
 - Loyalty engine: [lib/database/daos/loyalty_dao.dart](lib/database/daos/loyalty_dao.dart)
   (`earnStamp`, `redeemReward`, `getCampaignProgress`, `getLedgerTotals`)
 - Permission resolution: [permission_matrix_dao.dart:90](lib/database/daos/permission_matrix_dao.dart#L90) → [resolve_permission_usecase.dart](lib/domain/usecases/permission/resolve_permission_usecase.dart) → [permission_cache.dart](lib/domain/entities/permission_cache.dart)
@@ -142,8 +151,9 @@ Login POSTs `/api/login` to the remote API; on network failure it falls back to 
 check (14-day cached-session limit, 5 attempts → 30-min lockout). The raw token lives only in
 `flutter_secure_storage`; only `SHA-256(token)` is stored in `sessions`. After the password
 step: OTP screen → biometric screen → `PostLoginStep.done`; the router blocks the app until
-done. Authorization is `role_module_permissions` (role × module × permission), resolved once
-into a `PermissionCache` and read via `PermissionGate` / router guards. **No row = denied.**
+done. The legacy RBAC (`role_module_permissions`, role × module × permission, resolved into a
+`PermissionCache`) still exists as data, but no route or member screen reads it since the admin
+console was removed (2026-09-28). **No row = denied.**
 
 ## Commands
 
@@ -163,14 +173,16 @@ The suite in `test/` runs with `flutter.bat` + the `test` subcommand; it uses on
 
 ## Known pitfalls (details → `docs/knowledge/Decisions.md`)
 
-- **Admin route constants are stale.** `RouteName.users`/`roles`/`auditLog` say `/users`, but
-  the real routes are nested: `/dashboard/users`, `/dashboard/roles`, `/dashboard/audit-log`.
-  Screens and router guards hardcode the `/dashboard/...` strings. Don't trust the constants.
+- **No on-device login may be seeded.** `SeedRunner` used to create `admin` / a fixed
+  password; with the phone offline it signed in through `LoginUseCase`'s bcrypt fallback, the
+  OTP step is skipped offline without an authenticator, and it reached the admin console. The
+  **v8 migration** deletes that row (`AppDatabase.legacySeededAdminId`) and its sessions;
+  `test/unit/seeded_admin_removal_test.dart` guards both the migration and the empty seed.
 - **Bumping `arch_reset_v7` in `SeedRunner` wipes the on-device database** on next launch.
-  The current expected value is `'12'`.
+  The current expected value is `'13'`.
 - **Remote login stores the role *name* in `users.role_id`** (e.g. `"user"`), which matches no
   `roles.id`, so permission resolution returns an empty cache for server-authenticated users.
-  The offline/seeded `admin` (role UUID `...0001`) resolves normally.
+  Nothing in the member UI reads permissions any more, so this is inert.
 - **OTP is now a real two-channel second factor** (email server-issued online, TOTP
   authenticator app offline) — see `docs/knowledge/Authentication.md`. The email channel's
   server routes (`POST /api/otp/send|verify`) **are live on production** (verified

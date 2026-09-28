@@ -138,11 +138,9 @@ loyalty endpoints don't exist yet, and firing them would 404 and mark good rows 
 When the API lands, implement the upload inside `SyncManager` — the queue semantics
 (`loyaltySyncPending/Synced/Syncing/SyncFailed` in `loyalty_tables.dart`) are already correct.
 
-## 8. Admin flows
+## 8. Admin flows (removed)
 
-User/role CRUD screens go through `user_management_provider.dart` /
-`role_management_provider.dart` → `UserDao` / `RoleDao` / `PermissionMatrixDao`.
-`PermissionMatrixScreen` writes with `setRolePermissionsBatch`, which deletes the role's rows
-first (because `insertAllOnConflictUpdate` targets the PK, not the `(role, module, permission)`
-unique key). Every such change must be followed by `ref.invalidate(userPermissionsProvider)`.
-`AuditLogDao.logAction` records the mutation.
+The user/role CRUD screens, permission matrix and audit-log viewer were removed on 2026-09-28
+(App Store Guideline 2.3.1). Their DAOs remain. If a matrix writer ever returns, note that
+`setRolePermissionsBatch` deletes the role's rows first because `insertAllOnConflictUpdate`
+targets the PK, not the `(role, module, permission)` unique key.

@@ -176,8 +176,8 @@ catch up on the next resume/refresh/login.
 
 `google_maps_flutter`, `geolocator`, `camera`, `image_picker`, `image`, `screenshot`,
 `url_launcher`, `cached_network_image`, `flutter_svg` — carried over from the bridge-inspection
-feature set. `assets/data/defect_rules.json` is likewise a leftover from that era. Removing
-them is safe only after confirming no screen imports them; `google_maps_flutter_ios` is what
+feature set (`assets/data/defect_rules.json` from the same era was removed on 2026-09-28).
+Removing them is safe only after confirming no screen imports them; `google_maps_flutter_ios` is what
 forces the **iOS minimum deployment target of 14.0** (see the commit history).
 
 ## Platform notes

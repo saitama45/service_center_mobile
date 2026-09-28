@@ -71,7 +71,12 @@ Sync-status constants (`loyalty_tables.dart`): `0 pending`, `1 synced`, `2 synci
 
 ## Migrations
 
-`schemaVersion = 7`.
+`schemaVersion = 8`.
+
+- `from < 8` deletes the bootstrap `admin` login earlier builds seeded
+  (`AppDatabase.legacySeededAdminId`, the same `uuid.v5(NAMESPACE_URL, 'user_admin')` the seed
+  used) and its `sessions` rows first, so a device signed in as `admin` cannot resume that
+  session. Only that fixed id is matched. Guarded by `test/unit/seeded_admin_removal_test.dart`.
 
 - `from < 4` drops the retired DTR tables (`offline_dtr_logs`, `cached_dtr_schedules`,
   `cached_attendance_logs`) and creates the four loyalty tables. Those legacy tables held
@@ -97,20 +102,17 @@ Bumping the schema means: edit the table class → add an `onUpgrade` branch →
 
 `SeedRunner.runIfNeeded()` (`lib/database/seeds/seed_runner.dart`) runs from Splash.
 
-- It reads `app_settings['arch_reset_v7']`. If the value is not `'12'`, it **wipes every core
-  table** (`_runReset`) and reseeds, then stores `'12'`.
+- It reads `app_settings['arch_reset_v7']`. If the value is not `'13'`, it **wipes every core
+  table** (`_runReset`) and reseeds, then stores `'13'`.
   → Changing that literal is a deliberate "nuke the device DB on next launch" switch.
 - Otherwise, if `db_initialized` is not set, it seeds without wiping.
 
-Seed order: permissions → modules (parents, then children by code) → roles → default admin
-user → full permission matrix for ADMIN → products/campaigns → flags.
+Seed order: permissions → modules (parents, then children by code) → roles → full permission
+matrix for ADMIN → products/campaigns → flags. **No user is seeded** (since 2026-09-28): every
+login comes from the server.
 
 Defaults created:
 - Role `ADMIN`, fixed id `00000000-0000-0000-0000-000000000001`.
-- User `admin` / `Admin@2026!`, bcrypt-hashed, `full_name = System Administrator`.
-  `last_login_at` is seeded deliberately — the offline login path rejects accounts whose last
-  login is null or older than 14 days, which would otherwise make the bootstrap account
-  unusable on a fresh install with no server.
 - ADMIN is granted every permission on every module (cartesian product).
 - Modules seeded: `USER_MANAGEMENT`, `ROLE_MANAGEMENT`, `AUDIT_LOG` only. The loyalty screens
   are **not** module-gated.

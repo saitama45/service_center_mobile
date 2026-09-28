@@ -1,12 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../core/constants/module_codes.dart';
-import '../core/constants/permission_codes.dart';
 import '../presentation/providers/auth_flow_provider.dart';
 import '../presentation/providers/auth_provider.dart';
-import '../presentation/providers/permission_provider.dart';
-import '../presentation/screens/audit_log/audit_log_screen.dart';
 import '../presentation/screens/auth/authenticator_setup_screen.dart';
 import '../presentation/screens/auth/biometric_screen.dart';
 import '../presentation/screens/auth/otp_screen.dart';
@@ -20,24 +16,9 @@ import '../presentation/screens/main_shell.dart';
 import '../presentation/screens/profile/change_password_screen.dart';
 import '../presentation/screens/profile/privacy_policy_screen.dart';
 import '../presentation/screens/profile/profile_screen.dart';
-import '../presentation/screens/role_management/permission_matrix_screen.dart';
-import '../presentation/screens/role_management/role_form_screen.dart';
-import '../presentation/screens/role_management/role_list_screen.dart';
 import '../presentation/screens/scan/scan_screen.dart';
 import '../presentation/screens/splash/splash_screen.dart';
-import '../presentation/screens/user_management/user_form_screen.dart';
-import '../presentation/screens/user_management/user_list_screen.dart';
 import 'route_names.dart';
-
-// ── Route → module/permission guard mapping ──────────────────────────────────
-
-const _routeGuards = <String, ({String module, String permission})>{
-  '/dashboard/users': (module: ModuleCodes.userManagement, permission: PermissionCodes.view),
-  '/dashboard/users/new': (module: ModuleCodes.userManagement, permission: PermissionCodes.create),
-  '/dashboard/roles': (module: ModuleCodes.roleManagement, permission: PermissionCodes.view),
-  '/dashboard/roles/new': (module: ModuleCodes.roleManagement, permission: PermissionCodes.create),
-  '/dashboard/audit-log': (module: ModuleCodes.auditLog, permission: PermissionCodes.viewAuditLog),
-};
 
 /// Screens reachable while the post-login steps are still outstanding.
 const _verificationRoutes = {RouteName.otp, RouteName.biometric};
@@ -74,35 +55,6 @@ final appRouterProvider = Provider<GoRouter>((ref) {
 
       // Verification finished — those screens are no longer revisitable.
       if (_verificationRoutes.contains(location)) return RouteName.dashboard;
-
-      // Module-level permission guard (static routes)
-      final guard = _routeGuards[location];
-      if (guard != null) {
-        final cache = ref.read(userPermissionsProvider).valueOrNull;
-        if (cache != null && !cache.check(guard.module, guard.permission)) {
-          return RouteName.dashboard;
-        }
-      }
-
-      // Guard edit-user route: /dashboard/users/<id>  (not /users/new)
-      if (RegExp(r'^/dashboard/users/[a-zA-Z0-9-]+$').hasMatch(location) &&
-          !location.endsWith('/new')) {
-        final cache = ref.read(userPermissionsProvider).valueOrNull;
-        if (cache != null &&
-            !cache.check(ModuleCodes.userManagement, PermissionCodes.edit)) {
-          return RouteName.dashboard;
-        }
-      }
-
-      // Guard edit-role route: /dashboard/roles/<id>  (not /roles/new)
-      if (RegExp(r'^/dashboard/roles/[a-zA-Z0-9-]+$').hasMatch(location) &&
-          !location.endsWith('/new')) {
-        final cache = ref.read(userPermissionsProvider).valueOrNull;
-        if (cache != null &&
-            !cache.check(ModuleCodes.roleManagement, PermissionCodes.edit)) {
-          return RouteName.dashboard;
-        }
-      }
 
       return null;
     },
@@ -147,58 +99,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state, navigationShell) =>
             MainShellScreen(navigationShell: navigationShell),
         branches: [
-          // ── Branch 0: Home (+ admin sub-routes) ─────────────────────────
+          // ── Branch 0: Home ──────────────────────────────────────────────
           StatefulShellBranch(
             routes: [
               GoRoute(
                 path: RouteName.dashboard,
                 builder: (ctx, state) => const HomeScreen(),
-                routes: [
-                  GoRoute(
-                    path: 'users',
-                    builder: (ctx, state) => const UserListScreen(),
-                    routes: [
-                      GoRoute(
-                        path: 'new',
-                        builder: (ctx, state) => const UserFormScreen(),
-                      ),
-                      GoRoute(
-                        path: ':id',
-                        builder: (ctx, state) => UserFormScreen(
-                          userId: state.pathParameters['id']!,
-                        ),
-                      ),
-                    ],
-                  ),
-                  GoRoute(
-                    path: 'roles',
-                    builder: (ctx, state) => const RoleListScreen(),
-                    routes: [
-                      GoRoute(
-                        path: 'new',
-                        builder: (ctx, state) => const RoleFormScreen(),
-                      ),
-                      GoRoute(
-                        path: ':id',
-                        builder: (ctx, state) => RoleFormScreen(
-                          roleId: state.pathParameters['id']!,
-                        ),
-                        routes: [
-                          GoRoute(
-                            path: 'permissions',
-                            builder: (ctx, state) => PermissionMatrixScreen(
-                              roleId: state.pathParameters['id']!,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                  GoRoute(
-                    path: 'audit-log',
-                    builder: (ctx, state) => const AuditLogScreen(),
-                  ),
-                ],
               ),
             ],
           ),

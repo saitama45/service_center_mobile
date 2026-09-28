@@ -6,7 +6,6 @@ import '../../../core/constants/app_dimensions.dart';
 import '../../../core/constants/app_strings.dart';
 import '../../../core/constants/app_text_styles.dart';
 import '../../../core/utils/date_format_util.dart';
-import '../../../core/widgets/app_drawer.dart';
 import '../../../core/widgets/app_version_text.dart';
 import '../../../core/widgets/cbtl_app_bar.dart';
 import '../../../core/widgets/cbtl_button.dart';
@@ -15,7 +14,6 @@ import '../../providers/auth_flow_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../../routing/route_names.dart';
 import 'delete_account_dialog.dart';
-import '../../providers/app_providers.dart';
 
 class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
@@ -33,7 +31,6 @@ class ProfileScreen extends ConsumerWidget {
       backgroundColor: AppColors.cream,
       // Members see no hamburger: the drawer's only unique content is the
       // admin module links.
-      drawer: ref.watch(hasAdminModulesProvider) ? const AppDrawer() : null,
       appBar: const CbtlAppBar(
         title: AppStrings.profile,
       ),
@@ -97,12 +94,6 @@ class ProfileScreen extends ConsumerWidget {
                 children: [
                   if (user.email != null && user.email!.isNotEmpty)
                     _InfoRow(label: AppStrings.email, value: user.email!),
-                  if (user.employeeId != null && user.employeeId!.isNotEmpty)
-                    _InfoRow(
-                      label: AppStrings.employeeId,
-                      value: user.employeeId!,
-                      mono: true,
-                    ),
                   _InfoRow(
                     label: AppStrings.lastLogin,
                     value: DateFormatUtil.formatDateTime(user.lastLoginAt),

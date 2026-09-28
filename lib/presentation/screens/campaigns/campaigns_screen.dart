@@ -4,7 +4,6 @@ import 'package:intl/intl.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_dimensions.dart';
 import '../../../core/constants/app_text_styles.dart';
-import '../../../core/widgets/app_drawer.dart';
 import '../../../core/widgets/cbtl_app_bar.dart';
 import '../../../core/widgets/cbtl_card.dart';
 import '../../../core/widgets/cbtl_empty_state.dart';
@@ -44,7 +43,6 @@ class _CampaignsScreenState extends ConsumerState<CampaignsScreen> {
       backgroundColor: AppColors.cream,
       // Members see no hamburger: the drawer's only unique content is the
       // admin module links.
-      drawer: ref.watch(hasAdminModulesProvider) ? const AppDrawer() : null,
       appBar: const CbtlAppBar(
         title: 'Campaigns',
         subtitle: 'Earn stamps, unlock rewards',

@@ -11,12 +11,11 @@ import 'presentation/providers/app_providers.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Force portrait mode for phone; allow both on tablet
+  // Portrait only: every screen is laid out for a phone held upright, and the
+  // iOS build is iPhone-only. Keep ios/Runner/Info.plist's iPhone
+  // orientations in step with this.
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
-    DeviceOrientation.portraitDown,
-    DeviceOrientation.landscapeLeft,
-    DeviceOrientation.landscapeRight,
   ]);
 
   // Set status bar style

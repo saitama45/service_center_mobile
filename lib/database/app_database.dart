@@ -54,7 +54,12 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.executor);
 
   @override
-  int get schemaVersion => 7;
+  int get schemaVersion => 8;
+
+  /// Id of the bootstrap `admin` login that `SeedRunner` created before v8.
+  /// Same derivation the seed used, so the v8 migration can find it.
+  static String get legacySeededAdminId =>
+      const Uuid().v5(Uuid.NAMESPACE_URL, 'user_admin');
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -154,6 +159,31 @@ class AppDatabase extends _$AppDatabase {
               '    WHERE t.stamp_card_id = stamp_cards.id'
               '  )',
               [loyaltySyncPending],
+            );
+          }
+
+          // v8 removes the bootstrap `admin` login that SeedRunner used to
+          // create on every install.
+          //
+          // It had a fixed password. With the phone offline, LoginUseCase's
+          // local bcrypt fallback accepted it, the OTP step is skipped offline
+          // when no authenticator is enrolled, and it opened the RBAC admin
+          // console left over from this app's earlier life. That console is
+          // gone and the seed no longer creates the account; this clears it
+          // from devices that already have it.
+          //
+          // Sessions go first: a device still signed in as `admin` would
+          // otherwise have a session row for CheckSessionUseCase to resume.
+          // Only the seeded id is matched — a member can never collide with it.
+          if (from < 8) {
+            final adminId = legacySeededAdminId;
+            await m.database.customStatement(
+              'DELETE FROM sessions WHERE user_id = ?',
+              [adminId],
+            );
+            await m.database.customStatement(
+              'DELETE FROM users WHERE id = ?',
+              [adminId],
             );
           }
         },
