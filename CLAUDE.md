@@ -69,6 +69,12 @@ still let a closed account sign in) and the member's stamp cards and ledger via
 `LoyaltyDao.purgeMemberData`. That purge is NOT the deliberately removed "Reset my stamp
 activity" — it only ever runs on account closure.
 
+**A closed account's email cannot sign up again** until ghelpdesk's retention purge removes
+it (2026-09-28, `RegisterController::closedAccountExists()`; self-deleted, staff-closed, and
+archived walk-in customers alike). Only the `APP_REVIEW_EMAIL` demo account is exempt, so the
+App Store Connect review notes must steer reviewers to it. The register screen shows the
+server's 422 message verbatim, so there is no app-side logic for it.
+
 `/account-deletion` on the web is still linked from the dialog as the policy text, and is still
 the route for someone who has lost access to the app — but it is a different request: it emails
 a code and leaves the account open for the support desk to archive, whereas the app, having just

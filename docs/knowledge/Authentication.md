@@ -21,9 +21,10 @@
    (this is what makes later offline logins possible), upsert the user, invalidate previous
    sessions, create a new session row keyed by the token hash.
    The upsert goes through `UserDao.upsertUserForLogin`, which keys on **`username`** (the
-   email), not on `users.id`: the server's id is not stable across accounts — staff can delete
-   a member in ghelpdesk and the member can sign up again with the same email and get a new
-   id. The stale local row is re-pointed at the new id and its old sessions invalidated, so a
+   email), not on `users.id`: the server's id is not stable across accounts — once a closed
+   account's login is purged in ghelpdesk (or the store-review account re-registers), the
+   member can sign up again with the same email and get a new id. While the account is only
+   archived, `/api/register` refuses the email with a 422 the register screen shows verbatim. The stale local row is re-pointed at the new id and its old sessions invalidated, so a
    login always leaves exactly one row per email.
 3. **401 / 422** → `InvalidCredentialsFailure`, surfacing the server's `message`.
 4. **Any exception (unreachable)** → `_attemptLocalLogin`.
