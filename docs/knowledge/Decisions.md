@@ -92,7 +92,8 @@ nothing connects to Supabase. Reference only.
 
 **P11 — Dead weight from the previous app.** `google_maps_flutter`, `geolocator`, `camera`,
 `image_picker`, `screenshot`, `mobile-dtr-guide.md`, `db_backup.db*`, and `Runner.app.zip` (48 MB, committed) are all
-leftovers. `google_maps_flutter_ios` is what pins the iOS deployment target to 14.0.
+leftovers. (The 14.0 deployment target `google_maps_flutter_ios` once forced is gone — see
+Integrations.md, Platform notes.)
 
 **P12 — `LoyaltyDao.resetMemberActivity` swallows errors** (`try/catch` + `debugPrint`) and
 deletes all of a member's transactions and stamp cards. It is reachable from Profile.

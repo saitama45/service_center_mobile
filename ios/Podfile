@@ -41,7 +41,11 @@ post_install do |installer|
   installer.pods_project.targets.each do |target|
     flutter_additional_ios_build_settings(target)
     target.build_configurations.each do |config|
-      config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '14.0'
+      # Keep every plugin target on the app's own minimum (`platform` above and
+      # Runner's IPHONEOS_DEPLOYMENT_TARGET). Xcode Cloud archives with an Xcode
+      # that rejects anything below 15.0; the old 14.0 here was left over from
+      # google_maps_flutter_ios, which the app no longer uses.
+      config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '15.0'
     end
   end
 end

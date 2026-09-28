@@ -177,14 +177,17 @@ catch up on the next resume/refresh/login.
 `google_maps_flutter`, `geolocator`, `camera`, `image_picker`, `image`, `screenshot`,
 `url_launcher`, `cached_network_image`, `flutter_svg` — carried over from the bridge-inspection
 feature set (`assets/data/defect_rules.json` from the same era was removed on 2026-09-28).
-Removing them is safe only after confirming no screen imports them; `google_maps_flutter_ios` is what
-forces the **iOS minimum deployment target of 14.0** (see the commit history).
+Removing them is safe only after confirming no screen imports them.
 
 ## Platform notes
 
 - Android: `flutter_launcher_icons` generates `launcher_icon` from
   `assets/images/app_logo_v2.png`, `min_sdk 21`.
-- iOS: minimum deployment target 14.0.
+- iOS: minimum deployment target **15.0** everywhere — Runner, the Podfile `platform`, AND the
+  Podfile `post_install` pin on every plugin target. Keep all three equal. Xcode Cloud archives
+  with a newer Xcode than this Mac and rejects plugin targets below 15.0; a leftover 14.0 pin
+  (from the retired `google_maps_flutter_ios`) failed the archive on 2026-09-28 while local
+  builds passed.
 - `start_emulator.ps1` launches the `Pixel_6_API_35` AVD.
 - Fonts are bundled locally in `assets/fonts/` (DMSans, PlayfairDisplay, DMMono) — no network
   font loading.
