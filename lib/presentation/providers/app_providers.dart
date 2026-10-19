@@ -11,6 +11,7 @@ import '../../data/datasources/remote/api_client.dart';
 import '../../data/datasources/remote/loyalty_member_remote_datasource.dart';
 import '../../data/datasources/remote/otp_remote_datasource.dart';
 import '../../data/datasources/remote/password_reset_remote_datasource.dart';
+import '../../data/datasources/remote/suggestion_remote_datasource.dart';
 import '../../core/sync/sync_manager.dart';
 
 // ── Singleton providers ───────────────────────────────────────────────────────
@@ -53,6 +54,11 @@ final otpRemoteDatasourceProvider = Provider<OtpRemoteDatasource>((ref) {
 final passwordResetRemoteDatasourceProvider =
     Provider<PasswordResetRemoteDatasource>((ref) {
   return PasswordResetRemoteDatasource(ref.read(apiClientProvider));
+});
+
+final suggestionRemoteDatasourceProvider =
+    Provider<SuggestionRemoteDatasource>((ref) {
+  return SuggestionRemoteDatasource(ref.read(apiClientProvider));
 });
 
 final totpSecretStoreProvider = Provider<TotpSecretStore>((ref) {

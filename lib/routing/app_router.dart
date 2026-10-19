@@ -16,6 +16,7 @@ import '../presentation/screens/main_shell.dart';
 import '../presentation/screens/profile/change_password_screen.dart';
 import '../presentation/screens/profile/privacy_policy_screen.dart';
 import '../presentation/screens/profile/profile_screen.dart';
+import '../presentation/screens/profile/suggestion_box_screen.dart';
 import '../presentation/screens/scan/scan_screen.dart';
 import '../presentation/screens/splash/splash_screen.dart';
 import 'route_names.dart';
@@ -147,6 +148,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                   GoRoute(
                     path: 'privacy-policy',
                     builder: (ctx, state) => const PrivacyPolicyScreen(),
+                  ),
+                  GoRoute(
+                    path: 'suggestion-box',
+                    builder: (ctx, state) => const SuggestionBoxScreen(),
                   ),
                 ],
               ),

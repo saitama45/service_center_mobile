@@ -95,6 +95,14 @@ live on ghelpdesk. Two OTP routes the client calls **do not exist on the server 
 // SyncManager._pullTransactions, right after _pullProgress, upserted by
 // `reference` into local loyalty_transactions.
 
+// POST /api/loyalty/suggestions { "subject"?: "...", "message": "..." }  (auth:sanctum, throttle:5,1)
+// 201 { "id": 12, "message": "Thank you! Your message has been sent." }
+// 422 { "errors": { "message": [...] } }   subject max 120, message required max 2000
+// Profile → Suggestion Box (SuggestionRemoteDatasource, SuggestionBoxScreen). Online
+// only — nothing is queued; a failure keeps the text on screen. ghelpdesk stores it in
+// customer_suggestions (stamped with the CBTL entity) and lists it on /stamps →
+// Suggestions for staff with stamps.view.
+
 // POST /api/otp/send  — NOT YET IMPLEMENTED SERVER-SIDE
 // 200 { "destination": "j***@example.com", "expires_in": 300, "resend_after": 30 }
 

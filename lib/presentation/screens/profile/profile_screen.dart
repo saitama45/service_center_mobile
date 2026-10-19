@@ -128,6 +128,20 @@ class ProfileScreen extends ConsumerWidget {
 
             const SizedBox(height: AppDimensions.md),
 
+            // ── Suggestion box ───────────────────────────────────────────
+            CbtlCard(
+              padding: EdgeInsets.zero,
+              child: _NavRow(
+                icon: Icons.lightbulb_outline,
+                label: 'Suggestion Box',
+                sub: 'Send us your suggestions or a message',
+                onTap: () =>
+                    context.go('/dashboard/profile/suggestion-box'),
+              ),
+            ),
+
+            const SizedBox(height: AppDimensions.md),
+
             // ── Privacy policy ───────────────────────────────────────────
             CbtlCard(
               padding: EdgeInsets.zero,

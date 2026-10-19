@@ -47,7 +47,9 @@ staff/admin screen back to this member app.
 Features: static signed member QR staff scan on ghelpdesk to award a real stamp; campaign
 catalogue + real progress synced down; card redemption + cycle restart; ledger with
 earned/redeemed/balance; remote-first login with offline fallback; OTP + biometric post-login
-steps; in-app account deletion. Portrait only; the iOS build is iPhone-only.
+steps; in-app account deletion; Profile → Suggestion Box (`POST /api/loyalty/suggestions`,
+online only, staff read it on ghelpdesk `/stamps` → Suggestions). Portrait only; the iOS
+build is iPhone-only.
 
 Naming carries history: pubspec `name: cbtl` (imports are `package:cbtl/...`; it was `bms`
 until the CBTL rebrand), shared widgets are prefixed `Bms*`, the folder is `loyalty_campaign`.
