@@ -4,6 +4,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:cbtl/database/app_database.dart';
 import 'package:cbtl/database/daos/loyalty_dao.dart';
+import 'package:cbtl/domain/entities/user_entity.dart';
+import 'package:cbtl/presentation/providers/app_providers.dart';
+import 'package:cbtl/presentation/providers/auth_provider.dart';
 import 'package:cbtl/presentation/providers/loyalty_provider.dart';
 
 /// Home's campaign switcher: which card the hero shows when a member is
@@ -141,5 +144,57 @@ void main() {
   test('no campaigns at all still resolves to null, not an error', () async {
     final container = containerWith([], null);
     expect(await container.read(homeCampaignProvider.future), isNull);
+  });
+
+  // Holiday overflow leaves a member filling two cards of one campaign at
+  // once; Home draws both, in the server's card order.
+  test('Home gets every open card of the campaign it shows', () async {
+    final holiday = await db.into(db.campaigns).insertReturning(
+          CampaignsCompanion.insert(
+            code: 'SP-7',
+            name: 'Holiday',
+            requiredStamps: const Value(20),
+            holidayStamps: const Value(4),
+            maxCardsPerCustomer: const Value(3),
+          ),
+        );
+    Future<StampCard> card(int cycle, int number, int stamps, int holidays) =>
+        db.into(db.stampCards).insertReturning(StampCardsCompanion.insert(
+              userId: 'user-1',
+              campaignId: holiday.id,
+              cycle: Value(cycle),
+              cardNumber: Value(number),
+              stampsCollected: Value(stamps),
+              holidayCount: Value(holidays),
+            ));
+    await card(1, 2, 1, 1);
+    final first = await card(2, 1, 6, 4);
+    final featured = CampaignProgress(campaign: holiday, card: first);
+
+    final now = DateTime.utc(2026, 10, 1);
+    final container = ProviderContainer(overrides: [
+      appDatabaseProvider.overrideWithValue(db),
+      currentUserProvider.overrideWithValue(UserEntity(
+        id: 'user-1',
+        roleId: 'user',
+        roleCode: 'USER',
+        roleName: 'user',
+        username: 'member@example.com',
+        fullName: 'Member',
+        isActive: true,
+        failedLoginCount: 0,
+        createdAt: now,
+        updatedAt: now,
+      )),
+      campaignProgressProvider.overrideWith((ref) async => [featured]),
+      featuredCampaignProvider.overrideWith((ref) async => featured),
+    ]);
+    addTearDown(container.dispose);
+
+    final cards = await container.read(homeCampaignCardsProvider.future);
+    expect(cards.map((p) => p.cardLabel), ['Card 1 of 3', 'Card 2 of 3']);
+    expect(cards.first.holidayCollected, 4);
+    expect(cards.first.regularCollected, 2);
+    expect(cards.last.holidayCollected, 1);
   });
 }

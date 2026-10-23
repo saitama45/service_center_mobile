@@ -330,6 +330,11 @@ class _CampaignCard extends StatelessWidget {
     final unlocked = progress.isUnlocked;
     final redeemed = progress.isRedeemed;
     final redeemedAt = progress.card?.redeemedAt;
+    // Only on programs using the newer card settings, so every other card
+    // reads exactly as before.
+    final cardLabel = c.maxCardsPerCustomer != null || progress.holidaySlots > 0
+        ? progress.cardLabel
+        : null;
 
     return Container(
       decoration: BoxDecoration(
@@ -446,7 +451,9 @@ class _CampaignCard extends StatelessWidget {
                   const SizedBox(height: AppDimensions.md),
                   Row(
                     children: [
-                      Text('${progress.stamps} / ${progress.required} stamps',
+                      Text(
+                          '${progress.stamps} / ${progress.required} stamps'
+                          '${cardLabel == null ? '' : '  ·  $cardLabel'}',
                           style: AppTextStyles.monoSmall),
                       const Spacer(),
                       if (c.endsAt != null)

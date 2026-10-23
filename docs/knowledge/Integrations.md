@@ -45,11 +45,19 @@ live on ghelpdesk. Two OTP routes the client calls **do not exist on the server 
 // GET /api/campaigns  (auth:sanctum)
 // 200 { "campaigns": [ { "code": "SP-3", "name": "...", "description": "...",
 //   "emoji": "🍂", "tag": "...", "required_stamps": 12,
+//   "holiday_stamps": 4, "max_cards_per_customer": 3,
 //   "eligible_items_description": "...", "reward_description": "...",
 //   "terms_and_conditions": "...", "starts_at": "...", "ends_at": "...",
 //   "is_active": true, "display_order": 1, "updated_at": "..." } ] }
 // Mirrors ghelpdesk's stamp_programs (the staff Loyalty Stamps module),
 // strictly scoped to the CBTL entity server-side. See CatalogRemoteDatasource.
+//
+// Holiday slots (2026-10-23): `holiday_stamps` of the `required_stamps` slots
+// are Holiday slots (0 = a plain card); `max_cards_per_customer` caps cards per
+// member, redeemed ones included (null = no limit; the app also reads ≤0 as no
+// limit). Both optional — an older server omits them. Stored on the local
+// campaigns row, which is their one home: my-cards' per-card copies
+// (`holiday_stamps`, `max_cards`) are parsed but not stored.
 
 // GET /api/loyalty/qr-card  (auth:sanctum)
 // 200 { "token": "LCARD1:123:abcdef0123456789abcdef01" }
@@ -62,7 +70,9 @@ live on ghelpdesk. Two OTP routes the client calls **do not exist on the server 
 // GET /api/loyalty/my-cards  (auth:sanctum)
 // 200 { "cards": [ { "code": "SP-3", "card_id": 77, "stamps_count": 4,
 //   "stamps_required": 12, "status": "active", "redeemed_at": null,
-//   "redeem_token": null } ] }
+//   "redeem_token": null,
+//   "holiday_stamps": 4, "holiday_count": 4, "regular_count": 0,
+//   "card_number": 1, "max_cards": 3 } ] }
 // The member's REAL stamp progress (ghelpdesk stamp_cards), keyed by the same
 // `code` the catalogue pull upserts local campaigns by. Pulled by
 // SyncManager._pullProgress right after _pullCatalog, and only for entries
@@ -74,6 +84,14 @@ live on ghelpdesk. Two OTP routes the client calls **do not exist on the server 
 // staff ("LRDM1:{card_id}:{sig}", LoyaltyRedeemQrService) and is non-null ONLY
 // on a `completed` card — issued here rather than from an on-demand endpoint so
 // the app can cache it and display it at the counter with no signal.
+//
+// Holiday fields (all optional): `holiday_count` (Holiday slots filled) +
+// `regular_count` = `stamps_count`; `card_number` is the card's 1-based position
+// among ALL the member's cards for the program, redeemed included ("Card 2 of
+// 3"). A Holiday stamp goes to the NEXT card once a card's Holiday slots are full,
+// even if that card still has empty regular slots — so a member can hold several
+// open cards per program at once. Stored as stamp_cards.holiday_count /
+// card_number; regular = stamps_collected − holiday_count.
 
 // POST stamps/scan/resolve-redeem   (web session, can:stamps.redeem)
 // The staff side of that token. 200 { "card": { ...customer, ...program } }
@@ -86,7 +104,11 @@ live on ghelpdesk. Two OTP routes the client calls **do not exist on the server 
 // GET /api/loyalty/my-transactions  (auth:sanctum)
 // 200 { "transactions": [ { "reference": "SE-42", "type": "earn", "points": 1,
 //   "campaign_code": "SP-3", "product_name": null, "store_name": "...",
-//   "occurred_at": "..." } ] }
+//   "occurred_at": "...", "card_id": 77, "stamp_type": "holiday" } ] }
+// `card_id` (earn and redeem rows; same value as my-cards' card_id) and
+// `stamp_type` ('regular' | 'holiday', earn rows only) are optional. `card_id`
+// is what links the row to the right local card; `stamp_type` is parsed but not
+// stored yet.
 // The individual-event counterpart to my-cards (ghelpdesk stamp_entries +
 // stamp_redemptions) — my-cards alone only moves a card's running count, it
 // never populates the History screen's transaction list. Redemption points
@@ -138,7 +160,10 @@ constructs the datasource. Treat both as design intent, not live integration.
 - **Pull, step 2** (`_pullProgress`, real, needs a `userId`) —
   `LoyaltyMemberRemoteDatasource.fetchMyCards()` → `GET /api/loyalty/my-cards` → overwrites the
   local open `stamp_cards` row's `stampsCollected` (matched to a local campaign by `code`) for
-  each returned card. This is what makes a stamp ghelpdesk staff just scanned in show up here.
+  each returned card, plus its `holidayCount` and `cardNumber` (a change in either alone counts
+  as an update). This is what makes a stamp ghelpdesk staff just scanned in show up here.
+  Several new cards for one campaign in one pull each get their own `_nextCycle`, so the
+  `(user_id, campaign_id, cycle)` unique key holds.
   Runs AFTER step 1 (a remote card with no matching local campaign yet is skipped, retried next
   sync) and is skipped entirely if `sync()` wasn't given a `userId`.
 - **Pull, step 3** (`_pullTransactions`, real, needs a `userId`) —
@@ -147,9 +172,11 @@ constructs the datasource. Treat both as design intent, not live integration.
   as step 1 — `reference` is the business key, not the row `id`). This is what actually
   populates the History screen — step 2 alone only moves a card's running count. Runs AFTER
   step 2 for the same reason step 2 runs after step 1: it needs a local campaign row (by
-  `campaignCode`) to attach to, and links `stampCardId` to whichever local card step 2 just
-  created/updated for that campaign. All three pull steps fire `onCatalogUpdated` (bumps
-  `loyaltyRevisionProvider`) on a real change.
+  `campaignCode`) to attach to, and links `stampCardId` to the local card whose
+  `remoteCardId` equals the row's `card_id` — falling back to the campaign's most recently
+  created card when the server sends no `card_id` or the card hasn't landed yet. (With Holiday
+  overflow there are several open cards per campaign, so "most recent" would be a guess.) All
+  three pull steps fire `onCatalogUpdated` (bumps `loyaltyRevisionProvider`) on a real change.
 - **Push** — `_pushChanges()` only counts pending `loyalty_transactions` and logs —
   deliberately, so requests don't 404 and mark good rows failed; no upload endpoint exists yet.
   `pendingTransactionCount()` feeds the "pending sync" chip on Home. (Moot for earning now

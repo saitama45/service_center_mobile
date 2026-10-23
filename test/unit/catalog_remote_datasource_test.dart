@@ -82,6 +82,59 @@ void main() {
       expect(campaign.isActive, isTrue);
     });
 
+    test('reads Holiday slots and the per-member card cap', () {
+      final campaign = RemoteCampaign.fromJson({
+        'code': 'SP-7',
+        'name': 'Holiday Card',
+        'required_stamps': 20,
+        'holiday_stamps': 4,
+        'max_cards_per_customer': 3,
+      });
+      expect(campaign.holidayStamps, 4);
+      expect(campaign.maxCardsPerCustomer, 3);
+    });
+
+    test('an older server without the Holiday fields reads as a plain card',
+        () {
+      final campaign = RemoteCampaign.fromJson({
+        'code': 'SP-8',
+        'name': 'Plain',
+        'required_stamps': 12,
+      });
+      expect(campaign.holidayStamps, 0);
+      expect(campaign.maxCardsPerCustomer, isNull, reason: 'null = no limit');
+    });
+
+    test('Holiday fields tolerate strings, nulls and nonsense', () {
+      final strings = RemoteCampaign.fromJson({
+        'code': 'SP-9',
+        'name': 'X',
+        'holiday_stamps': '4',
+        'max_cards_per_customer': '3',
+      });
+      expect(strings.holidayStamps, 4);
+      expect(strings.maxCardsPerCustomer, 3);
+
+      final odd = RemoteCampaign.fromJson({
+        'code': 'SP-10',
+        'name': 'X',
+        'holiday_stamps': -2,
+        'max_cards_per_customer': 0,
+      });
+      expect(odd.holidayStamps, 0);
+      expect(odd.maxCardsPerCustomer, isNull,
+          reason: 'a cap of 0 is read as no limit, not "no cards"');
+
+      final nulls = RemoteCampaign.fromJson({
+        'code': 'SP-11',
+        'name': 'X',
+        'holiday_stamps': null,
+        'max_cards_per_customer': null,
+      });
+      expect(nulls.holidayStamps, 0);
+      expect(nulls.maxCardsPerCustomer, isNull);
+    });
+
     test('is_active respects an explicit false', () {
       final campaign = RemoteCampaign.fromJson({
         'code': 'SP-6',

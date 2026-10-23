@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/constants/app_colors.dart';
+import 'beta_notice/beta_notice.dart';
 
 /// Bottom-nav shell: Home · Rewards · History · Profile.
 class MainShellScreen extends StatelessWidget {
@@ -20,7 +21,8 @@ class MainShellScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.cream,
-      body: navigationShell,
+      // Closed-beta confidentiality notice, once per member (Android only).
+      body: BetaNoticeGate(child: navigationShell),
       bottomNavigationBar: Container(
         // Hairline top border instead of a shadow — matches the card language.
         decoration: const BoxDecoration(

@@ -522,6 +522,136 @@ void main() {
     });
   });
 
+  // Holiday overflow: a 20-slot card with 4 Holiday slots. Once card 1's
+  // Holiday slots are full the next Holiday stamp starts card 2, so a member
+  // holds several open cards for one campaign at once.
+  group('Holiday slots', () {
+    late Campaign holiday;
+
+    setUp(() async {
+      holiday = await db.into(db.campaigns).insertReturning(
+            CampaignsCompanion.insert(
+              code: 'HOLIDAY',
+              name: 'Holiday Card',
+              requiredStamps: const Value(20),
+              holidayStamps: const Value(4),
+              maxCardsPerCustomer: const Value(3),
+            ),
+          );
+    });
+
+    Future<StampCard> insertCard({
+      required int cycle,
+      int stamps = 0,
+      int holidayCount = 0,
+      int? cardNumber,
+      DateTime? redeemedAt,
+      String? campaign,
+    }) {
+      return db.into(db.stampCards).insertReturning(
+            StampCardsCompanion.insert(
+              userId: userId,
+              campaignId: campaign ?? holiday.id,
+              stampsCollected: Value(stamps),
+              holidayCount: Value(holidayCount),
+              cardNumber: Value(cardNumber),
+              cycle: Value(cycle),
+              redeemedAt: Value(redeemedAt),
+            ),
+          );
+    }
+
+    test('getOpenCardsForCampaign lists every open card in card order',
+        () async {
+      // Inserted out of order on purpose; cycle disagrees with cardNumber.
+      await insertCard(cycle: 1, stamps: 1, holidayCount: 1, cardNumber: 3);
+      await insertCard(cycle: 2, stamps: 6, holidayCount: 4, cardNumber: 2);
+      await insertCard(cycle: 4, stamps: 2); // not numbered by the server yet
+      await insertCard(cycle: 3, stamps: 1); // not numbered either
+      // Redeemed — card 1, but no longer one Home shows.
+      await insertCard(
+          cycle: 5, stamps: 20, cardNumber: 1, redeemedAt: DateTime.utc(2026, 9, 1));
+      // Another campaign's card must not leak in.
+      await insertCard(cycle: 1, stamps: 2, campaign: campaignId);
+
+      final cards = await dao.getOpenCardsForCampaign(userId, holiday.id);
+
+      expect(cards.map((p) => p.card!.cardNumber), [2, 3, null, null]);
+      expect(cards.map((p) => p.card!.cycle), [2, 1, 3, 4],
+          reason: 'numbered cards first, then the rest by cycle');
+      expect(cards.every((p) => p.campaign.id == holiday.id), isTrue);
+    });
+
+    test('getOpenCardsForCampaign is empty for an unknown campaign', () async {
+      expect(await dao.getOpenCardsForCampaign(userId, 'nope'), isEmpty);
+    });
+
+    test('getCampaignProgress still lists the campaign once', () async {
+      await insertCard(cycle: 1, stamps: 6, holidayCount: 4, cardNumber: 1);
+      await insertCard(cycle: 2, stamps: 1, holidayCount: 1, cardNumber: 2);
+
+      final progress = await dao.getCampaignProgress(userId);
+      expect(progress.where((p) => p.campaign.id == holiday.id), hasLength(1));
+    });
+
+    test('splits a card into Holiday and regular slots', () async {
+      final card =
+          await insertCard(cycle: 1, stamps: 6, holidayCount: 4, cardNumber: 1);
+      final p = CampaignProgress(campaign: holiday, card: card);
+
+      expect(p.holidaySlots, 4);
+      expect(p.regularSlots, 16);
+      expect(p.holidayCollected, 4);
+      expect(p.regularCollected, 2);
+      expect(p.remaining, 14);
+    });
+
+    test('a Holiday count the card has no room for spills into regular',
+        () async {
+      final card = await insertCard(cycle: 1, stamps: 8, holidayCount: 6);
+      final p = CampaignProgress(campaign: holiday, card: card);
+
+      expect(p.holidayCollected, 4);
+      expect(p.regularCollected, 4,
+          reason: 'the grid must still show all 8 stamps the headline counts');
+    });
+
+    test('a Holiday count larger than the stamps on the card is capped',
+        () async {
+      final card = await insertCard(cycle: 1, stamps: 2, holidayCount: 3);
+      final p = CampaignProgress(campaign: holiday, card: card);
+
+      expect(p.holidayCollected, 2);
+      expect(p.regularCollected, 0);
+    });
+
+    test('a plain campaign reads every stamp as regular', () async {
+      final plain = (await dao.getCampaignById(campaignId))!;
+      final card = await insertCard(
+          cycle: 1, stamps: 2, holidayCount: 1, campaign: campaignId);
+      final p = CampaignProgress(campaign: plain, card: card);
+
+      expect(p.holidaySlots, 0);
+      expect(p.regularSlots, 3);
+      expect(p.holidayCollected, 0);
+      expect(p.regularCollected, 2);
+    });
+
+    test('labels a card "Card N of M", or "Card N" with no cap', () async {
+      final card = await insertCard(cycle: 1, cardNumber: 2);
+      expect(CampaignProgress(campaign: holiday, card: card).cardLabel,
+          'Card 2 of 3');
+
+      final uncapped = holiday.copyWith(maxCardsPerCustomer: const Value(null));
+      expect(CampaignProgress(campaign: uncapped, card: card).cardLabel, 'Card 2');
+
+      // Not numbered by the server yet — falls back to the local cycle.
+      final unnumbered = await insertCard(cycle: 3);
+      expect(CampaignProgress(campaign: holiday, card: unnumbered).cardLabel,
+          'Card 3 of 3');
+    });
+  });
+
   group('purgeMemberData', () {
     test('clears this member\'s cards and ledger, and nobody else\'s',
         () async {

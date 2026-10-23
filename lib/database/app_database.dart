@@ -54,7 +54,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.executor);
 
   @override
-  int get schemaVersion => 8;
+  int get schemaVersion => 10;
 
   /// Id of the bootstrap `admin` login that `SeedRunner` created before v8.
   /// Same derivation the seed used, so the v8 migration can find it.
@@ -186,8 +186,45 @@ class AppDatabase extends _$AppDatabase {
               [adminId],
             );
           }
+
+          // v9 adds Holiday slots and the per-member card cap. All four
+          // columns are additive with a default or null, so existing rows
+          // stay valid and read as a plain card until the next pull fills
+          // them in.
+          if (from < 9) {
+            await _addColumnIfMissing(m, campaigns, campaigns.holidayStamps);
+            await _addColumnIfMissing(
+                m, campaigns, campaigns.maxCardsPerCustomer);
+            await _addColumnIfMissing(m, stampCards, stampCards.holidayCount);
+            await _addColumnIfMissing(m, stampCards, stampCards.cardNumber);
+          }
+
+          // v10: the reason staff gave when taking stamps back ("Deduct
+          // Stamps" at the counter), shown under that History row.
+          if (from < 10) {
+            await _addColumnIfMissing(
+                m, loyaltyTransactions, loyaltyTransactions.note);
+          }
         },
       );
+
+  /// `ALTER TABLE … ADD COLUMN`, skipped when the column already exists.
+  ///
+  /// The guards above key on `from` alone, so the migration tests that replay
+  /// an older step (`onUpgrade(m, 5, 6)`) on a database `createAll()` already
+  /// built at the current version also run this one — and SQLite refuses to
+  /// add a column twice.
+  static Future<void> _addColumnIfMissing(
+    Migrator m,
+    TableInfo<Table, dynamic> table,
+    GeneratedColumn<Object> column,
+  ) async {
+    final existing = await m.database
+        .customSelect('PRAGMA table_info(${table.actualTableName})')
+        .get();
+    if (existing.any((row) => row.read<String>('name') == column.name)) return;
+    await m.addColumn(table, column);
+  }
 }
 
 LazyDatabase _openConnection() {

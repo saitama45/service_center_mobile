@@ -278,6 +278,10 @@ class _TransactionRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final txn = entry.transaction;
     final isEarn = txn.type == txnEarn;
+    // A stamp taken back at the counter ("Deduct Stamps" in the cashier
+    // portal) syncs down as an earn with negative points.
+    final isCorrection = isEarn && txn.points < 0;
+    final isGain = isEarn && !isCorrection;
     final local = txn.occurredAt.toLocal();
 
     return CbtlCard(
@@ -290,10 +294,10 @@ class _TransactionRow extends StatelessWidget {
             height: 38,
             alignment: Alignment.center,
             decoration: BoxDecoration(
-              color: isEarn ? AppColors.latteLight : AppColors.dangerSurface,
+              color: isGain ? AppColors.latteLight : AppColors.dangerSurface,
               borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
             ),
-            child: Text(isEarn ? '☕' : '🎁',
+            child: Text(isCorrection ? '↩' : (isEarn ? '☕' : '🎁'),
                 style: const TextStyle(fontSize: 16)),
           ),
           const SizedBox(width: 12),
@@ -306,7 +310,10 @@ class _TransactionRow extends StatelessWidget {
                   children: [
                     Expanded(
                       child: Text(
-                        txn.productName ?? (isEarn ? 'Stamp earned' : 'Reward redeemed'),
+                        txn.productName ??
+                            (isCorrection
+                                ? 'Stamp correction'
+                                : (isEarn ? 'Stamp earned' : 'Reward redeemed')),
                         style: AppTextStyles.bodyMedium
                             .copyWith(fontWeight: FontWeight.w600),
                         maxLines: 1,
@@ -315,10 +322,10 @@ class _TransactionRow extends StatelessWidget {
                     ),
                     const SizedBox(width: 8),
                     Text(
-                      isEarn ? '+${txn.points}' : '−${txn.points.abs()}',
+                      isGain ? '+${txn.points}' : '−${txn.points.abs()}',
                       style: AppTextStyles.monoMedium.copyWith(
                         fontWeight: FontWeight.w500,
-                        color: isEarn ? AppColors.success : AppColors.danger,
+                        color: isGain ? AppColors.success : AppColors.danger,
                       ),
                     ),
                   ],
@@ -339,6 +346,17 @@ class _TransactionRow extends StatelessWidget {
                 if (txn.storeName != null) ...[
                   const SizedBox(height: 2),
                   Text(txn.storeName!, style: AppTextStyles.caption),
+                ],
+                // Why the stamps were taken back, in staff's own words.
+                if (isCorrection && (txn.note?.isNotEmpty ?? false)) ...[
+                  const SizedBox(height: 2),
+                  Text(
+                    'Reason: ${txn.note}',
+                    style: AppTextStyles.caption
+                        .copyWith(color: AppColors.danger),
+                    maxLines: 3,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ],
                 const SizedBox(height: 3),
                 // The sync reference (e.g. "SE-19") used to show here too —

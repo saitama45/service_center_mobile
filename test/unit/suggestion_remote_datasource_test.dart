@@ -73,6 +73,18 @@ void main() {
     }
   });
 
+  test('404 (backend without the route) never shows the server text',
+      () async {
+    final result = await SuggestionRemoteDatasource(_FakeApi(404, {
+      'message': 'The route api/loyalty/suggestions could not be found.',
+    })).send(message: 'Hi');
+
+    expect(result, isA<SuggestionFailed>());
+    final message = (result as SuggestionFailed).message;
+    expect(message, isNot(contains('api/')));
+    expect(message, contains('not available yet'));
+  });
+
   test('a network error fails without throwing', () async {
     final result = await SuggestionRemoteDatasource(
             _FakeApi(0, const {}, error: http.ClientException('offline')))

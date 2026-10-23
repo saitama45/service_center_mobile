@@ -11,4 +11,23 @@ mixin _$LoyaltyDaoMixin on DatabaseAccessor<AppDatabase> {
   $StampCardsTable get stampCards => attachedDatabase.stampCards;
   $LoyaltyTransactionsTable get loyaltyTransactions =>
       attachedDatabase.loyaltyTransactions;
+  LoyaltyDaoManager get managers => LoyaltyDaoManager(this);
+}
+
+class LoyaltyDaoManager {
+  final _$LoyaltyDaoMixin _db;
+  LoyaltyDaoManager(this._db);
+  $$ProductsTableTableManager get products =>
+      $$ProductsTableTableManager(_db.attachedDatabase, _db.products);
+  $$CampaignsTableTableManager get campaigns =>
+      $$CampaignsTableTableManager(_db.attachedDatabase, _db.campaigns);
+  $$RolesTableTableManager get roles =>
+      $$RolesTableTableManager(_db.attachedDatabase, _db.roles);
+  $$UsersTableTableManager get users =>
+      $$UsersTableTableManager(_db.attachedDatabase, _db.users);
+  $$StampCardsTableTableManager get stampCards =>
+      $$StampCardsTableTableManager(_db.attachedDatabase, _db.stampCards);
+  $$LoyaltyTransactionsTableTableManager get loyaltyTransactions =>
+      $$LoyaltyTransactionsTableTableManager(
+          _db.attachedDatabase, _db.loyaltyTransactions);
 }

@@ -19,6 +19,8 @@ import 'api_client.dart';
 ///     "emoji": "🍂",          | null
 ///     "tag": "Hot Drinks",    | null
 ///     "required_stamps": 12,
+///     "holiday_stamps": 4,              // of required_stamps; 0 = none
+///     "max_cards_per_customer": 3,  | null   // null = no limit
 ///     "eligible_items_description": "...",  | null   // free text, not codes
 ///     "reward_description": "...",          | null
 ///     "terms_and_conditions": "...",        | null
@@ -100,6 +102,9 @@ class RemoteCampaign {
     this.emoji,
     this.tag,
     required this.requiredStamps,
+    // Defaulted because a server predating Holiday slots omits both.
+    this.holidayStamps = 0,
+    this.maxCardsPerCustomer,
     this.eligibleItemsDescription,
     this.rewardDescription,
     this.termsAndConditions,
@@ -115,6 +120,13 @@ class RemoteCampaign {
   final String? emoji;
   final String? tag;
   final int requiredStamps;
+
+  /// How many of [requiredStamps] are Holiday slots. 0 = a plain card.
+  final int holidayStamps;
+
+  /// Cap on cards per member, redeemed ones included. Null = no limit.
+  final int? maxCardsPerCustomer;
+
   final String? eligibleItemsDescription;
   final String? rewardDescription;
   final String? termsAndConditions;
@@ -131,6 +143,8 @@ class RemoteCampaign {
       emoji: json['emoji'] as String?,
       tag: json['tag'] as String?,
       requiredStamps: _intOrDefault(json['required_stamps'], 10),
+      holidayStamps: _positiveIntOrNull(json['holiday_stamps']) ?? 0,
+      maxCardsPerCustomer: _positiveIntOrNull(json['max_cards_per_customer']),
       eligibleItemsDescription: json['eligible_items_description'] as String?,
       rewardDescription: json['reward_description'] as String?,
       termsAndConditions: json['terms_and_conditions'] as String?,
@@ -146,6 +160,13 @@ class RemoteCampaign {
     if (value is num) return value.toInt();
     if (value is String) return int.tryParse(value) ?? fallback;
     return fallback;
+  }
+
+  /// Null for absent, unparseable, or ≤ 0. For the card cap that means no
+  /// limit: a cap of 0 can't mean "no cards" for a member already holding one.
+  static int? _positiveIntOrNull(Object? value) {
+    final parsed = _intOrDefault(value, 0);
+    return parsed > 0 ? parsed : null;
   }
 
   static DateTime? _dateOrNull(Object? value) {

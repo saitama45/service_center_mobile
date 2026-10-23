@@ -59,8 +59,8 @@ offline and merged later without collisions. Seeded rows instead use determinist
 | Table | Notes |
 |---|---|
 | `products` | `code` unique (PROD-00x), name, category, emoji, price, `is_active` |
-| `campaigns` | `code` unique, `required_stamps` (default 10), `eligible_product_codes` **CSV — empty means every product**, `tag`, `starts_at`/`ends_at`, `display_order` |
-| `stamp_cards` | unique `(user_id, campaign_id, cycle)`; `stamps_collected`, `completed_at`, `redeemed_at`, `remote_card_id` (ghelpdesk's `stamp_cards.id` — the sync identity), `redeem_token` (signed code for staff to scan, full unredeemed cards only) |
+| `campaigns` | `code` unique, `required_stamps` (default 10), `holiday_stamps` (how many of those slots are Holiday slots, default 0), `max_cards_per_customer` (nullable = no limit), `eligible_product_codes` **CSV — empty means every product**, `tag`, `starts_at`/`ends_at`, `display_order` |
+| `stamp_cards` | unique `(user_id, campaign_id, cycle)`; `stamps_collected`, `holiday_count` (how many of those sit in Holiday slots; the rest are regular), `card_number` (ghelpdesk's 1-based position among all the member's cards for the program, nullable), `completed_at`, `redeemed_at`, `remote_card_id` (ghelpdesk's `stamp_cards.id` — the sync identity), `redeem_token` (signed code for staff to scan, full unredeemed cards only) |
 | `loyalty_transactions` | unique `reference`, unique `scan_token`; `type` `earn`/`redeem`; `points` +1 / −requiredStamps; `occurred_at` |
 
 The **unique index on `scan_token`** is the enforcement that a QR code cannot be replayed —
@@ -71,8 +71,19 @@ Sync-status constants (`loyalty_tables.dart`): `0 pending`, `1 synced`, `2 synci
 
 ## Migrations
 
-`schemaVersion = 8`.
+`schemaVersion = 10`.
 
+- `from < 10` adds `loyalty_transactions.note` (nullable): the reason a cashier gave when
+  taking stamps back ("Deduct Stamps" in the LINK portal). Only a stamp correction carries
+  one — it syncs as an `earn` with negative points, `product_name` "Stamp correction".
+- `from < 9` adds `campaigns.holiday_stamps` (default 0), `campaigns.max_cards_per_customer`
+  (nullable), `stamp_cards.holiday_count` (default 0) and `stamp_cards.card_number`
+  (nullable) — Holiday slots and the per-member card cap. Additive only; existing rows read as
+  a plain card until the next pull. Each `ADD COLUMN` is skipped if the column already exists
+  (`_addColumnIfMissing`), because the migration tests replay older steps on a database
+  `createAll()` already built at the current version, and the `from < N` guards then run this
+  step too. Guarded by `test/unit/holiday_slots_migration_test.dart` (a real v8-shaped
+  database upgraded to v9).
 - `from < 8` deletes the bootstrap `admin` login earlier builds seeded
   (`AppDatabase.legacySeededAdminId`, the same `uuid.v5(NAMESPACE_URL, 'user_admin')` the seed
   used) and its `sessions` rows first, so a device signed in as `admin` cannot resume that
@@ -97,6 +108,28 @@ Sync-status constants (`loyalty_tables.dart`): `0 pending`, `1 synced`, `2 synci
 
 Bumping the schema means: edit the table class → add an `onUpgrade` branch → bump
 `schemaVersion` → `dart run build_runner build --delete-conflicting-outputs`.
+
+### Codegen versions (pinned on purpose, 2026-10-23)
+
+Flutter 3.47 / Dart 3.13 broke the old stack: `analyzer` 7.6.0 crashed with `Missing
+implementation of visitDotShorthandPropertyAccess` on Flutter's own sources and build_runner
+then hung — after `--delete-conflicting-outputs` had already deleted all 10 `.g.dart` files.
+Fixed in `pubspec.yaml`, where each pin carries its reason:
+
+- **Drift is the only generator in use.** riverpod_generator, freezed, json_serializable and
+  mockito (and their annotation packages) had no annotations anywhere but still ran on every
+  file under the old analyzer, so they were removed.
+- **`drift` / `drift_dev` held at 2.31.x** — the newest on `sqlite3` 2.x. drift ≥2.32 needs
+  `sqlite3` 3.x, which retires `sqlite3_flutter_libs` and bundles SQLite through native build
+  hooks: a packaging change for the Android/iOS builds that deserves its own release.
+- **`analyzer` held below 10.** drift_dev 2.31 accepts analyzer 10, but there a class name in
+  `references(Users, #id)` stops being an `Identifier` node: it warns "This parameter should be
+  a simple class name" and **drops every foreign key** from the generated schema while the
+  build still "succeeds". Analyzer 9 generates them correctly (it warns that the SDK language
+  version is newer — harmless).
+
+After any regeneration: `grep -c REFERENCES lib/database/app_database.g.dart` must be **17**.
+When moving to drift ≥2.32, lift both pins together and re-check that count.
 
 ## Seeding
 

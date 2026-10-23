@@ -5714,6 +5714,20 @@ class $CampaignsTable extends Campaigns
       type: DriftSqlType.int,
       requiredDuringInsert: false,
       defaultValue: const Constant(10));
+  static const VerificationMeta _holidayStampsMeta =
+      const VerificationMeta('holidayStamps');
+  @override
+  late final GeneratedColumn<int> holidayStamps = GeneratedColumn<int>(
+      'holiday_stamps', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultValue: const Constant(0));
+  static const VerificationMeta _maxCardsPerCustomerMeta =
+      const VerificationMeta('maxCardsPerCustomer');
+  @override
+  late final GeneratedColumn<int> maxCardsPerCustomer = GeneratedColumn<int>(
+      'max_cards_per_customer', aliasedName, true,
+      type: DriftSqlType.int, requiredDuringInsert: false);
   static const VerificationMeta _eligibleProductCodesMeta =
       const VerificationMeta('eligibleProductCodes');
   @override
@@ -5796,6 +5810,8 @@ class $CampaignsTable extends Campaigns
         emoji,
         tag,
         requiredStamps,
+        holidayStamps,
+        maxCardsPerCustomer,
         eligibleProductCodes,
         rewardDescription,
         termsAndConditions,
@@ -5851,6 +5867,18 @@ class $CampaignsTable extends Campaigns
           _requiredStampsMeta,
           requiredStamps.isAcceptableOrUnknown(
               data['required_stamps']!, _requiredStampsMeta));
+    }
+    if (data.containsKey('holiday_stamps')) {
+      context.handle(
+          _holidayStampsMeta,
+          holidayStamps.isAcceptableOrUnknown(
+              data['holiday_stamps']!, _holidayStampsMeta));
+    }
+    if (data.containsKey('max_cards_per_customer')) {
+      context.handle(
+          _maxCardsPerCustomerMeta,
+          maxCardsPerCustomer.isAcceptableOrUnknown(
+              data['max_cards_per_customer']!, _maxCardsPerCustomerMeta));
     }
     if (data.containsKey('eligible_product_codes')) {
       context.handle(
@@ -5929,6 +5957,10 @@ class $CampaignsTable extends Campaigns
           .read(DriftSqlType.string, data['${effectivePrefix}tag']),
       requiredStamps: attachedDatabase.typeMapping
           .read(DriftSqlType.int, data['${effectivePrefix}required_stamps'])!,
+      holidayStamps: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}holiday_stamps'])!,
+      maxCardsPerCustomer: attachedDatabase.typeMapping.read(
+          DriftSqlType.int, data['${effectivePrefix}max_cards_per_customer']),
       eligibleProductCodes: attachedDatabase.typeMapping.read(
           DriftSqlType.string,
           data['${effectivePrefix}eligible_product_codes'])!,
@@ -5970,6 +6002,15 @@ class Campaign extends DataClass implements Insertable<Campaign> {
   final String? tag;
   final int requiredStamps;
 
+  /// How many of the [requiredStamps] slots are Holiday slots (e.g. 4 of 20).
+  /// They are drawn first on the card. 0 means a plain card, exactly as
+  /// before this column existed.
+  final int holidayStamps;
+
+  /// The most cards one member may hold for this program, redeemed ones
+  /// included. Null means no limit.
+  final int? maxCardsPerCustomer;
+
   /// Comma-separated product codes. Empty means every product qualifies.
   final String eligibleProductCodes;
   final String? rewardDescription;
@@ -5989,6 +6030,8 @@ class Campaign extends DataClass implements Insertable<Campaign> {
       this.emoji,
       this.tag,
       required this.requiredStamps,
+      required this.holidayStamps,
+      this.maxCardsPerCustomer,
       required this.eligibleProductCodes,
       this.rewardDescription,
       this.termsAndConditions,
@@ -6015,6 +6058,10 @@ class Campaign extends DataClass implements Insertable<Campaign> {
       map['tag'] = Variable<String>(tag);
     }
     map['required_stamps'] = Variable<int>(requiredStamps);
+    map['holiday_stamps'] = Variable<int>(holidayStamps);
+    if (!nullToAbsent || maxCardsPerCustomer != null) {
+      map['max_cards_per_customer'] = Variable<int>(maxCardsPerCustomer);
+    }
     map['eligible_product_codes'] = Variable<String>(eligibleProductCodes);
     if (!nullToAbsent || rewardDescription != null) {
       map['reward_description'] = Variable<String>(rewardDescription);
@@ -6048,6 +6095,10 @@ class Campaign extends DataClass implements Insertable<Campaign> {
           emoji == null && nullToAbsent ? const Value.absent() : Value(emoji),
       tag: tag == null && nullToAbsent ? const Value.absent() : Value(tag),
       requiredStamps: Value(requiredStamps),
+      holidayStamps: Value(holidayStamps),
+      maxCardsPerCustomer: maxCardsPerCustomer == null && nullToAbsent
+          ? const Value.absent()
+          : Value(maxCardsPerCustomer),
       eligibleProductCodes: Value(eligibleProductCodes),
       rewardDescription: rewardDescription == null && nullToAbsent
           ? const Value.absent()
@@ -6079,6 +6130,9 @@ class Campaign extends DataClass implements Insertable<Campaign> {
       emoji: serializer.fromJson<String?>(json['emoji']),
       tag: serializer.fromJson<String?>(json['tag']),
       requiredStamps: serializer.fromJson<int>(json['requiredStamps']),
+      holidayStamps: serializer.fromJson<int>(json['holidayStamps']),
+      maxCardsPerCustomer:
+          serializer.fromJson<int?>(json['maxCardsPerCustomer']),
       eligibleProductCodes:
           serializer.fromJson<String>(json['eligibleProductCodes']),
       rewardDescription:
@@ -6105,6 +6159,8 @@ class Campaign extends DataClass implements Insertable<Campaign> {
       'emoji': serializer.toJson<String?>(emoji),
       'tag': serializer.toJson<String?>(tag),
       'requiredStamps': serializer.toJson<int>(requiredStamps),
+      'holidayStamps': serializer.toJson<int>(holidayStamps),
+      'maxCardsPerCustomer': serializer.toJson<int?>(maxCardsPerCustomer),
       'eligibleProductCodes': serializer.toJson<String>(eligibleProductCodes),
       'rewardDescription': serializer.toJson<String?>(rewardDescription),
       'termsAndConditions': serializer.toJson<String?>(termsAndConditions),
@@ -6126,6 +6182,8 @@ class Campaign extends DataClass implements Insertable<Campaign> {
           Value<String?> emoji = const Value.absent(),
           Value<String?> tag = const Value.absent(),
           int? requiredStamps,
+          int? holidayStamps,
+          Value<int?> maxCardsPerCustomer = const Value.absent(),
           String? eligibleProductCodes,
           Value<String?> rewardDescription = const Value.absent(),
           Value<String?> termsAndConditions = const Value.absent(),
@@ -6144,6 +6202,10 @@ class Campaign extends DataClass implements Insertable<Campaign> {
         emoji: emoji.present ? emoji.value : this.emoji,
         tag: tag.present ? tag.value : this.tag,
         requiredStamps: requiredStamps ?? this.requiredStamps,
+        holidayStamps: holidayStamps ?? this.holidayStamps,
+        maxCardsPerCustomer: maxCardsPerCustomer.present
+            ? maxCardsPerCustomer.value
+            : this.maxCardsPerCustomer,
         eligibleProductCodes: eligibleProductCodes ?? this.eligibleProductCodes,
         rewardDescription: rewardDescription.present
             ? rewardDescription.value
@@ -6171,6 +6233,12 @@ class Campaign extends DataClass implements Insertable<Campaign> {
       requiredStamps: data.requiredStamps.present
           ? data.requiredStamps.value
           : this.requiredStamps,
+      holidayStamps: data.holidayStamps.present
+          ? data.holidayStamps.value
+          : this.holidayStamps,
+      maxCardsPerCustomer: data.maxCardsPerCustomer.present
+          ? data.maxCardsPerCustomer.value
+          : this.maxCardsPerCustomer,
       eligibleProductCodes: data.eligibleProductCodes.present
           ? data.eligibleProductCodes.value
           : this.eligibleProductCodes,
@@ -6203,6 +6271,8 @@ class Campaign extends DataClass implements Insertable<Campaign> {
           ..write('emoji: $emoji, ')
           ..write('tag: $tag, ')
           ..write('requiredStamps: $requiredStamps, ')
+          ..write('holidayStamps: $holidayStamps, ')
+          ..write('maxCardsPerCustomer: $maxCardsPerCustomer, ')
           ..write('eligibleProductCodes: $eligibleProductCodes, ')
           ..write('rewardDescription: $rewardDescription, ')
           ..write('termsAndConditions: $termsAndConditions, ')
@@ -6226,6 +6296,8 @@ class Campaign extends DataClass implements Insertable<Campaign> {
       emoji,
       tag,
       requiredStamps,
+      holidayStamps,
+      maxCardsPerCustomer,
       eligibleProductCodes,
       rewardDescription,
       termsAndConditions,
@@ -6247,6 +6319,8 @@ class Campaign extends DataClass implements Insertable<Campaign> {
           other.emoji == this.emoji &&
           other.tag == this.tag &&
           other.requiredStamps == this.requiredStamps &&
+          other.holidayStamps == this.holidayStamps &&
+          other.maxCardsPerCustomer == this.maxCardsPerCustomer &&
           other.eligibleProductCodes == this.eligibleProductCodes &&
           other.rewardDescription == this.rewardDescription &&
           other.termsAndConditions == this.termsAndConditions &&
@@ -6267,6 +6341,8 @@ class CampaignsCompanion extends UpdateCompanion<Campaign> {
   final Value<String?> emoji;
   final Value<String?> tag;
   final Value<int> requiredStamps;
+  final Value<int> holidayStamps;
+  final Value<int?> maxCardsPerCustomer;
   final Value<String> eligibleProductCodes;
   final Value<String?> rewardDescription;
   final Value<String?> termsAndConditions;
@@ -6286,6 +6362,8 @@ class CampaignsCompanion extends UpdateCompanion<Campaign> {
     this.emoji = const Value.absent(),
     this.tag = const Value.absent(),
     this.requiredStamps = const Value.absent(),
+    this.holidayStamps = const Value.absent(),
+    this.maxCardsPerCustomer = const Value.absent(),
     this.eligibleProductCodes = const Value.absent(),
     this.rewardDescription = const Value.absent(),
     this.termsAndConditions = const Value.absent(),
@@ -6306,6 +6384,8 @@ class CampaignsCompanion extends UpdateCompanion<Campaign> {
     this.emoji = const Value.absent(),
     this.tag = const Value.absent(),
     this.requiredStamps = const Value.absent(),
+    this.holidayStamps = const Value.absent(),
+    this.maxCardsPerCustomer = const Value.absent(),
     this.eligibleProductCodes = const Value.absent(),
     this.rewardDescription = const Value.absent(),
     this.termsAndConditions = const Value.absent(),
@@ -6327,6 +6407,8 @@ class CampaignsCompanion extends UpdateCompanion<Campaign> {
     Expression<String>? emoji,
     Expression<String>? tag,
     Expression<int>? requiredStamps,
+    Expression<int>? holidayStamps,
+    Expression<int>? maxCardsPerCustomer,
     Expression<String>? eligibleProductCodes,
     Expression<String>? rewardDescription,
     Expression<String>? termsAndConditions,
@@ -6347,6 +6429,9 @@ class CampaignsCompanion extends UpdateCompanion<Campaign> {
       if (emoji != null) 'emoji': emoji,
       if (tag != null) 'tag': tag,
       if (requiredStamps != null) 'required_stamps': requiredStamps,
+      if (holidayStamps != null) 'holiday_stamps': holidayStamps,
+      if (maxCardsPerCustomer != null)
+        'max_cards_per_customer': maxCardsPerCustomer,
       if (eligibleProductCodes != null)
         'eligible_product_codes': eligibleProductCodes,
       if (rewardDescription != null) 'reward_description': rewardDescription,
@@ -6371,6 +6456,8 @@ class CampaignsCompanion extends UpdateCompanion<Campaign> {
       Value<String?>? emoji,
       Value<String?>? tag,
       Value<int>? requiredStamps,
+      Value<int>? holidayStamps,
+      Value<int?>? maxCardsPerCustomer,
       Value<String>? eligibleProductCodes,
       Value<String?>? rewardDescription,
       Value<String?>? termsAndConditions,
@@ -6390,6 +6477,8 @@ class CampaignsCompanion extends UpdateCompanion<Campaign> {
       emoji: emoji ?? this.emoji,
       tag: tag ?? this.tag,
       requiredStamps: requiredStamps ?? this.requiredStamps,
+      holidayStamps: holidayStamps ?? this.holidayStamps,
+      maxCardsPerCustomer: maxCardsPerCustomer ?? this.maxCardsPerCustomer,
       eligibleProductCodes: eligibleProductCodes ?? this.eligibleProductCodes,
       rewardDescription: rewardDescription ?? this.rewardDescription,
       termsAndConditions: termsAndConditions ?? this.termsAndConditions,
@@ -6427,6 +6516,12 @@ class CampaignsCompanion extends UpdateCompanion<Campaign> {
     }
     if (requiredStamps.present) {
       map['required_stamps'] = Variable<int>(requiredStamps.value);
+    }
+    if (holidayStamps.present) {
+      map['holiday_stamps'] = Variable<int>(holidayStamps.value);
+    }
+    if (maxCardsPerCustomer.present) {
+      map['max_cards_per_customer'] = Variable<int>(maxCardsPerCustomer.value);
     }
     if (eligibleProductCodes.present) {
       map['eligible_product_codes'] =
@@ -6475,6 +6570,8 @@ class CampaignsCompanion extends UpdateCompanion<Campaign> {
           ..write('emoji: $emoji, ')
           ..write('tag: $tag, ')
           ..write('requiredStamps: $requiredStamps, ')
+          ..write('holidayStamps: $holidayStamps, ')
+          ..write('maxCardsPerCustomer: $maxCardsPerCustomer, ')
           ..write('eligibleProductCodes: $eligibleProductCodes, ')
           ..write('rewardDescription: $rewardDescription, ')
           ..write('termsAndConditions: $termsAndConditions, ')
@@ -6541,6 +6638,20 @@ class $StampCardsTable extends StampCards
       type: DriftSqlType.int,
       requiredDuringInsert: false,
       defaultValue: const Constant(0));
+  static const VerificationMeta _holidayCountMeta =
+      const VerificationMeta('holidayCount');
+  @override
+  late final GeneratedColumn<int> holidayCount = GeneratedColumn<int>(
+      'holiday_count', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultValue: const Constant(0));
+  static const VerificationMeta _cardNumberMeta =
+      const VerificationMeta('cardNumber');
+  @override
+  late final GeneratedColumn<int> cardNumber = GeneratedColumn<int>(
+      'card_number', aliasedName, true,
+      type: DriftSqlType.int, requiredDuringInsert: false);
   static const VerificationMeta _cycleMeta = const VerificationMeta('cycle');
   @override
   late final GeneratedColumn<int> cycle = GeneratedColumn<int>(
@@ -6592,6 +6703,8 @@ class $StampCardsTable extends StampCards
         remoteCardId,
         redeemToken,
         stampsCollected,
+        holidayCount,
+        cardNumber,
         cycle,
         completedAt,
         redeemedAt,
@@ -6643,6 +6756,18 @@ class $StampCardsTable extends StampCards
           _stampsCollectedMeta,
           stampsCollected.isAcceptableOrUnknown(
               data['stamps_collected']!, _stampsCollectedMeta));
+    }
+    if (data.containsKey('holiday_count')) {
+      context.handle(
+          _holidayCountMeta,
+          holidayCount.isAcceptableOrUnknown(
+              data['holiday_count']!, _holidayCountMeta));
+    }
+    if (data.containsKey('card_number')) {
+      context.handle(
+          _cardNumberMeta,
+          cardNumber.isAcceptableOrUnknown(
+              data['card_number']!, _cardNumberMeta));
     }
     if (data.containsKey('cycle')) {
       context.handle(
@@ -6699,6 +6824,10 @@ class $StampCardsTable extends StampCards
           .read(DriftSqlType.string, data['${effectivePrefix}redeem_token']),
       stampsCollected: attachedDatabase.typeMapping
           .read(DriftSqlType.int, data['${effectivePrefix}stamps_collected'])!,
+      holidayCount: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}holiday_count'])!,
+      cardNumber: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}card_number']),
       cycle: attachedDatabase.typeMapping
           .read(DriftSqlType.int, data['${effectivePrefix}cycle'])!,
       completedAt: attachedDatabase.typeMapping
@@ -6740,6 +6869,17 @@ class StampCard extends DataClass implements Insertable<StampCard> {
   /// cached member QR. Only ever set on a full, unredeemed card.
   final String? redeemToken;
   final int stampsCollected;
+
+  /// How many of [stampsCollected] sit in the campaign's Holiday slots; the
+  /// rest are regular. Holiday stamps overflow onto the member's next card
+  /// once these slots are full, which is why one member can hold several
+  /// open cards for a single campaign.
+  final int holidayCount;
+
+  /// ghelpdesk's 1-based position of this card among all of the member's
+  /// cards for the program, redeemed ones included ("Card 2 of 3"). Null
+  /// until a server new enough to send it has been synced.
+  final int? cardNumber;
   final int cycle;
 
   /// Set once the card fills up; cleared onto a fresh card after redemption.
@@ -6755,6 +6895,8 @@ class StampCard extends DataClass implements Insertable<StampCard> {
       this.remoteCardId,
       this.redeemToken,
       required this.stampsCollected,
+      required this.holidayCount,
+      this.cardNumber,
       required this.cycle,
       this.completedAt,
       this.redeemedAt,
@@ -6774,6 +6916,10 @@ class StampCard extends DataClass implements Insertable<StampCard> {
       map['redeem_token'] = Variable<String>(redeemToken);
     }
     map['stamps_collected'] = Variable<int>(stampsCollected);
+    map['holiday_count'] = Variable<int>(holidayCount);
+    if (!nullToAbsent || cardNumber != null) {
+      map['card_number'] = Variable<int>(cardNumber);
+    }
     map['cycle'] = Variable<int>(cycle);
     if (!nullToAbsent || completedAt != null) {
       map['completed_at'] = Variable<DateTime>(completedAt);
@@ -6799,6 +6945,10 @@ class StampCard extends DataClass implements Insertable<StampCard> {
           ? const Value.absent()
           : Value(redeemToken),
       stampsCollected: Value(stampsCollected),
+      holidayCount: Value(holidayCount),
+      cardNumber: cardNumber == null && nullToAbsent
+          ? const Value.absent()
+          : Value(cardNumber),
       cycle: Value(cycle),
       completedAt: completedAt == null && nullToAbsent
           ? const Value.absent()
@@ -6822,6 +6972,8 @@ class StampCard extends DataClass implements Insertable<StampCard> {
       remoteCardId: serializer.fromJson<String?>(json['remoteCardId']),
       redeemToken: serializer.fromJson<String?>(json['redeemToken']),
       stampsCollected: serializer.fromJson<int>(json['stampsCollected']),
+      holidayCount: serializer.fromJson<int>(json['holidayCount']),
+      cardNumber: serializer.fromJson<int?>(json['cardNumber']),
       cycle: serializer.fromJson<int>(json['cycle']),
       completedAt: serializer.fromJson<DateTime?>(json['completedAt']),
       redeemedAt: serializer.fromJson<DateTime?>(json['redeemedAt']),
@@ -6840,6 +6992,8 @@ class StampCard extends DataClass implements Insertable<StampCard> {
       'remoteCardId': serializer.toJson<String?>(remoteCardId),
       'redeemToken': serializer.toJson<String?>(redeemToken),
       'stampsCollected': serializer.toJson<int>(stampsCollected),
+      'holidayCount': serializer.toJson<int>(holidayCount),
+      'cardNumber': serializer.toJson<int?>(cardNumber),
       'cycle': serializer.toJson<int>(cycle),
       'completedAt': serializer.toJson<DateTime?>(completedAt),
       'redeemedAt': serializer.toJson<DateTime?>(redeemedAt),
@@ -6856,6 +7010,8 @@ class StampCard extends DataClass implements Insertable<StampCard> {
           Value<String?> remoteCardId = const Value.absent(),
           Value<String?> redeemToken = const Value.absent(),
           int? stampsCollected,
+          int? holidayCount,
+          Value<int?> cardNumber = const Value.absent(),
           int? cycle,
           Value<DateTime?> completedAt = const Value.absent(),
           Value<DateTime?> redeemedAt = const Value.absent(),
@@ -6870,6 +7026,8 @@ class StampCard extends DataClass implements Insertable<StampCard> {
             remoteCardId.present ? remoteCardId.value : this.remoteCardId,
         redeemToken: redeemToken.present ? redeemToken.value : this.redeemToken,
         stampsCollected: stampsCollected ?? this.stampsCollected,
+        holidayCount: holidayCount ?? this.holidayCount,
+        cardNumber: cardNumber.present ? cardNumber.value : this.cardNumber,
         cycle: cycle ?? this.cycle,
         completedAt: completedAt.present ? completedAt.value : this.completedAt,
         redeemedAt: redeemedAt.present ? redeemedAt.value : this.redeemedAt,
@@ -6891,6 +7049,11 @@ class StampCard extends DataClass implements Insertable<StampCard> {
       stampsCollected: data.stampsCollected.present
           ? data.stampsCollected.value
           : this.stampsCollected,
+      holidayCount: data.holidayCount.present
+          ? data.holidayCount.value
+          : this.holidayCount,
+      cardNumber:
+          data.cardNumber.present ? data.cardNumber.value : this.cardNumber,
       cycle: data.cycle.present ? data.cycle.value : this.cycle,
       completedAt:
           data.completedAt.present ? data.completedAt.value : this.completedAt,
@@ -6912,6 +7075,8 @@ class StampCard extends DataClass implements Insertable<StampCard> {
           ..write('remoteCardId: $remoteCardId, ')
           ..write('redeemToken: $redeemToken, ')
           ..write('stampsCollected: $stampsCollected, ')
+          ..write('holidayCount: $holidayCount, ')
+          ..write('cardNumber: $cardNumber, ')
           ..write('cycle: $cycle, ')
           ..write('completedAt: $completedAt, ')
           ..write('redeemedAt: $redeemedAt, ')
@@ -6930,6 +7095,8 @@ class StampCard extends DataClass implements Insertable<StampCard> {
       remoteCardId,
       redeemToken,
       stampsCollected,
+      holidayCount,
+      cardNumber,
       cycle,
       completedAt,
       redeemedAt,
@@ -6946,6 +7113,8 @@ class StampCard extends DataClass implements Insertable<StampCard> {
           other.remoteCardId == this.remoteCardId &&
           other.redeemToken == this.redeemToken &&
           other.stampsCollected == this.stampsCollected &&
+          other.holidayCount == this.holidayCount &&
+          other.cardNumber == this.cardNumber &&
           other.cycle == this.cycle &&
           other.completedAt == this.completedAt &&
           other.redeemedAt == this.redeemedAt &&
@@ -6961,6 +7130,8 @@ class StampCardsCompanion extends UpdateCompanion<StampCard> {
   final Value<String?> remoteCardId;
   final Value<String?> redeemToken;
   final Value<int> stampsCollected;
+  final Value<int> holidayCount;
+  final Value<int?> cardNumber;
   final Value<int> cycle;
   final Value<DateTime?> completedAt;
   final Value<DateTime?> redeemedAt;
@@ -6975,6 +7146,8 @@ class StampCardsCompanion extends UpdateCompanion<StampCard> {
     this.remoteCardId = const Value.absent(),
     this.redeemToken = const Value.absent(),
     this.stampsCollected = const Value.absent(),
+    this.holidayCount = const Value.absent(),
+    this.cardNumber = const Value.absent(),
     this.cycle = const Value.absent(),
     this.completedAt = const Value.absent(),
     this.redeemedAt = const Value.absent(),
@@ -6990,6 +7163,8 @@ class StampCardsCompanion extends UpdateCompanion<StampCard> {
     this.remoteCardId = const Value.absent(),
     this.redeemToken = const Value.absent(),
     this.stampsCollected = const Value.absent(),
+    this.holidayCount = const Value.absent(),
+    this.cardNumber = const Value.absent(),
     this.cycle = const Value.absent(),
     this.completedAt = const Value.absent(),
     this.redeemedAt = const Value.absent(),
@@ -7006,6 +7181,8 @@ class StampCardsCompanion extends UpdateCompanion<StampCard> {
     Expression<String>? remoteCardId,
     Expression<String>? redeemToken,
     Expression<int>? stampsCollected,
+    Expression<int>? holidayCount,
+    Expression<int>? cardNumber,
     Expression<int>? cycle,
     Expression<DateTime>? completedAt,
     Expression<DateTime>? redeemedAt,
@@ -7021,6 +7198,8 @@ class StampCardsCompanion extends UpdateCompanion<StampCard> {
       if (remoteCardId != null) 'remote_card_id': remoteCardId,
       if (redeemToken != null) 'redeem_token': redeemToken,
       if (stampsCollected != null) 'stamps_collected': stampsCollected,
+      if (holidayCount != null) 'holiday_count': holidayCount,
+      if (cardNumber != null) 'card_number': cardNumber,
       if (cycle != null) 'cycle': cycle,
       if (completedAt != null) 'completed_at': completedAt,
       if (redeemedAt != null) 'redeemed_at': redeemedAt,
@@ -7038,6 +7217,8 @@ class StampCardsCompanion extends UpdateCompanion<StampCard> {
       Value<String?>? remoteCardId,
       Value<String?>? redeemToken,
       Value<int>? stampsCollected,
+      Value<int>? holidayCount,
+      Value<int?>? cardNumber,
       Value<int>? cycle,
       Value<DateTime?>? completedAt,
       Value<DateTime?>? redeemedAt,
@@ -7052,6 +7233,8 @@ class StampCardsCompanion extends UpdateCompanion<StampCard> {
       remoteCardId: remoteCardId ?? this.remoteCardId,
       redeemToken: redeemToken ?? this.redeemToken,
       stampsCollected: stampsCollected ?? this.stampsCollected,
+      holidayCount: holidayCount ?? this.holidayCount,
+      cardNumber: cardNumber ?? this.cardNumber,
       cycle: cycle ?? this.cycle,
       completedAt: completedAt ?? this.completedAt,
       redeemedAt: redeemedAt ?? this.redeemedAt,
@@ -7082,6 +7265,12 @@ class StampCardsCompanion extends UpdateCompanion<StampCard> {
     }
     if (stampsCollected.present) {
       map['stamps_collected'] = Variable<int>(stampsCollected.value);
+    }
+    if (holidayCount.present) {
+      map['holiday_count'] = Variable<int>(holidayCount.value);
+    }
+    if (cardNumber.present) {
+      map['card_number'] = Variable<int>(cardNumber.value);
     }
     if (cycle.present) {
       map['cycle'] = Variable<int>(cycle.value);
@@ -7116,6 +7305,8 @@ class StampCardsCompanion extends UpdateCompanion<StampCard> {
           ..write('remoteCardId: $remoteCardId, ')
           ..write('redeemToken: $redeemToken, ')
           ..write('stampsCollected: $stampsCollected, ')
+          ..write('holidayCount: $holidayCount, ')
+          ..write('cardNumber: $cardNumber, ')
           ..write('cycle: $cycle, ')
           ..write('completedAt: $completedAt, ')
           ..write('redeemedAt: $redeemedAt, ')
@@ -7210,6 +7401,11 @@ class $LoyaltyTransactionsTable extends LoyaltyTransactions
   late final GeneratedColumn<String> storeName = GeneratedColumn<String>(
       'store_name', aliasedName, true,
       type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _noteMeta = const VerificationMeta('note');
+  @override
+  late final GeneratedColumn<String> note = GeneratedColumn<String>(
+      'note', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
   static const VerificationMeta _scanTokenMeta =
       const VerificationMeta('scanToken');
   @override
@@ -7260,6 +7456,7 @@ class $LoyaltyTransactionsTable extends LoyaltyTransactions
         points,
         productName,
         storeName,
+        note,
         scanToken,
         occurredAt,
         syncStatus,
@@ -7327,6 +7524,10 @@ class $LoyaltyTransactionsTable extends LoyaltyTransactions
       context.handle(_storeNameMeta,
           storeName.isAcceptableOrUnknown(data['store_name']!, _storeNameMeta));
     }
+    if (data.containsKey('note')) {
+      context.handle(
+          _noteMeta, note.isAcceptableOrUnknown(data['note']!, _noteMeta));
+    }
     if (data.containsKey('scan_token')) {
       context.handle(_scanTokenMeta,
           scanToken.isAcceptableOrUnknown(data['scan_token']!, _scanTokenMeta));
@@ -7385,6 +7586,8 @@ class $LoyaltyTransactionsTable extends LoyaltyTransactions
           .read(DriftSqlType.string, data['${effectivePrefix}product_name']),
       storeName: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}store_name']),
+      note: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}note']),
       scanToken: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}scan_token']),
       occurredAt: attachedDatabase.typeMapping
@@ -7423,6 +7626,10 @@ class LoyaltyTransaction extends DataClass
   final String? productName;
   final String? storeName;
 
+  /// Staff's reason, on a stamp correction only (negative-point earn from
+  /// "Deduct Stamps" at the counter). Shown under that History row. v10.
+  final String? note;
+
   /// The one-time token this transaction was claimed with — the uniqueness
   /// constraint is what makes a scanned QR code non-replayable.
   final String? scanToken;
@@ -7441,6 +7648,7 @@ class LoyaltyTransaction extends DataClass
       required this.points,
       this.productName,
       this.storeName,
+      this.note,
       this.scanToken,
       required this.occurredAt,
       required this.syncStatus,
@@ -7468,6 +7676,9 @@ class LoyaltyTransaction extends DataClass
     }
     if (!nullToAbsent || storeName != null) {
       map['store_name'] = Variable<String>(storeName);
+    }
+    if (!nullToAbsent || note != null) {
+      map['note'] = Variable<String>(note);
     }
     if (!nullToAbsent || scanToken != null) {
       map['scan_token'] = Variable<String>(scanToken);
@@ -7501,6 +7712,7 @@ class LoyaltyTransaction extends DataClass
       storeName: storeName == null && nullToAbsent
           ? const Value.absent()
           : Value(storeName),
+      note: note == null && nullToAbsent ? const Value.absent() : Value(note),
       scanToken: scanToken == null && nullToAbsent
           ? const Value.absent()
           : Value(scanToken),
@@ -7525,6 +7737,7 @@ class LoyaltyTransaction extends DataClass
       points: serializer.fromJson<int>(json['points']),
       productName: serializer.fromJson<String?>(json['productName']),
       storeName: serializer.fromJson<String?>(json['storeName']),
+      note: serializer.fromJson<String?>(json['note']),
       scanToken: serializer.fromJson<String?>(json['scanToken']),
       occurredAt: serializer.fromJson<DateTime>(json['occurredAt']),
       syncStatus: serializer.fromJson<int>(json['syncStatus']),
@@ -7546,6 +7759,7 @@ class LoyaltyTransaction extends DataClass
       'points': serializer.toJson<int>(points),
       'productName': serializer.toJson<String?>(productName),
       'storeName': serializer.toJson<String?>(storeName),
+      'note': serializer.toJson<String?>(note),
       'scanToken': serializer.toJson<String?>(scanToken),
       'occurredAt': serializer.toJson<DateTime>(occurredAt),
       'syncStatus': serializer.toJson<int>(syncStatus),
@@ -7565,6 +7779,7 @@ class LoyaltyTransaction extends DataClass
           int? points,
           Value<String?> productName = const Value.absent(),
           Value<String?> storeName = const Value.absent(),
+          Value<String?> note = const Value.absent(),
           Value<String?> scanToken = const Value.absent(),
           DateTime? occurredAt,
           int? syncStatus,
@@ -7581,6 +7796,7 @@ class LoyaltyTransaction extends DataClass
         points: points ?? this.points,
         productName: productName.present ? productName.value : this.productName,
         storeName: storeName.present ? storeName.value : this.storeName,
+        note: note.present ? note.value : this.note,
         scanToken: scanToken.present ? scanToken.value : this.scanToken,
         occurredAt: occurredAt ?? this.occurredAt,
         syncStatus: syncStatus ?? this.syncStatus,
@@ -7602,6 +7818,7 @@ class LoyaltyTransaction extends DataClass
       productName:
           data.productName.present ? data.productName.value : this.productName,
       storeName: data.storeName.present ? data.storeName.value : this.storeName,
+      note: data.note.present ? data.note.value : this.note,
       scanToken: data.scanToken.present ? data.scanToken.value : this.scanToken,
       occurredAt:
           data.occurredAt.present ? data.occurredAt.value : this.occurredAt,
@@ -7625,6 +7842,7 @@ class LoyaltyTransaction extends DataClass
           ..write('points: $points, ')
           ..write('productName: $productName, ')
           ..write('storeName: $storeName, ')
+          ..write('note: $note, ')
           ..write('scanToken: $scanToken, ')
           ..write('occurredAt: $occurredAt, ')
           ..write('syncStatus: $syncStatus, ')
@@ -7646,6 +7864,7 @@ class LoyaltyTransaction extends DataClass
       points,
       productName,
       storeName,
+      note,
       scanToken,
       occurredAt,
       syncStatus,
@@ -7665,6 +7884,7 @@ class LoyaltyTransaction extends DataClass
           other.points == this.points &&
           other.productName == this.productName &&
           other.storeName == this.storeName &&
+          other.note == this.note &&
           other.scanToken == this.scanToken &&
           other.occurredAt == this.occurredAt &&
           other.syncStatus == this.syncStatus &&
@@ -7683,6 +7903,7 @@ class LoyaltyTransactionsCompanion extends UpdateCompanion<LoyaltyTransaction> {
   final Value<int> points;
   final Value<String?> productName;
   final Value<String?> storeName;
+  final Value<String?> note;
   final Value<String?> scanToken;
   final Value<DateTime> occurredAt;
   final Value<int> syncStatus;
@@ -7700,6 +7921,7 @@ class LoyaltyTransactionsCompanion extends UpdateCompanion<LoyaltyTransaction> {
     this.points = const Value.absent(),
     this.productName = const Value.absent(),
     this.storeName = const Value.absent(),
+    this.note = const Value.absent(),
     this.scanToken = const Value.absent(),
     this.occurredAt = const Value.absent(),
     this.syncStatus = const Value.absent(),
@@ -7718,6 +7940,7 @@ class LoyaltyTransactionsCompanion extends UpdateCompanion<LoyaltyTransaction> {
     this.points = const Value.absent(),
     this.productName = const Value.absent(),
     this.storeName = const Value.absent(),
+    this.note = const Value.absent(),
     this.scanToken = const Value.absent(),
     this.occurredAt = const Value.absent(),
     this.syncStatus = const Value.absent(),
@@ -7738,6 +7961,7 @@ class LoyaltyTransactionsCompanion extends UpdateCompanion<LoyaltyTransaction> {
     Expression<int>? points,
     Expression<String>? productName,
     Expression<String>? storeName,
+    Expression<String>? note,
     Expression<String>? scanToken,
     Expression<DateTime>? occurredAt,
     Expression<int>? syncStatus,
@@ -7756,6 +7980,7 @@ class LoyaltyTransactionsCompanion extends UpdateCompanion<LoyaltyTransaction> {
       if (points != null) 'points': points,
       if (productName != null) 'product_name': productName,
       if (storeName != null) 'store_name': storeName,
+      if (note != null) 'note': note,
       if (scanToken != null) 'scan_token': scanToken,
       if (occurredAt != null) 'occurred_at': occurredAt,
       if (syncStatus != null) 'sync_status': syncStatus,
@@ -7776,6 +8001,7 @@ class LoyaltyTransactionsCompanion extends UpdateCompanion<LoyaltyTransaction> {
       Value<int>? points,
       Value<String?>? productName,
       Value<String?>? storeName,
+      Value<String?>? note,
       Value<String?>? scanToken,
       Value<DateTime>? occurredAt,
       Value<int>? syncStatus,
@@ -7793,6 +8019,7 @@ class LoyaltyTransactionsCompanion extends UpdateCompanion<LoyaltyTransaction> {
       points: points ?? this.points,
       productName: productName ?? this.productName,
       storeName: storeName ?? this.storeName,
+      note: note ?? this.note,
       scanToken: scanToken ?? this.scanToken,
       occurredAt: occurredAt ?? this.occurredAt,
       syncStatus: syncStatus ?? this.syncStatus,
@@ -7835,6 +8062,9 @@ class LoyaltyTransactionsCompanion extends UpdateCompanion<LoyaltyTransaction> {
     if (storeName.present) {
       map['store_name'] = Variable<String>(storeName.value);
     }
+    if (note.present) {
+      map['note'] = Variable<String>(note.value);
+    }
     if (scanToken.present) {
       map['scan_token'] = Variable<String>(scanToken.value);
     }
@@ -7869,6 +8099,7 @@ class LoyaltyTransactionsCompanion extends UpdateCompanion<LoyaltyTransaction> {
           ..write('points: $points, ')
           ..write('productName: $productName, ')
           ..write('storeName: $storeName, ')
+          ..write('note: $note, ')
           ..write('scanToken: $scanToken, ')
           ..write('occurredAt: $occurredAt, ')
           ..write('syncStatus: $syncStatus, ')
@@ -12546,6 +12777,8 @@ typedef $$CampaignsTableCreateCompanionBuilder = CampaignsCompanion Function({
   Value<String?> emoji,
   Value<String?> tag,
   Value<int> requiredStamps,
+  Value<int> holidayStamps,
+  Value<int?> maxCardsPerCustomer,
   Value<String> eligibleProductCodes,
   Value<String?> rewardDescription,
   Value<String?> termsAndConditions,
@@ -12566,6 +12799,8 @@ typedef $$CampaignsTableUpdateCompanionBuilder = CampaignsCompanion Function({
   Value<String?> emoji,
   Value<String?> tag,
   Value<int> requiredStamps,
+  Value<int> holidayStamps,
+  Value<int?> maxCardsPerCustomer,
   Value<String> eligibleProductCodes,
   Value<String?> rewardDescription,
   Value<String?> termsAndConditions,
@@ -12646,6 +12881,13 @@ class $$CampaignsTableFilterComposer
 
   ColumnFilters<int> get requiredStamps => $composableBuilder(
       column: $table.requiredStamps,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get holidayStamps => $composableBuilder(
+      column: $table.holidayStamps, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get maxCardsPerCustomer => $composableBuilder(
+      column: $table.maxCardsPerCustomer,
       builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get eligibleProductCodes => $composableBuilder(
@@ -12755,6 +12997,14 @@ class $$CampaignsTableOrderingComposer
       column: $table.requiredStamps,
       builder: (column) => ColumnOrderings(column));
 
+  ColumnOrderings<int> get holidayStamps => $composableBuilder(
+      column: $table.holidayStamps,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get maxCardsPerCustomer => $composableBuilder(
+      column: $table.maxCardsPerCustomer,
+      builder: (column) => ColumnOrderings(column));
+
   ColumnOrderings<String> get eligibleProductCodes => $composableBuilder(
       column: $table.eligibleProductCodes,
       builder: (column) => ColumnOrderings(column));
@@ -12819,6 +13069,12 @@ class $$CampaignsTableAnnotationComposer
 
   GeneratedColumn<int> get requiredStamps => $composableBuilder(
       column: $table.requiredStamps, builder: (column) => column);
+
+  GeneratedColumn<int> get holidayStamps => $composableBuilder(
+      column: $table.holidayStamps, builder: (column) => column);
+
+  GeneratedColumn<int> get maxCardsPerCustomer => $composableBuilder(
+      column: $table.maxCardsPerCustomer, builder: (column) => column);
 
   GeneratedColumn<String> get eligibleProductCodes => $composableBuilder(
       column: $table.eligibleProductCodes, builder: (column) => column);
@@ -12926,6 +13182,8 @@ class $$CampaignsTableTableManager extends RootTableManager<
             Value<String?> emoji = const Value.absent(),
             Value<String?> tag = const Value.absent(),
             Value<int> requiredStamps = const Value.absent(),
+            Value<int> holidayStamps = const Value.absent(),
+            Value<int?> maxCardsPerCustomer = const Value.absent(),
             Value<String> eligibleProductCodes = const Value.absent(),
             Value<String?> rewardDescription = const Value.absent(),
             Value<String?> termsAndConditions = const Value.absent(),
@@ -12946,6 +13204,8 @@ class $$CampaignsTableTableManager extends RootTableManager<
             emoji: emoji,
             tag: tag,
             requiredStamps: requiredStamps,
+            holidayStamps: holidayStamps,
+            maxCardsPerCustomer: maxCardsPerCustomer,
             eligibleProductCodes: eligibleProductCodes,
             rewardDescription: rewardDescription,
             termsAndConditions: termsAndConditions,
@@ -12966,6 +13226,8 @@ class $$CampaignsTableTableManager extends RootTableManager<
             Value<String?> emoji = const Value.absent(),
             Value<String?> tag = const Value.absent(),
             Value<int> requiredStamps = const Value.absent(),
+            Value<int> holidayStamps = const Value.absent(),
+            Value<int?> maxCardsPerCustomer = const Value.absent(),
             Value<String> eligibleProductCodes = const Value.absent(),
             Value<String?> rewardDescription = const Value.absent(),
             Value<String?> termsAndConditions = const Value.absent(),
@@ -12986,6 +13248,8 @@ class $$CampaignsTableTableManager extends RootTableManager<
             emoji: emoji,
             tag: tag,
             requiredStamps: requiredStamps,
+            holidayStamps: holidayStamps,
+            maxCardsPerCustomer: maxCardsPerCustomer,
             eligibleProductCodes: eligibleProductCodes,
             rewardDescription: rewardDescription,
             termsAndConditions: termsAndConditions,
@@ -13068,6 +13332,8 @@ typedef $$StampCardsTableCreateCompanionBuilder = StampCardsCompanion Function({
   Value<String?> remoteCardId,
   Value<String?> redeemToken,
   Value<int> stampsCollected,
+  Value<int> holidayCount,
+  Value<int?> cardNumber,
   Value<int> cycle,
   Value<DateTime?> completedAt,
   Value<DateTime?> redeemedAt,
@@ -13083,6 +13349,8 @@ typedef $$StampCardsTableUpdateCompanionBuilder = StampCardsCompanion Function({
   Value<String?> remoteCardId,
   Value<String?> redeemToken,
   Value<int> stampsCollected,
+  Value<int> holidayCount,
+  Value<int?> cardNumber,
   Value<int> cycle,
   Value<DateTime?> completedAt,
   Value<DateTime?> redeemedAt,
@@ -13165,6 +13433,12 @@ class $$StampCardsTableFilterComposer
   ColumnFilters<int> get stampsCollected => $composableBuilder(
       column: $table.stampsCollected,
       builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get holidayCount => $composableBuilder(
+      column: $table.holidayCount, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get cardNumber => $composableBuilder(
+      column: $table.cardNumber, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<int> get cycle => $composableBuilder(
       column: $table.cycle, builder: (column) => ColumnFilters(column));
@@ -13269,6 +13543,13 @@ class $$StampCardsTableOrderingComposer
       column: $table.stampsCollected,
       builder: (column) => ColumnOrderings(column));
 
+  ColumnOrderings<int> get holidayCount => $composableBuilder(
+      column: $table.holidayCount,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get cardNumber => $composableBuilder(
+      column: $table.cardNumber, builder: (column) => ColumnOrderings(column));
+
   ColumnOrderings<int> get cycle => $composableBuilder(
       column: $table.cycle, builder: (column) => ColumnOrderings(column));
 
@@ -13348,6 +13629,12 @@ class $$StampCardsTableAnnotationComposer
 
   GeneratedColumn<int> get stampsCollected => $composableBuilder(
       column: $table.stampsCollected, builder: (column) => column);
+
+  GeneratedColumn<int> get holidayCount => $composableBuilder(
+      column: $table.holidayCount, builder: (column) => column);
+
+  GeneratedColumn<int> get cardNumber => $composableBuilder(
+      column: $table.cardNumber, builder: (column) => column);
 
   GeneratedColumn<int> get cycle =>
       $composableBuilder(column: $table.cycle, builder: (column) => column);
@@ -13461,6 +13748,8 @@ class $$StampCardsTableTableManager extends RootTableManager<
             Value<String?> remoteCardId = const Value.absent(),
             Value<String?> redeemToken = const Value.absent(),
             Value<int> stampsCollected = const Value.absent(),
+            Value<int> holidayCount = const Value.absent(),
+            Value<int?> cardNumber = const Value.absent(),
             Value<int> cycle = const Value.absent(),
             Value<DateTime?> completedAt = const Value.absent(),
             Value<DateTime?> redeemedAt = const Value.absent(),
@@ -13476,6 +13765,8 @@ class $$StampCardsTableTableManager extends RootTableManager<
             remoteCardId: remoteCardId,
             redeemToken: redeemToken,
             stampsCollected: stampsCollected,
+            holidayCount: holidayCount,
+            cardNumber: cardNumber,
             cycle: cycle,
             completedAt: completedAt,
             redeemedAt: redeemedAt,
@@ -13491,6 +13782,8 @@ class $$StampCardsTableTableManager extends RootTableManager<
             Value<String?> remoteCardId = const Value.absent(),
             Value<String?> redeemToken = const Value.absent(),
             Value<int> stampsCollected = const Value.absent(),
+            Value<int> holidayCount = const Value.absent(),
+            Value<int?> cardNumber = const Value.absent(),
             Value<int> cycle = const Value.absent(),
             Value<DateTime?> completedAt = const Value.absent(),
             Value<DateTime?> redeemedAt = const Value.absent(),
@@ -13506,6 +13799,8 @@ class $$StampCardsTableTableManager extends RootTableManager<
             remoteCardId: remoteCardId,
             redeemToken: redeemToken,
             stampsCollected: stampsCollected,
+            holidayCount: holidayCount,
+            cardNumber: cardNumber,
             cycle: cycle,
             completedAt: completedAt,
             redeemedAt: redeemedAt,
@@ -13612,6 +13907,7 @@ typedef $$LoyaltyTransactionsTableCreateCompanionBuilder
   Value<int> points,
   Value<String?> productName,
   Value<String?> storeName,
+  Value<String?> note,
   Value<String?> scanToken,
   Value<DateTime> occurredAt,
   Value<int> syncStatus,
@@ -13631,6 +13927,7 @@ typedef $$LoyaltyTransactionsTableUpdateCompanionBuilder
   Value<int> points,
   Value<String?> productName,
   Value<String?> storeName,
+  Value<String?> note,
   Value<String?> scanToken,
   Value<DateTime> occurredAt,
   Value<int> syncStatus,
@@ -13730,6 +14027,9 @@ class $$LoyaltyTransactionsTableFilterComposer
 
   ColumnFilters<String> get storeName => $composableBuilder(
       column: $table.storeName, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get note => $composableBuilder(
+      column: $table.note, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get scanToken => $composableBuilder(
       column: $table.scanToken, builder: (column) => ColumnFilters(column));
@@ -13854,6 +14154,9 @@ class $$LoyaltyTransactionsTableOrderingComposer
   ColumnOrderings<String> get storeName => $composableBuilder(
       column: $table.storeName, builder: (column) => ColumnOrderings(column));
 
+  ColumnOrderings<String> get note => $composableBuilder(
+      column: $table.note, builder: (column) => ColumnOrderings(column));
+
   ColumnOrderings<String> get scanToken => $composableBuilder(
       column: $table.scanToken, builder: (column) => ColumnOrderings(column));
 
@@ -13976,6 +14279,9 @@ class $$LoyaltyTransactionsTableAnnotationComposer
 
   GeneratedColumn<String> get storeName =>
       $composableBuilder(column: $table.storeName, builder: (column) => column);
+
+  GeneratedColumn<String> get note =>
+      $composableBuilder(column: $table.note, builder: (column) => column);
 
   GeneratedColumn<String> get scanToken =>
       $composableBuilder(column: $table.scanToken, builder: (column) => column);
@@ -14110,6 +14416,7 @@ class $$LoyaltyTransactionsTableTableManager extends RootTableManager<
             Value<int> points = const Value.absent(),
             Value<String?> productName = const Value.absent(),
             Value<String?> storeName = const Value.absent(),
+            Value<String?> note = const Value.absent(),
             Value<String?> scanToken = const Value.absent(),
             Value<DateTime> occurredAt = const Value.absent(),
             Value<int> syncStatus = const Value.absent(),
@@ -14128,6 +14435,7 @@ class $$LoyaltyTransactionsTableTableManager extends RootTableManager<
             points: points,
             productName: productName,
             storeName: storeName,
+            note: note,
             scanToken: scanToken,
             occurredAt: occurredAt,
             syncStatus: syncStatus,
@@ -14146,6 +14454,7 @@ class $$LoyaltyTransactionsTableTableManager extends RootTableManager<
             Value<int> points = const Value.absent(),
             Value<String?> productName = const Value.absent(),
             Value<String?> storeName = const Value.absent(),
+            Value<String?> note = const Value.absent(),
             Value<String?> scanToken = const Value.absent(),
             Value<DateTime> occurredAt = const Value.absent(),
             Value<int> syncStatus = const Value.absent(),
@@ -14164,6 +14473,7 @@ class $$LoyaltyTransactionsTableTableManager extends RootTableManager<
             points: points,
             productName: productName,
             storeName: storeName,
+            note: note,
             scanToken: scanToken,
             occurredAt: occurredAt,
             syncStatus: syncStatus,

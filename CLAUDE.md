@@ -123,7 +123,7 @@ Login asks for **Email**, not "Username" — `/api/login` accepts nothing else.
 
 ## Key components (exact paths)
 
-- Local DB: [lib/database/app_database.dart](lib/database/app_database.dart) — `schemaVersion 8`
+- Local DB: [lib/database/app_database.dart](lib/database/app_database.dart) — `schemaVersion 10`
 - Loyalty engine: [lib/database/daos/loyalty_dao.dart](lib/database/daos/loyalty_dao.dart)
   (`earnStamp`, `redeemReward`, `getCampaignProgress`, `getLedgerTotals`)
 - Permission resolution: [permission_matrix_dao.dart:90](lib/database/daos/permission_matrix_dao.dart#L90) → [resolve_permission_usecase.dart](lib/domain/usecases/permission/resolve_permission_usecase.dart) → [permission_cache.dart](lib/domain/entities/permission_cache.dart)
@@ -153,7 +153,11 @@ Login POSTs `/api/login` to the remote API; on network failure it falls back to 
 check (14-day cached-session limit, 5 attempts → 30-min lockout). The raw token lives only in
 `flutter_secure_storage`; only `SHA-256(token)` is stored in `sessions`. After the password
 step: OTP screen → biometric screen → `PostLoginStep.done`; the router blocks the app until
-done. The legacy RBAC (`role_module_permissions`, role × module × permission, resolved into a
+done. Then `BetaNoticeGate` (wrapping the tab shell, `screens/beta_notice/beta_notice.dart`)
+shows the closed-beta confidentiality notice once per member — "I accept" ticked → Continue;
+"Sign out" declines. **Android only**: App Store Guideline 2.2 rejects apps that call themselves
+betas. Turn it off for the public Play release (`BetaNotice.enabled` / `--dart-define=BETA_NOTICE=false`).
+Acceptance is per device, an `app_settings` row keyed `beta_notice_v1:<userId>`. The legacy RBAC (`role_module_permissions`, role × module × permission, resolved into a
 `PermissionCache`) still exists as data, but no route or member screen reads it since the admin
 console was removed (2026-09-28). **No row = denied.**
 
@@ -163,7 +167,7 @@ Flutter lives at `D:/flutter/bin/` on this machine.
 
 ```
 "D:/flutter/bin/flutter.bat" pub get
-"D:/flutter/bin/dart.bat" run build_runner build --delete-conflicting-outputs   # after DB/provider edits
+"D:/flutter/bin/dart.bat" run build_runner build --delete-conflicting-outputs   # after DB edits (~50s); see codegen pitfall
 "D:/flutter/bin/flutter.bat" analyze          # lint: flutter_lints + analysis_options.yaml rules
 "D:/flutter/bin/flutter.bat" run              # debug on attached device/emulator
 "D:/flutter/bin/flutter.bat" build apk        # release build
@@ -172,6 +176,13 @@ Flutter lives at `D:/flutter/bin/` on this machine.
 
 The suite in `test/` runs with `flutter.bat` + the `test` subcommand; it uses only
 `NativeDatabase.memory()`, never a developer database.
+
+**Play releases are CI** (`.github/workflows/play-release.yml`, added 2026-10-19): bump
+`version:` in `pubspec.yaml` (the `+N` is the Play version code and must exceed every code Play
+has seen), edit `distribution/whatsnew/whatsnew-en-US` (≤500 chars, tester-facing), commit, then
+push a tag equal to the version name (`v1.0.3`). The job tests, signs from repository secrets,
+and uploads to Closed testing (Alpha); "Run workflow" can target internal/production. It builds
+with no `--dart-define`, so it always targets production.
 
 ## Known pitfalls (details → `docs/knowledge/Decisions.md`)
 
@@ -291,6 +302,25 @@ The suite in `test/` runs with `flutter.bat` + the `test` subcommand; it uses on
   seems stuck on the production default after a rebuild, `flutter clean && flutter pub get`
   before rebuilding — don't trust a kernel-blob string-presence check to prove which value
   actually resolved (debug/JIT builds keep both branches' literals in the pool regardless).
+- **Holiday slots + a per-member card cap** (schema v9, 2026-10-23). A program can reserve its
+  first `holiday_stamps` slots as Holiday slots and cap cards per member
+  (`max_cards_per_customer`). A Holiday stamp overflows to the member's NEXT card once a
+  card's Holiday slots are full, so one member can hold several open cards for one campaign.
+  Home stacks all of them for the selected campaign (`homeCampaignCardsProvider` →
+  `LoyaltyDao.getOpenCardsForCampaign`), labelled "Card N of M"; `getCampaignProgress` still
+  returns ONE entry per campaign (picker, stats, scan). Every new API field is optional — an
+  older server reads as a plain card. Contract in `docs/knowledge/Integrations.md`.
+- **Stamp corrections** (schema v10, 2026-10-23). A cashier's "Deduct Stamps" (LINK portal)
+  lowers the card on the next sync and arrives in History as an `earn` with NEGATIVE points,
+  "Stamp correction", with the cashier's reason in `loyalty_transactions.note`. The ledger
+  row treats `earn && points < 0` as a correction (−N, red, "Reason: …"); totals stay net.
+- **Codegen is pinned on purpose: `drift`/`drift_dev` 2.31.x + `analyzer` <10** (fixed
+  2026-10-23 after Flutter 3.47 broke analyzer 7.6). Drift is the only generator in use, so
+  riverpod_generator/freezed/json_serializable/mockito were removed. Two traps: drift ≥2.32
+  needs sqlite3 3.x (retires `sqlite3_flutter_libs` — a native-packaging change), and drift_dev
+  2.31 under analyzer 10 **silently drops every `references(...)` foreign key** (warning: "should
+  be a simple class name"). After regenerating, `grep -c REFERENCES lib/database/app_database.g.dart`
+  must still say 17. Details in `docs/knowledge/Database.md`.
 
 ## Knowledge notes
 

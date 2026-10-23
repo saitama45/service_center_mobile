@@ -59,6 +59,15 @@ class Campaigns extends Table {
 
   IntColumn get requiredStamps => integer().withDefault(const Constant(10))();
 
+  /// How many of the [requiredStamps] slots are Holiday slots (e.g. 4 of 20).
+  /// They are drawn first on the card. 0 means a plain card, exactly as
+  /// before this column existed.
+  IntColumn get holidayStamps => integer().withDefault(const Constant(0))();
+
+  /// The most cards one member may hold for this program, redeemed ones
+  /// included. Null means no limit.
+  IntColumn get maxCardsPerCustomer => integer().nullable()();
+
   /// Comma-separated product codes. Empty means every product qualifies.
   TextColumn get eligibleProductCodes => text().withDefault(const Constant(''))();
 
@@ -112,6 +121,18 @@ class StampCards extends Table {
   TextColumn get redeemToken => text().nullable()();
 
   IntColumn get stampsCollected => integer().withDefault(const Constant(0))();
+
+  /// How many of [stampsCollected] sit in the campaign's Holiday slots; the
+  /// rest are regular. Holiday stamps overflow onto the member's next card
+  /// once these slots are full, which is why one member can hold several
+  /// open cards for a single campaign.
+  IntColumn get holidayCount => integer().withDefault(const Constant(0))();
+
+  /// ghelpdesk's 1-based position of this card among all of the member's
+  /// cards for the program, redeemed ones included ("Card 2 of 3"). Null
+  /// until a server new enough to send it has been synced.
+  IntColumn get cardNumber => integer().nullable()();
+
   IntColumn get cycle => integer().withDefault(const Constant(1))();
 
   /// Set once the card fills up; cleared onto a fresh card after redemption.
@@ -156,6 +177,10 @@ class LoyaltyTransactions extends Table {
 
   TextColumn get productName => text().nullable()();
   TextColumn get storeName => text().nullable()();
+
+  /// Staff's reason, on a stamp correction only (negative-point earn from
+  /// "Deduct Stamps" at the counter). Shown under that History row. v10.
+  TextColumn get note => text().nullable()();
 
   /// The one-time token this transaction was claimed with — the uniqueness
   /// constraint is what makes a scanned QR code non-replayable.

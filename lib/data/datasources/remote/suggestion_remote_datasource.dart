@@ -13,6 +13,8 @@ import 'api_client.dart';
 ///   201 { "id": 12, "message": "Thank you! Your message has been sent." }
 ///   422 { "message": "...", "errors": { "message": ["..."] } }
 ///   429 { "message": "..." }                                throttle:5,1
+///   404                                    backend not deployed yet — never
+///                                          shown verbatim (it names the route)
 /// ```
 ///
 /// `subject` is optional (max 120), `message` is required (max 2000). Staff
@@ -48,6 +50,11 @@ class SuggestionRemoteDatasource {
         case 401:
           return const SuggestionFailed(
               'Your sign-in expired. Please sign in again and retry.');
+        case 404:
+          // A server that predates the Suggestion Box. Its own message names
+          // the missing route, which means nothing to a member.
+          return const SuggestionFailed(
+              'The Suggestion Box is not available yet. Please try again later.');
         case 422:
           return SuggestionRejected(_firstError(body) ??
               body['message'] as String? ??

@@ -113,6 +113,34 @@ void main() {
       expect(catalog.calls, 1);
     });
 
+    test('writes Holiday slots and the card cap, and clears them again',
+        () async {
+      final catalog = _FakeCatalog()
+        ..queue.addAll(const [
+          CampaignsSyncSucceeded([
+            RemoteCampaign(
+              code: 'SP-1', name: 'Holiday', requiredStamps: 20, isActive: true,
+              holidayStamps: 4, maxCardsPerCustomer: 3,
+            ),
+          ]),
+          // The program is switched back to a plain card server-side.
+          CampaignsSyncSucceeded([
+            RemoteCampaign(code: 'SP-1', name: 'Holiday', requiredStamps: 20, isActive: true),
+          ]),
+        ]);
+      final manager = SyncManager(db, apiClient(), isOnline: _online, catalog: catalog);
+
+      await manager.sync();
+      var row = await findByCode('SP-1');
+      expect(row!.holidayStamps, 4);
+      expect(row.maxCardsPerCustomer, 3);
+
+      await manager.sync();
+      row = await findByCode('SP-1');
+      expect(row!.holidayStamps, 0);
+      expect(row.maxCardsPerCustomer, isNull);
+    });
+
     test('updates an existing row with the same code rather than duplicating',
         () async {
       await db.into(db.campaigns).insert(CampaignsCompanion.insert(
@@ -473,6 +501,117 @@ void main() {
       expect(card.redeemedAt, isNull);
     });
 
+    // Holiday overflow: once card 1's Holiday slots are full the next Holiday
+    // stamp starts card 2, so one pull can bring several OPEN cards for one
+    // campaign — each needs its own cycle under (userId, campaignId, cycle).
+    test('two open cards for one campaign land as two rows with their '
+        'Holiday counts and card numbers', () async {
+      final loyaltyMember = _FakeLoyaltyMember()
+        ..cardsQueue.add(const MyCardsSucceeded([
+          RemoteCardProgress(
+            code: 'SP-1', cardId: '77', stampsCount: 6, stampsRequired: 20,
+            status: 'active', holidayStamps: 4, holidayCount: 4,
+            regularCount: 2, cardNumber: 1, maxCards: 3,
+          ),
+          RemoteCardProgress(
+            code: 'SP-1', cardId: '78', stampsCount: 1, stampsRequired: 20,
+            status: 'active', holidayStamps: 4, holidayCount: 1,
+            regularCount: 0, cardNumber: 2, maxCards: 3,
+          ),
+        ]));
+      final manager = SyncManager(db, apiClient(),
+          isOnline: _online, catalog: catalogWith('SP-1'), loyaltyMember: loyaltyMember);
+
+      await manager.sync(userId: 'user-1');
+
+      final cards = await (db.select(db.stampCards)
+            ..where((s) => s.userId.equals('user-1'))
+            ..orderBy([(s) => OrderingTerm.asc(s.cycle)]))
+          .get();
+      expect(cards, hasLength(2));
+      expect(cards.map((c) => c.cycle), [1, 2]);
+      expect(cards.map((c) => c.remoteCardId), ['77', '78']);
+      expect(cards.map((c) => c.holidayCount), [4, 1]);
+      expect(cards.map((c) => c.cardNumber), [1, 2]);
+      expect(cards.map((c) => c.stampsCollected), [6, 1]);
+      expect(cards.every((c) => c.redeemedAt == null), isTrue);
+    });
+
+    test('a change in the Holiday count alone is picked up', () async {
+      final campaign = await db.into(db.campaigns).insertReturning(
+            CampaignsCompanion.insert(code: 'SP-1', name: 'X', requiredStamps: const Value(20)),
+          );
+      await db.into(db.stampCards).insert(
+            StampCardsCompanion.insert(
+              userId: 'user-1',
+              campaignId: campaign.id,
+              remoteCardId: const Value('77'),
+              stampsCollected: const Value(6),
+              holidayCount: const Value(3),
+              cardNumber: const Value(1),
+            ),
+          );
+
+      // Same total, but one regular stamp is now reported as a holiday one —
+      // the grid must redraw even though stamps_count did not move.
+      final loyaltyMember = _FakeLoyaltyMember()
+        ..cardsQueue.add(const MyCardsSucceeded([
+          RemoteCardProgress(
+            code: 'SP-1', cardId: '77', stampsCount: 6, stampsRequired: 20,
+            status: 'active', holidayCount: 4, cardNumber: 1,
+          ),
+        ]));
+      var updates = 0;
+      final manager = SyncManager(db, apiClient(),
+          isOnline: _online,
+          catalog: catalogWith('SP-1'),
+          loyaltyMember: loyaltyMember,
+          onCatalogUpdated: () => updates++);
+
+      await manager.sync(userId: 'user-1');
+
+      final card = await (db.select(db.stampCards)
+            ..where((s) => s.remoteCardId.equals('77')))
+          .getSingle();
+      expect(card.holidayCount, 4);
+      expect(card.cardNumber, 1);
+      // Once for the catalogue, once for the changed card.
+      expect(updates, 2);
+    });
+
+    test('an older server that omits card_number keeps the stored one',
+        () async {
+      final campaign = await db.into(db.campaigns).insertReturning(
+            CampaignsCompanion.insert(code: 'SP-1', name: 'X', requiredStamps: const Value(12)),
+          );
+      await db.into(db.stampCards).insert(
+            StampCardsCompanion.insert(
+              userId: 'user-1',
+              campaignId: campaign.id,
+              remoteCardId: const Value('77'),
+              stampsCollected: const Value(2),
+              cardNumber: const Value(2),
+            ),
+          );
+
+      final loyaltyMember = _FakeLoyaltyMember()
+        ..cardsQueue.add(const MyCardsSucceeded([
+          RemoteCardProgress(
+              code: 'SP-1', cardId: '77', stampsCount: 3, stampsRequired: 12, status: 'active'),
+        ]));
+      final manager = SyncManager(db, apiClient(),
+          isOnline: _online, catalog: catalogWith('SP-1'), loyaltyMember: loyaltyMember);
+
+      await manager.sync(userId: 'user-1');
+
+      final card = await (db.select(db.stampCards)
+            ..where((s) => s.remoteCardId.equals('77')))
+          .getSingle();
+      expect(card.stampsCollected, 3);
+      expect(card.cardNumber, 2);
+      expect(card.holidayCount, 0);
+    });
+
     test('sync() without a userId skips progress entirely', () async {
       final loyaltyMember = _FakeLoyaltyMember()
         ..cardsQueue.add(const MyCardsSucceeded([
@@ -650,6 +789,62 @@ void main() {
       await manager.sync();
 
       expect(loyaltyMember.transactionsCalls, 0);
+    });
+
+    test('a card_id links the exact card, not the most recent one', () async {
+      // Holiday overflow: two open cards for one campaign. The ledger row
+      // names card 77, which is NOT the most recently created.
+      final campaign = await db.into(db.campaigns).insertReturning(
+            CampaignsCompanion.insert(code: 'SP-1', name: 'X', requiredStamps: const Value(20)),
+          );
+      final older = await db.into(db.stampCards).insertReturning(
+            StampCardsCompanion.insert(
+              userId: 'user-1',
+              campaignId: campaign.id,
+              remoteCardId: const Value('77'),
+              cycle: const Value(1),
+              createdAt: Value(DateTime.utc(2026, 1, 1)),
+            ),
+          );
+      final newer = await db.into(db.stampCards).insertReturning(
+            StampCardsCompanion.insert(
+              userId: 'user-1',
+              campaignId: campaign.id,
+              remoteCardId: const Value('78'),
+              cycle: const Value(2),
+              createdAt: Value(DateTime.utc(2026, 2, 1)),
+            ),
+          );
+      final loyaltyMember = _FakeLoyaltyMember()
+        ..transactionsQueue.add(const MyTransactionsSucceeded([
+          RemoteTransaction(
+              reference: 'SE-1', type: 'earn', points: 1, campaignCode: 'SP-1',
+              cardId: '77', stampType: 'regular'),
+          // No card_id (older server) — falls back to the most recent card.
+          RemoteTransaction(
+              reference: 'SE-2', type: 'earn', points: 1, campaignCode: 'SP-1'),
+          // A card_id this device hasn't seen yet — same fallback.
+          RemoteTransaction(
+              reference: 'SE-3', type: 'earn', points: 1, campaignCode: 'SP-1',
+              cardId: '99'),
+        ]));
+      final manager = SyncManager(db, apiClient(),
+          isOnline: _online,
+          catalog: _FakeCatalog()
+            ..queue.add(const CampaignsSyncSucceeded([
+              RemoteCampaign(code: 'SP-1', name: 'X', requiredStamps: 20, isActive: true),
+            ])),
+          loyaltyMember: loyaltyMember);
+
+      await manager.sync(userId: 'user-1');
+
+      Future<String?> linkOf(String ref) async => (await (db.select(db.loyaltyTransactions)
+                ..where((t) => t.reference.equals(ref)))
+              .getSingle())
+          .stampCardId;
+      expect(await linkOf('SE-1'), older.id);
+      expect(await linkOf('SE-2'), newer.id);
+      expect(await linkOf('SE-3'), newer.id);
     });
 
     test('server not deployed yet leaves local history untouched', () async {

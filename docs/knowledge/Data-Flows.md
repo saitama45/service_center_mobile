@@ -115,7 +115,8 @@ after a redemption and `_pullProgress` lands it as its own local row.
 | `featuredCampaignProvider` | `getFeaturedProgress` — unlocked first, then highest progress, expired excluded | Home hero (automatic pick) |
 | `homeCampaignChoicesProvider` | `getCampaignProgress` minus expired | Home campaign picker chips (shown only when >1) |
 | `selectedHomeCampaignIdProvider` | — (session `StateProvider`, holds a campaign id) | Which chip is active; null = "decide for me" |
-| `homeCampaignProvider` | the member's pick if still present, else `featuredCampaignProvider` | Home hero + the Active Campaign teaser below it |
+| `homeCampaignProvider` | the member's pick if still present, else `featuredCampaignProvider` | Which campaign Home shows; the Active Campaign teaser |
+| `homeCampaignCardsProvider` | `getOpenCardsForCampaign` for that campaign — every unredeemed card, by `cardNumber` then `cycle` | Home: one stamp-card hero per card, stacked, "Card N of M" |
 | `campaignProgressProvider` | `getCampaignProgress` — open (non-redeemed) cards only, one per campaign | Home stats, campaign picker, redemption sheet |
 | `campaignCardsProvider` | `getAllCardProgress` — **every** card incl. redeemed, one entry per card | Rewards tab (All / Current / Redeemed filter) |
 | `transactionsProvider` | `getTransactions` (limit 100, newest first) | History |
@@ -123,7 +124,17 @@ after a redemption and `_pullProgress` lands it as its own local row.
 | `productsProvider` | `getProducts(activeOnly)` | Scan product picker |
 
 `CampaignProgress` derives `stamps`, `remaining`, `progress`, `isUnlocked`, `isExpired` — use
-it rather than recomputing from raw rows.
+it rather than recomputing from raw rows. For Holiday slots it also derives `holidaySlots` /
+`regularSlots` (from `campaigns.holiday_stamps`) and `holidayCollected` / `regularCollected`
+(from `stamp_cards.holiday_count`), clamped so the grid always shows exactly
+`min(stamps, required)` filled slots, plus `cardLabel` ("Card 2 of 3"; "Card 2" with no cap;
+local `cycle` when the server sent no `card_number`).
+
+Home's stamp grid (`StampGrid`) draws the first `holidaySlots` positions as gold Holiday slots
+(star mark, filled and empty both distinct), then the regular ones, each region filling from
+its own start, with a "4 Holiday · 16 Regular" legend under it. The "Card N of M" pill is
+omitted for a lone card on a program with no cap and no Holiday slots, so those look exactly
+as before. The Rewards tab appends the same label only on programs using the new settings.
 
 ## 7. Connectivity & sync
 

@@ -104,6 +104,21 @@ Biometrics use `local_auth`. `biometricAvailableProvider` checks device support 
 under `biometric_enabled` (`'1'`/`'0'`) via `BiometricActions.setEnabled`, and toggled from
 Profile. `authenticate()` uses `biometricOnly: true, stickyAuth: true`.
 
+## Closed-beta notice (after the post-login steps, added 2026-10-23)
+
+`BetaNoticeGate` wraps the tab shell (`main_shell.dart`). On its first frame, a member who has
+not accepted yet gets `BetaNoticeDialog`: a confidentiality notice whose Continue button is
+enabled only once "I accept, and I will keep this beta confidential." is ticked. It ignores the
+barrier and Back; "Sign out" declines and logs out, so they are asked again at the next sign-in.
+
+- Acceptance: `BetaNoticeStore` → `app_settings` row `beta_notice_v{version}:{userId}` with a
+  NULL `user_id` (that column's FK to `users` would block account deletion). Per device: a
+  reinstall or another phone asks again. Bump `BetaNotice.version` to re-ask everyone.
+- `BetaNotice.enabled` is **Android only** — the iOS build goes to App Store review, where
+  Guideline 2.2 rejects apps presented as betas. Default it to false (or build with
+  `--dart-define=BETA_NOTICE=false`) for the public Play release.
+- The wording lives in `BetaNotice` constants; tests in `test/unit/beta_notice_test.dart`.
+
 ## Authorization (RBAC)
 
 Model: **role × module × permission** in `role_module_permissions`. There is no per-user

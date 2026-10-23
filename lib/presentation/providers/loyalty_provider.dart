@@ -94,6 +94,26 @@ final homeCampaignProvider = FutureProvider<CampaignProgress?>((ref) async {
   return ref.watch(featuredCampaignProvider.future);
 });
 
+/// Every unredeemed card the member holds for the campaign on Home
+/// ([homeCampaignProvider]), in card order — Home draws one stamp card each.
+///
+/// Several only with Holiday overflow or while a full card waits to be
+/// redeemed; otherwise this is the single card [homeCampaignProvider]
+/// already names. Falls back to that one entry rather than an empty list if
+/// the two ever disagree, so Home never loses its card.
+final homeCampaignCardsProvider =
+    FutureProvider<List<CampaignProgress>>((ref) async {
+  ref.watch(loyaltyRevisionProvider);
+  final user = ref.watch(currentUserProvider);
+  final home = await ref.watch(homeCampaignProvider.future);
+  if (user == null || home == null) return const [];
+
+  final cards = await ref
+      .read(loyaltyDaoProvider)
+      .getOpenCardsForCampaign(user.id, home.campaign.id);
+  return cards.isEmpty ? [home] : cards;
+});
+
 /// History rows — each ledger entry with the campaign it belongs to.
 final transactionsProvider = FutureProvider<List<LedgerEntry>>((ref) async {
   ref.watch(loyaltyRevisionProvider);

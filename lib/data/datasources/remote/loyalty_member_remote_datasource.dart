@@ -25,6 +25,11 @@ import 'api_client.dart';
 ///   200 { "token": "LCARD1:123:abcdef0123456789abcdef01" }
 ///   422 { "message": "This account is not linked to a loyalty member record." }
 /// ```
+///
+/// `my-cards` and `my-transactions` are documented in
+/// `docs/knowledge/Integrations.md`, including the Holiday-slot fields
+/// (`holiday_count`, `card_number`, `stamp_type`, …) every one of which is
+/// optional here: an older server omits them.
 class LoyaltyMemberRemoteDatasource {
   const LoyaltyMemberRemoteDatasource(this._api);
 
@@ -180,9 +185,32 @@ class RemoteCardProgress {
     this.cardId,
     this.redeemedAt,
     this.redeemToken,
-  });
+    this.holidayStamps = 0,
+    this.holidayCount = 0,
+    int? regularCount,
+    this.cardNumber,
+    this.maxCards,
+  }) : regularCount = regularCount ?? stampsCount - holidayCount;
 
   final String code;
+
+  /// Holiday slots on this card — the program's `holiday_stamps`. 0 for a
+  /// plain card, and for a server that predates Holiday slots.
+  final int holidayStamps;
+
+  /// Holiday slots filled, 0..[holidayStamps].
+  final int holidayCount;
+
+  /// Regular slots filled. [stampsCount] = [holidayCount] + this; derived
+  /// from those two when the server omits it.
+  final int regularCount;
+
+  /// 1-based position among ALL the member's cards for this program,
+  /// redeemed ones included ("Card 2 of 3"). Null from an older server.
+  final int? cardNumber;
+
+  /// The program's cap on cards per member. Null = no limit.
+  final int? maxCards;
 
   /// ghelpdesk's own `stamp_cards.id`, as a string. Null only when talking to
   /// a server old enough not to send it — [code] alone can't tell two cards
@@ -213,15 +241,32 @@ class RemoteCardProgress {
   bool get isRedeemable => status == 'completed' && !isRedeemed;
 
   factory RemoteCardProgress.fromJson(Map<String, dynamic> json) {
+    final stampsCount = _intOrDefault(json['stamps_count'], 0);
+    final holidayCount = _nonNegative(_intOrDefault(json['holiday_count'], 0));
     return RemoteCardProgress(
       code: json['code'] as String? ?? '',
       cardId: _stringOrNull(json['card_id']),
-      stampsCount: _intOrDefault(json['stamps_count'], 0),
+      stampsCount: stampsCount,
       stampsRequired: _intOrDefault(json['stamps_required'], 0),
       status: json['status'] as String? ?? 'active',
       redeemedAt: _dateOrNull(json['redeemed_at']),
       redeemToken: _stringOrNull(json['redeem_token']),
+      holidayStamps: _nonNegative(_intOrDefault(json['holiday_stamps'], 0)),
+      holidayCount: holidayCount,
+      regularCount: _nonNegative(
+          _intOrDefault(json['regular_count'], stampsCount - holidayCount)),
+      cardNumber: _positiveOrNull(json['card_number']),
+      maxCards: _positiveOrNull(json['max_cards']),
     );
+  }
+
+  static int _nonNegative(int value) => value < 0 ? 0 : value;
+
+  /// Null for absent, unparseable, or non-positive — a card number is
+  /// 1-based, and a cap of 0 is read as "no limit" (see `RemoteCampaign`).
+  static int? _positiveOrNull(Object? value) {
+    final parsed = _intOrDefault(value, 0);
+    return parsed > 0 ? parsed : null;
   }
 
   /// Card ids arrive as JSON numbers from Laravel but as strings from SQL
@@ -281,6 +326,9 @@ class RemoteTransaction {
     this.productName,
     this.storeName,
     this.occurredAt,
+    this.cardId,
+    this.stampType,
+    this.note,
   });
 
   /// e.g. "SE-42" (earn) / "SR-7" (redeem) — the sync key rows are upserted
@@ -299,6 +347,21 @@ class RemoteTransaction {
   final String? storeName;
   final DateTime? occurredAt;
 
+  /// ghelpdesk's `stamp_cards.id` this event landed on — the same value as
+  /// `RemoteCardProgress.cardId`. Null from an older server. With several
+  /// open cards per campaign, it is the only way to link the right one.
+  final String? cardId;
+
+  /// 'holiday' or 'regular' on an earn row; null on a redemption or from an
+  /// older server.
+  final String? stampType;
+
+  bool get isHolidayStamp => stampType == 'holiday';
+
+  /// Why staff took stamps back — sent only on a correction (negative
+  /// points), never on an ordinary earn, whose staff notes stay internal.
+  final String? note;
+
   factory RemoteTransaction.fromJson(Map<String, dynamic> json) {
     return RemoteTransaction(
       reference: json['reference'] as String? ?? '',
@@ -308,7 +371,18 @@ class RemoteTransaction {
       productName: json['product_name'] as String?,
       storeName: json['store_name'] as String?,
       occurredAt: _dateOrNull(json['occurred_at']),
+      cardId: RemoteCardProgress._stringOrNull(json['card_id']),
+      stampType: _stampTypeOrNull(json['stamp_type']),
+      note: RemoteCardProgress._stringOrNull(json['note']),
     );
+  }
+
+  /// Only the two values the contract names; anything else is treated as
+  /// absent rather than passed through.
+  static String? _stampTypeOrNull(Object? value) {
+    if (value is! String) return null;
+    final type = value.trim().toLowerCase();
+    return type == 'holiday' || type == 'regular' ? type : null;
   }
 
   static int _intOrDefault(Object? value, int fallback) {

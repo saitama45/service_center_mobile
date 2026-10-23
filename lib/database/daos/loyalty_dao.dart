@@ -28,6 +28,35 @@ class CampaignProgress {
   double get progress =>
       required == 0 ? 0 : (stamps / required).clamp(0.0, 1.0);
 
+  // ── Holiday slots ──────────────────────────────────────────────────────────
+  // The first [holidaySlots] positions on the card are Holiday slots, the
+  // rest regular. The getters clamp rather than trust the stored counts: the
+  // program's slot split can change after a card was issued, and the grid
+  // must still draw exactly `min(stamps, required)` filled slots so it never
+  // disagrees with the "N of M collected" headline above it.
+
+  int get holidaySlots => min(max(campaign.holidayStamps, 0), max(required, 0));
+  int get regularSlots => max(required, 0) - holidaySlots;
+
+  int get holidayCollected =>
+      min(max(card?.holidayCount ?? 0, 0), min(holidaySlots, stamps));
+
+  /// Everything not counted as holiday, so a holiday count the card has no
+  /// room for spills into the regular slots instead of vanishing.
+  int get regularCollected =>
+      min(max(stamps - holidayCollected, 0), regularSlots);
+
+  /// "Card 2 of 3", or "Card 2" when the program sets no cap. Falls back to
+  /// the local `cycle` when the server hasn't numbered the card — it follows
+  /// the same order the device first saw the member's cards in.
+  String? get cardLabel {
+    final c = card;
+    if (c == null) return null;
+    final n = c.cardNumber ?? c.cycle;
+    final cap = campaign.maxCardsPerCustomer;
+    return cap == null ? 'Card $n' : 'Card $n of $cap';
+  }
+
   /// Card is full and the reward has not been claimed yet.
   bool get isUnlocked => stamps >= required && card?.redeemedAt == null;
 
@@ -173,6 +202,43 @@ class LoyaltyDao extends DatabaseAccessor<AppDatabase> with _$LoyaltyDaoMixin {
       return a.stampsCollected > b.stampsCollected ? a : b;
     }
     return a.id.compareTo(b.id) <= 0 ? a : b;
+  }
+
+  /// Every UNREDEEMED card the member holds for one campaign — what Home
+  /// stacks under the campaign it shows.
+  ///
+  /// Unlike [getCampaignProgress] this does not pick one: with Holiday
+  /// overflow a member can be filling several cards at once (card 1's
+  /// Holiday slots full while its regular slots are not, card 2 taking the
+  /// next Holiday stamp), and each is a real card they can collect on.
+  ///
+  /// Ordered by the server's `cardNumber`; cards it hasn't numbered go last,
+  /// by local `cycle`.
+  Future<List<CampaignProgress>> getOpenCardsForCampaign(
+    String userId,
+    String campaignId,
+  ) async {
+    final campaign = await getCampaignById(campaignId);
+    if (campaign == null) return const [];
+
+    final cards = await (select(stampCards)
+          ..where((s) =>
+              s.userId.equals(userId) &
+              s.campaignId.equals(campaignId) &
+              s.redeemedAt.isNull()))
+        .get();
+
+    cards.sort((a, b) {
+      final an = a.cardNumber;
+      final bn = b.cardNumber;
+      if ((an == null) != (bn == null)) return an == null ? 1 : -1;
+      if (an != null && bn != null && an != bn) return an.compareTo(bn);
+      return a.cycle.compareTo(b.cycle);
+    });
+
+    return [
+      for (final card in cards) CampaignProgress(campaign: campaign, card: card),
+    ];
   }
 
   /// Every stamp the member currently holds across **all** their cards,

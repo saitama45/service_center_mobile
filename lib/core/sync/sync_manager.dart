@@ -164,6 +164,8 @@ class SyncManager {
       emoji: Value(r.emoji),
       tag: Value(r.tag),
       requiredStamps: Value(r.requiredStamps),
+      holidayStamps: Value(r.holidayStamps),
+      maxCardsPerCustomer: Value(r.maxCardsPerCustomer),
       // The server models eligibility as free text, not discrete product
       // codes — this column is otherwise unused by the app today (nothing
       // reads it back), so it doubles as that free-text description rather
@@ -201,6 +203,10 @@ class SyncManager {
   /// (previously it was flattened into `completed`, which left "Redeem Now"
   /// showing on a reward that had already been handed over). The replacement
   /// card arrives as its own row on a later `cycle`.
+  ///
+  /// Holiday overflow means one pull can bring several OPEN cards for one
+  /// campaign at once; each new one still takes its own `_nextCycle`, which
+  /// sees the rows inserted earlier in this same transaction.
   Future<void> _pullProgress(String userId) async {
     final outcome = await _loyaltyMember.fetchMyCards();
 
@@ -235,6 +241,8 @@ class SyncManager {
                       remoteCardId: Value(remote.cardId),
                       redeemToken: Value(remote.redeemToken),
                       stampsCollected: Value(remote.stampsCount),
+                      holidayCount: Value(remote.holidayCount),
+                      cardNumber: Value(remote.cardNumber),
                       // A replacement card must not collide with the closed
                       // one it succeeds — `(userId, campaignId, cycle)` is
                       // unique, so continue the member's numbering.
@@ -251,8 +259,12 @@ class SyncManager {
               // was server-driven) leaves the local closure standing.
               final resolvedRedeemedAt = redeemedAt ?? existing.redeemedAt;
               final resolvedRemoteId = remote.cardId ?? existing.remoteCardId;
+              final resolvedCardNumber =
+                  remote.cardNumber ?? existing.cardNumber;
 
               if (existing.stampsCollected != remote.stampsCount ||
+                  existing.holidayCount != remote.holidayCount ||
+                  existing.cardNumber != resolvedCardNumber ||
                   (existing.completedAt != null) != isFull ||
                   existing.redeemedAt != resolvedRedeemedAt ||
                   existing.remoteCardId != resolvedRemoteId ||
@@ -265,6 +277,8 @@ class SyncManager {
                     // a stale code can't linger on a claimed reward.
                     redeemToken: Value(remote.redeemToken),
                     stampsCollected: Value(remote.stampsCount),
+                    holidayCount: Value(remote.holidayCount),
+                    cardNumber: Value(resolvedCardNumber),
                     completedAt: Value(isFull ? (existing.completedAt ?? now) : null),
                     redeemedAt: Value(resolvedRedeemedAt),
                     updatedAt: Value(now),
@@ -362,16 +376,11 @@ class SyncManager {
                 .getSingleOrNull();
             if (campaign == null) continue;
 
-            // Most-recent card for this campaign — a completed/redeemed one
-            // is a perfectly good link for a redemption event that just
-            // closed it, so this isn't restricted to only the open card the
-            // way _pullProgress's own lookup is.
-            final card = await (_db.select(_db.stampCards)
-                  ..where((s) =>
-                      s.userId.equals(userId) & s.campaignId.equals(campaign.id))
-                  ..orderBy([(s) => OrderingTerm.desc(s.createdAt)])
-                  ..limit(1))
-                .getSingleOrNull();
+            final card = await _localCardForTransaction(
+              userId: userId,
+              campaignId: campaign.id,
+              remoteCardId: remote.cardId,
+            );
 
             final isEarn = remote.type == txnEarn;
             // Mirrors the local redeemReward's own wording exactly, so a
@@ -390,6 +399,7 @@ class SyncManager {
               points: Value(remote.points),
               productName: Value(productName),
               storeName: Value(remote.storeName),
+              note: Value(remote.note),
               occurredAt: Value(remote.occurredAt ?? DateTime.now().toUtc()),
               syncStatus: const Value(loyaltySynced),
             );
@@ -414,6 +424,36 @@ class SyncManager {
       case MyTransactionsFailed(:final message):
         debugPrint('Sync: Transaction pull failed: $message');
     }
+  }
+
+  /// The local card a ledger row belongs to.
+  ///
+  /// The server's `card_id` wins when it is sent: with Holiday overflow a
+  /// member holds several open cards for one campaign, and "the most recent
+  /// card" is then a guess. Otherwise (an older server, or a card the
+  /// progress pull hasn't landed yet) falls back to the most recent card for
+  /// the campaign — a completed/redeemed one is a perfectly good link for the
+  /// redemption event that just closed it.
+  Future<StampCard?> _localCardForTransaction({
+    required String userId,
+    required String campaignId,
+    required String? remoteCardId,
+  }) async {
+    if (remoteCardId != null) {
+      final byRemoteId = await (_db.select(_db.stampCards)
+            ..where((s) =>
+                s.userId.equals(userId) & s.remoteCardId.equals(remoteCardId))
+            ..limit(1))
+          .getSingleOrNull();
+      if (byRemoteId != null) return byRemoteId;
+    }
+
+    return (_db.select(_db.stampCards)
+          ..where((s) =>
+              s.userId.equals(userId) & s.campaignId.equals(campaignId))
+          ..orderBy([(s) => OrderingTerm.desc(s.createdAt)])
+          ..limit(1))
+        .getSingleOrNull();
   }
 
   Future<void> _pushChanges() async {

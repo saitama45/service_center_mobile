@@ -84,7 +84,7 @@ class HomeScreen extends ConsumerWidget {
               const SizedBox(height: AppDimensions.sm + 2),
             ],
 
-            // ── Stamp card hero ────────────────────────────────────────────
+            // ── Stamp card hero(es) ────────────────────────────────────────
             featured.when(
               loading: () => const _HeroSkeleton(),
               error: (e, _) => CbtlCard(
@@ -93,7 +93,7 @@ class HomeScreen extends ConsumerWidget {
               ),
               data: (p) => p == null
                   ? const _NoCampaignsCard()
-                  : _StampCardHero(progress: p),
+                  : _StampCardStack(featured: p),
             ),
             const SizedBox(height: AppDimensions.md),
 
@@ -318,9 +318,55 @@ class _CampaignPicker extends StatelessWidget {
   }
 }
 
+/// Every unredeemed card of the campaign on show, one hero each, stacked.
+///
+/// A member holds more than one only with Holiday overflow (a card's Holiday
+/// slots are full, so the next Holiday stamp starts the next card) or while a
+/// full card waits to be redeemed. Each card is labelled "Card N of M" —
+/// except a lone card on a program with no cap and no Holiday slots, which
+/// looks exactly as Home always did.
+class _StampCardStack extends ConsumerWidget {
+  const _StampCardStack({required this.featured});
+
+  /// The campaign's entry from [homeCampaignProvider].
+  final CampaignProgress featured;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    // Until the list has loaded for THIS campaign — first build, or a reload
+    // still holding the previously picked campaign's cards — show the one
+    // card [featured] already names rather than a skeleton or the wrong cards.
+    final loaded = ref.watch(homeCampaignCardsProvider).valueOrNull;
+    final cards = loaded != null &&
+            loaded.isNotEmpty &&
+            loaded.every((c) => c.campaign.id == featured.campaign.id)
+        ? loaded
+        : [featured];
+
+    final labelled = cards.length > 1 ||
+        featured.campaign.maxCardsPerCustomer != null ||
+        featured.holidaySlots > 0;
+
+    return Column(
+      children: [
+        for (var i = 0; i < cards.length; i++) ...[
+          if (i > 0) const SizedBox(height: AppDimensions.sm + 4),
+          _StampCardHero(
+            progress: cards[i],
+            cardLabel: labelled ? cards[i].cardLabel : null,
+          ),
+        ],
+      ],
+    );
+  }
+}
+
 class _StampCardHero extends StatelessWidget {
-  const _StampCardHero({required this.progress});
+  const _StampCardHero({required this.progress, this.cardLabel});
   final CampaignProgress progress;
+
+  /// "Card 2 of 3" — null hides it.
+  final String? cardLabel;
 
   @override
   Widget build(BuildContext context) {
@@ -341,12 +387,22 @@ class _StampCardHero extends StatelessWidget {
                     // count — with several cards in play, "8 of 12" means
                     // nothing until you know which campaign it's counting.
                     // Replaces the old generic "STAMP CARD" label.
-                    Text(
-                      progress.campaign.name.toUpperCase(),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: AppTextStyles.label.copyWith(
-                          color: AppColors.latte.withValues(alpha: 0.9)),
+                    Row(
+                      children: [
+                        Flexible(
+                          child: Text(
+                            progress.campaign.name.toUpperCase(),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: AppTextStyles.label.copyWith(
+                                color: AppColors.latte.withValues(alpha: 0.9)),
+                          ),
+                        ),
+                        if (cardLabel != null) ...[
+                          const SizedBox(width: 8),
+                          _CardNumberPill(label: cardLabel!),
+                        ],
+                      ],
                     ),
                     const SizedBox(height: 3),
                     Text(
@@ -373,7 +429,17 @@ class _StampCardHero extends StatelessWidget {
           StampGrid(
             collected: progress.stamps,
             total: progress.required,
+            holidaySlots: progress.holidaySlots,
+            holidayCount: progress.holidayCollected,
+            regularCount: progress.regularCollected,
           ),
+          if (progress.holidaySlots > 0) ...[
+            const SizedBox(height: 10),
+            StampSlotLegend(
+              holidaySlots: progress.holidaySlots,
+              regularSlots: progress.regularSlots,
+            ),
+          ],
           const SizedBox(height: AppDimensions.sm + 4),
           const Divider(color: Color(0x1AFFFFFF), height: 1),
           const SizedBox(height: 10),
@@ -405,6 +471,26 @@ class _StampCardHero extends StatelessWidget {
       ),
     );
   }
+}
+
+class _CardNumberPill extends StatelessWidget {
+  const _CardNumberPill({required this.label});
+  final String label;
+
+  @override
+  Widget build(BuildContext context) => Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+        decoration: BoxDecoration(
+          color: AppColors.gold.withValues(alpha: 0.14),
+          borderRadius: BorderRadius.circular(AppDimensions.radiusRound),
+          border: Border.all(color: AppColors.gold.withValues(alpha: 0.5)),
+        ),
+        child: Text(
+          label,
+          maxLines: 1,
+          style: AppTextStyles.chip.copyWith(color: AppColors.gold, fontSize: 10),
+        ),
+      );
 }
 
 class _HeroSkeleton extends StatelessWidget {
