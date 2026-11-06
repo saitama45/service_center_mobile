@@ -16,6 +16,10 @@
 #   ANDROID_KEY_ALIAS          keyAlias
 #   PLAY_SERVICE_ACCOUNT_JSON  JSON key of a service account invited in Play
 #                              Console with permission to release this app
+#   BRAND_FONTS_PASSPHRASE     decrypts assets/fonts/brand-fonts.zip.gpg. The
+#                              brand fonts are licensed and this repo is public,
+#                              so git holds only that AES-256 encrypted zip (a
+#                              secret cannot hold them: secrets cap at 48 KB).
 name: Play release
 
 on:
@@ -65,6 +69,21 @@ jobs:
           fi
           echo "Releasing $version"
 
+      - name: Restore the brand fonts
+        env:
+          BRAND_FONTS_PASSPHRASE: ${{ secrets.BRAND_FONTS_PASSPHRASE }}
+        run: |
+          if [ -z "$BRAND_FONTS_PASSPHRASE" ]; then
+            echo "::error::Add the BRAND_FONTS_PASSPHRASE secret: the app cannot build without assets/fonts/brand."
+            exit 1
+          fi
+          gpg --quiet --batch --yes --decrypt --passphrase "$BRAND_FONTS_PASSPHRASE" \
+            --output "$RUNNER_TEMP/brand-fonts.zip" assets/fonts/brand-fonts.zip.gpg
+          mkdir -p assets/fonts/brand
+          unzip -o -j "$RUNNER_TEMP/brand-fonts.zip" '*.ttf' -d assets/fonts/brand
+          rm "$RUNNER_TEMP/brand-fonts.zip"
+          ls assets/fonts/brand
+
       - run: flutter pub get
 
       # The unit suite opens in-memory SQLite through the host's libsqlite3.
@@ -106,4 +125,4 @@ jobs:
 
       - name: Remove signing material
         if: always()
-        run: rm -f android/upload-keystore.jks android/key.properties
+        run: rm -rf android/upload-keystore.jks android/key.properties assets/fonts/brand

@@ -104,13 +104,14 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
         statusBarIconBrightness: Brightness.dark,
       ),
       child: Scaffold(
-        backgroundColor: AppColors.cream,
+        backgroundColor: AppColors.creamyWhite,
         appBar: AppBar(
-          backgroundColor: AppColors.cream,
-          foregroundColor: AppColors.espresso,
-          // The app theme paints app-bar icons cream (for espresso bars),
-          // which would make the back arrow invisible on this cream one.
-          iconTheme: const IconThemeData(color: AppColors.espresso),
+          // The bar is the page itself: creamy white, an ink back arrow.
+          backgroundColor: AppColors.creamyWhite,
+          foregroundColor: AppColors.roastedBlack,
+          iconTheme: const IconThemeData(color: AppColors.roastedBlack),
+          surfaceTintColor: Colors.transparent,
+          scrolledUnderElevation: 0,
           elevation: 0,
           leading: IconButton(
             icon: const Icon(Icons.arrow_back),
@@ -130,11 +131,13 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const SizedBox(height: AppDimensions.sm),
-                      Text('Create Your Account', style: AppTextStyles.h1),
-                      const SizedBox(height: 4),
+                      Text(AppTextStyles.caps('Create Your Account'),
+                          style: AppTextStyles.h1),
+                      const SizedBox(height: AppDimensions.sm),
                       Text(
                         'Join to start collecting stamps and rewards',
-                        style: AppTextStyles.bodySmall,
+                        style: AppTextStyles.bodyLarge
+                            .copyWith(color: AppColors.ink2),
                       ),
                       const SizedBox(height: AppDimensions.lg),
 
@@ -214,24 +217,27 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
                       if (_errorMessage != null)
                         Container(
+                          width: double.infinity,
                           padding: const EdgeInsets.all(14),
                           decoration: BoxDecoration(
-                            color: AppColors.danger.withValues(alpha: 0.08),
+                            color: AppColors.dangerSurface,
                             borderRadius:
                                 BorderRadius.circular(AppDimensions.radiusMd),
-                            border: Border.all(
-                                color: AppColors.danger.withValues(alpha: 0.4),
-                                width: 1.5),
+                            border: Border.all(color: AppColors.dangerBorder),
                           ),
                           child: Row(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Icon(Icons.error_outline,
-                                  color: AppColors.danger, size: 19),
+                              const Padding(
+                                padding: EdgeInsets.only(top: 1),
+                                child: Icon(Icons.error_outline,
+                                    color: AppColors.danger, size: 20),
+                              ),
                               const SizedBox(width: 10),
                               Expanded(
                                 child: Text(_errorMessage!,
-                                    style: AppTextStyles.errorText),
+                                    style: AppTextStyles.bodyMedium
+                                        .copyWith(color: AppColors.danger)),
                               ),
                             ],
                           ),
@@ -253,15 +259,18 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                               _isLoading ? null : () => context.go(RouteName.login),
                           child: Text.rich(
                             TextSpan(
-                              style: AppTextStyles.bodySmall,
+                              style: AppTextStyles.bodyMedium
+                                  .copyWith(color: AppColors.ink2),
                               children: [
                                 const TextSpan(
                                     text: 'Already have an account? '),
                                 TextSpan(
                                   text: 'Sign In',
-                                  style: AppTextStyles.bodySmall.copyWith(
-                                    color: AppColors.amber,
+                                  style: AppTextStyles.bodyMedium.copyWith(
+                                    color: AppColors.roastedBlack,
                                     fontWeight: FontWeight.w700,
+                                    decoration: TextDecoration.underline,
+                                    decorationColor: AppColors.roastedBlack,
                                   ),
                                 ),
                               ],

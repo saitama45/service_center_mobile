@@ -58,9 +58,9 @@ class _BmsTextFieldState extends State<CbtlTextField> {
     _obscure = widget.obscureText;
   }
 
-  OutlineInputBorder _border(Color color, [double width = 1.5]) =>
+  OutlineInputBorder _border(Color color, [double width = 1]) =>
       OutlineInputBorder(
-        borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
+        borderRadius: BorderRadius.circular(AppDimensions.radiusSm),
         borderSide: BorderSide(color: color, width: width),
       );
 
@@ -86,7 +86,7 @@ class _BmsTextFieldState extends State<CbtlTextField> {
                 ),
               )
             : Text(labelText, style: AppTextStyles.label),
-        const SizedBox(height: 6),
+        const SizedBox(height: 7),
         TextFormField(
           controller: widget.controller,
           keyboardType: widget.keyboardType,
@@ -101,16 +101,16 @@ class _BmsTextFieldState extends State<CbtlTextField> {
           autofocus: widget.autofocus,
           focusNode: widget.focusNode,
           style: AppTextStyles.bodyLarge,
-          cursorColor: AppColors.amber,
+          cursorColor: AppColors.roastedBlack,
           decoration: InputDecoration(
             hintText: widget.hint,
             hintStyle:
-                AppTextStyles.bodyMedium.copyWith(color: AppColors.muted),
+                AppTextStyles.bodyMedium.copyWith(color: AppColors.ink3),
             errorText: widget.errorText,
             errorStyle: AppTextStyles.errorText,
             errorMaxLines: 3,
             prefixIcon: widget.prefixIcon != null
-                ? Icon(widget.prefixIcon, color: AppColors.muted, size: 19)
+                ? Icon(widget.prefixIcon, color: AppColors.ink3, size: 19)
                 : null,
             suffixIcon: widget.obscureText
                 ? IconButton(
@@ -118,7 +118,7 @@ class _BmsTextFieldState extends State<CbtlTextField> {
                       _obscure
                           ? Icons.visibility_off_outlined
                           : Icons.visibility_outlined,
-                      color: AppColors.muted,
+                      color: AppColors.ink3,
                       size: 20,
                     ),
                     onPressed: () => setState(() => _obscure = !_obscure),
@@ -127,15 +127,15 @@ class _BmsTextFieldState extends State<CbtlTextField> {
                 : widget.suffixIcon,
             filled: true,
             fillColor:
-                widget.enabled ? AppColors.white : AppColors.latteLight,
+                widget.enabled ? AppColors.creamyWhite : AppColors.californiaCream,
             contentPadding:
-                const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
-            border: _border(AppColors.latte),
-            enabledBorder: _border(AppColors.latte),
-            focusedBorder: _border(AppColors.amber, 2),
+                const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
+            border: _border(AppColors.fieldLine),
+            enabledBorder: _border(AppColors.fieldLine),
+            focusedBorder: _border(AppColors.roastedBlack, 2),
             errorBorder: _border(AppColors.danger),
             focusedErrorBorder: _border(AppColors.danger, 2),
-            disabledBorder: _border(AppColors.latteLight),
+            disabledBorder: _border(AppColors.line),
           ),
         ),
       ],

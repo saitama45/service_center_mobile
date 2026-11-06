@@ -52,8 +52,32 @@ online only, staff read it on ghelpdesk `/stamps` → Suggestions). Portrait onl
 build is iPhone-only.
 
 Naming carries history: pubspec `name: cbtl` (imports are `package:cbtl/...`; it was `bms`
-until the CBTL rebrand), shared widgets are prefixed `Bms*`, the folder is `loyalty_campaign`.
+until the CBTL rebrand), shared widgets are prefixed `Cbtl*`, the folder is `loyalty_campaign`.
 All three refer to this one app, whose display name is "CBTL".
+
+## Brand: Option D, the April 2026 brand book
+
+The UI follows CBTL's April 2026 brand book (`design/docs/`, gitignored), chosen by stakeholders
+on 2026-11-06 from four proposals in `design/` ("Option D: Craft"; `design/screens/option-d/`
+is the approved reference). Tokens: `AppColors` (book names: roastedBlack, creamyWhite,
+californiaCream, goldenCaramel, toastedCaramel, purplePop, purpleStraw; old `espresso`/`amber`/
+`latte` names are aliases), `AppTextStyles`, `AppDimensions`; theme in `lib/app_theme.dart`.
+Rules the code must keep:
+- **CBTL Herb Display has no lowercase.** Anything in `displayLarge/Medium`, `h1`, `h2`,
+  `appBarTitle`, `statValue` goes through `AppTextStyles.caps()`, or Android falls back to
+  another font mid-word.
+- **Caramel is never text or icons on cream** (1.8:1). Purple is an accent, never a page
+  background: `purpleStraw` for a band that carries text, `purplePop` only for the Purple
+  Aura and squiggle. **One `PurpleAura` per screen**, key moments only (a full card).
+- Flat: no gradients, no card shadows; cards are outlined with `AppColors.line`.
+- The logo, bean-and-leaf, squiggle and burst are traces of the book's rasters, generated into
+  `lib/core/brand/brand_art.dart` by `design/src/export-brand-art-dart.cjs`. Swap in the
+  official vectors when the brand team supplies them. The motif is never rotated.
+- **The brand fonts are licensed and kept out of git** (`assets/fonts/brand/`, gitignored;
+  this repo is public). Locally they come from `design/docs/Fonts`. Git holds only
+  `assets/fonts/brand-fonts.zip.gpg` (AES-256); CI decrypts it with the
+  `BRAND_FONTS_PASSPHRASE` secret and the release job fails without it. If the fonts change,
+  re-encrypt with the same passphrase (`gpg --symmetric --cipher-algo AES256`).
 
 ## Store review (App Store / Play)
 
@@ -98,7 +122,7 @@ Login asks for **Email**, not "Username" — `/api/login` accepts nothing else.
 
 - `lib/main.dart` — binding, orientation/status bar, constructs `AppDatabase`, overrides
   `appDatabaseProvider`, runs `ProviderScope(child: BmsApp())`.
-- `lib/app.dart` — `MaterialApp.router` and the entire espresso/cream/amber theme.
+- `lib/app.dart` — `MaterialApp.router`; the theme is `buildAppTheme()` in `lib/app_theme.dart`.
 - `lib/routing/app_router.dart` — GoRouter, redirect guards, `StatefulShellRoute` (4 tabs).
 - `lib/presentation/screens/splash/splash_screen.dart` — runs seeds, checks session, routes.
 
@@ -107,7 +131,8 @@ Login asks for **Email**, not "Username" — `/api/login` accepts nothing else.
 | Path | Responsibility |
 |---|---|
 | `lib/core/constants/` | Colors, dimensions, text styles, strings, `ModuleCodes`, `PermissionCodes` |
-| `lib/core/widgets/` | Shared UI (`Bms*`, `PermissionGate` (currently unused), dialogs) |
+| `lib/core/brand/` | Brand book art + motion: `BrandLogo`, `BrandMark`, `PurpleAura`, transitions |
+| `lib/core/widgets/` | Shared UI (`Cbtl*`, `PermissionGate` (currently unused), dialogs) |
 | `lib/core/utils/` | `TokenUtil` (SHA-256), `BcryptUtil`, date/device/watermark helpers |
 | `lib/core/sync/` | `SyncManager` — offline push queue |
 | `lib/data/datasources/remote/` | `ApiClient` (HTTP), `SupabaseSyncDatasource` (stub) |
@@ -180,7 +205,7 @@ The suite in `test/` runs with `flutter.bat` + the `test` subcommand; it uses on
 **Play releases are CI** (`.github/workflows/play-release.yml`, added 2026-10-19): bump
 `version:` in `pubspec.yaml` (the `+N` is the Play version code and must exceed every code Play
 has seen), edit `distribution/whatsnew/whatsnew-en-US` (≤500 chars, tester-facing), commit, then
-push a tag equal to the version name (`v1.0.3`). The job tests, signs from repository secrets,
+push a tag equal to the version name (`v1.0.3`). The job restores the brand fonts, tests, signs from repository secrets,
 and uploads to Closed testing (Alpha); "Run workflow" can target internal/production. It builds
 with no `--dart-define`, so it always targets production.
 

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../../core/brand/brand_widgets.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_strings.dart';
 import '../../../core/constants/app_text_styles.dart';
@@ -64,17 +65,19 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
     if (result is LoginSuccess) {
       if (result.isOffline) {
+        // Roasted Black snackbar from the theme; the caramel icon is the
+        // accent, which is allowed on dark.
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Row(
+          const SnackBar(
+            content: Row(
               children: [
-                Icon(Icons.cloud_off, color: Colors.white, size: 18),
+                Icon(Icons.cloud_off,
+                    color: AppColors.goldenCaramel, size: 18),
                 SizedBox(width: 8),
                 Expanded(child: Text('Signed in offline. Changes will sync when you reconnect.')),
               ],
             ),
-            backgroundColor: AppColors.warning,
-            duration: const Duration(seconds: 4),
+            duration: Duration(seconds: 4),
           ),
         );
       }
@@ -113,46 +116,31 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         _lockedUntil!.isAfter(DateTime.now().toUtc());
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
-      // Espresso header needs light status-bar icons.
+      // The Roasted Black panel sits under the status bar: light icons.
       value: SystemUiOverlayStyle.light.copyWith(
         statusBarColor: Colors.transparent,
         statusBarIconBrightness: Brightness.light,
         statusBarBrightness: Brightness.dark,
       ),
       child: Scaffold(
-      backgroundColor: AppColors.espresso,
-      body: Stack(
-        children: [
-          SafeArea(
-            child: SingleChildScrollView(
-              child: ConstrainedBox(
-                constraints: BoxConstraints(
-                  minHeight: MediaQuery.of(context).size.height -
-                      MediaQuery.of(context).padding.top -
-                      MediaQuery.of(context).padding.bottom,
-                ),
-                child: IntrinsicHeight(
-                  child: Column(
-                    children: [
-                      // ── Branded header (top 35%) ────────────────────────────
-                      Expanded(
-                        flex: 35,
-                        child: _buildHeader(),
-                      ),
-                      // ── Login card (bottom 65%) ─────────────────────────────
-                      Expanded(
-                        flex: 65,
-                        child: _buildLoginCard(isLocked),
-                      ),
-                    ],
-                  ),
-                ),
+        backgroundColor: AppColors.creamyWhite,
+        body: Stack(
+          children: [
+            // Clamped so an overscroll never pulls cream above the panel.
+            SingleChildScrollView(
+              physics: const ClampingScrollPhysics(),
+              child: Column(
+                children: [
+                  // ── Roasted Black panel with the logo ───────────────────
+                  _buildHeader(),
+                  // ── Flat creamy white sheet ─────────────────────────────
+                  _buildLoginCard(isLocked),
+                ],
               ),
             ),
-          ),
-          if (_isLoading) const CbtlLoadingOverlay(message: 'Signing in…'),
-        ],
-      ),
+            if (_isLoading) const CbtlLoadingOverlay(message: 'Signing in…'),
+          ],
+        ),
       ),
     );
   }
@@ -164,66 +152,37 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       orElse: () => false,
     );
 
+    final media = MediaQuery.of(context);
+    final topInset = media.padding.top;
+    // About a quarter of the screen below the status bar, as in the design,
+    // never so short that the logo loses its clear space.
+    final panelHeight = (media.size.height * 0.26).clamp(184.0, 240.0);
+
     return Container(
-      decoration: const BoxDecoration(
-        gradient: RadialGradient(
-          center: Alignment(0, -0.1),
-          radius: 1.0,
-          colors: [AppColors.darkBrown, AppColors.espresso],
-        ),
-      ),
+      width: double.infinity,
+      height: topInset + panelHeight,
+      color: AppColors.roastedBlack,
+      padding: EdgeInsets.only(top: topInset),
       child: Stack(
         children: [
-          Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                // The brand mark is an opaque square, so it fills the tile
-                // edge-to-edge rather than floating inside a cream frame.
-                Container(
-                  width: 84,
-                  height: 84,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(24),
-                    boxShadow: [
-                      BoxShadow(
-                        color: AppColors.espresso.withValues(alpha: 0.4),
-                        blurRadius: 24,
-                        offset: const Offset(0, 8),
-                      ),
-                    ],
-                  ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(24),
-                    child: Image.asset(
-                      'assets/images/app_logo.jpg',
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: AppDimensions.lg),
-                  child: Text(
-                    AppStrings.appName,
-                    style: AppTextStyles.displayMedium
-                        .copyWith(color: AppColors.cream),
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-              ],
+          // The creamy white hero logo, the version the book allows on dark
+          // (p21). It names the brand, so no title sits beside it.
+          const Center(
+            child: SealIn(
+              delay: Duration(milliseconds: 120),
+              child: BrandLogo(size: 136, onDark: true),
             ),
           ),
           if (isOffline)
             Positioned(
               top: 12,
               right: 16,
+              // Caramel fill carries ink, never cream text (1.8:1).
               child: Container(
                 padding:
                     const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
                 decoration: BoxDecoration(
-                  color: AppColors.warning,
+                  color: AppColors.goldenCaramel,
                   borderRadius:
                       BorderRadius.circular(AppDimensions.radiusRound),
                 ),
@@ -231,12 +190,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     const Icon(Icons.cloud_off,
-                        color: AppColors.white, size: 13),
+                        color: AppColors.roastedBlack, size: 14),
                     const SizedBox(width: 6),
                     Text(
                       'Offline',
                       style: AppTextStyles.chip
-                          .copyWith(color: AppColors.white),
+                          .copyWith(color: AppColors.roastedBlack),
                     ),
                   ],
                 ),
@@ -248,172 +207,163 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   }
 
   Widget _buildLoginCard(bool isLocked) {
-    return Container(
-      width: double.infinity,
-      decoration: const BoxDecoration(
-        color: AppColors.cream,
-        borderRadius: BorderRadius.vertical(
-          top: Radius.circular(AppDimensions.radiusXl + 8),
-        ),
+    final bottomInset = MediaQuery.of(context).padding.bottom;
+
+    return Padding(
+      padding: EdgeInsets.fromLTRB(
+        AppDimensions.lg,
+        AppDimensions.xl,
+        AppDimensions.lg,
+        AppDimensions.lg + bottomInset,
       ),
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(
-          AppDimensions.lg,
-          AppDimensions.lg,
-          AppDimensions.lg,
-          AppDimensions.lg,
-        ),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Sheet grabber — signals the panel as a surface you pull up.
-              Center(
-                child: Container(
-                  width: 40,
-                  height: 4,
-                  margin: const EdgeInsets.only(bottom: AppDimensions.lg),
-                  decoration: BoxDecoration(
-                    color: AppColors.latte,
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-              ),
-              Text(AppStrings.loginTitle, style: AppTextStyles.h1),
-              const SizedBox(height: 4),
-              Text(
-                'Sign in to continue',
-                style: AppTextStyles.bodySmall,
-              ),
-              const SizedBox(height: AppDimensions.lg),
+      child: Form(
+        key: _formKey,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(AppTextStyles.caps(AppStrings.loginTitle),
+                style: AppTextStyles.h1),
+            const SizedBox(height: AppDimensions.sm),
+            Text(
+              'Sign in to continue',
+              style: AppTextStyles.bodyLarge.copyWith(color: AppColors.ink2),
+            ),
+            const SizedBox(height: AppDimensions.lg),
 
-              // ── Email ─────────────────────────────────────────────────
-              // The server signs members in by email only (`/api/login`), so
-              // the field says so — a "Username" label sent reviewers and
-              // members guessing at a name that could never work.
-              CbtlTextField(
-                label: AppStrings.email,
-                controller: _usernameCtrl,
-                hint: 'Enter your email',
-                prefixIcon: Icons.mail_outline,
-                keyboardType: TextInputType.emailAddress,
-                textInputAction: TextInputAction.next,
-                enabled: !isLocked && !_isLoading,
-                autofocus: true,
-                onSubmitted: (_) => _passwordFocus.requestFocus(),
-                validator: (v) {
-                  final value = v?.trim() ?? '';
-                  if (value.isEmpty) return 'Required';
-                  if (!RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(value)) {
-                    return 'Enter a valid email address';
-                  }
-                  return null;
-                },
-              ),
+            // ── Email ─────────────────────────────────────────────────
+            // The server signs members in by email only (`/api/login`), so
+            // the field says so — a "Username" label sent reviewers and
+            // members guessing at a name that could never work.
+            CbtlTextField(
+              label: AppStrings.email,
+              controller: _usernameCtrl,
+              hint: 'Enter your email',
+              prefixIcon: Icons.mail_outline,
+              keyboardType: TextInputType.emailAddress,
+              textInputAction: TextInputAction.next,
+              enabled: !isLocked && !_isLoading,
+              autofocus: true,
+              onSubmitted: (_) => _passwordFocus.requestFocus(),
+              validator: (v) {
+                final value = v?.trim() ?? '';
+                if (value.isEmpty) return 'Required';
+                if (!RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(value)) {
+                  return 'Enter a valid email address';
+                }
+                return null;
+              },
+            ),
+            const SizedBox(height: AppDimensions.md),
+
+            // ── Password ──────────────────────────────────────────────
+            CbtlTextField(
+              label: AppStrings.password,
+              controller: _passwordCtrl,
+              hint: 'Enter your password',
+              prefixIcon: Icons.lock_outline,
+              obscureText: true,
+              textInputAction: TextInputAction.done,
+              focusNode: _passwordFocus,
+              enabled: !isLocked && !_isLoading,
+              onSubmitted: (_) => _onSubmit(),
+              validator: (v) =>
+                  (v == null || v.isEmpty) ? 'Required' : null,
+            ),
+
+            // ── Error / lockout messages ──────────────────────────────
+            if (isLocked) ...[
               const SizedBox(height: AppDimensions.md),
-
-              // ── Password ──────────────────────────────────────────────
-              CbtlTextField(
-                label: AppStrings.password,
-                controller: _passwordCtrl,
-                hint: 'Enter your password',
-                prefixIcon: Icons.lock_outline,
-                obscureText: true,
-                textInputAction: TextInputAction.done,
-                focusNode: _passwordFocus,
-                enabled: !isLocked && !_isLoading,
-                onSubmitted: (_) => _onSubmit(),
-                validator: (v) =>
-                    (v == null || v.isEmpty) ? 'Required' : null,
-              ),
-              const SizedBox(height: AppDimensions.md),
-
-              // ── Error / lockout messages ──────────────────────────────
-              if (isLocked) _buildLockoutBanner(),
-              if (_errorMessage != null && !isLocked)
-                _buildErrorBanner(),
-
-              const SizedBox(height: AppDimensions.md),
-
-              // ── Forgot password ───────────────────────────────────────
-              // In-app reset: emailed code, then a new password. The new
-              // password works here straight away because sign-in
-              // authenticates against that same backend.
-              Align(
-                alignment: Alignment.centerRight,
-                child: TextButton(
-                  onPressed: _isLoading
-                      ? null
-                      : () => context.go(RouteName.forgotPassword),
-                  child: Text(
-                    'Forgot Password?',
-                    style: AppTextStyles.bodySmall.copyWith(
-                      color: AppColors.amber,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(height: AppDimensions.sm),
-
-              // ── Sign in button ────────────────────────────────────────
-              CbtlButton(
-                label: AppStrings.signIn,
-                onPressed: isLocked ? null : _onSubmit,
-                isFullWidth: true,
-                isLoading: _isLoading,
-              ),
-
-              const SizedBox(height: AppDimensions.lg),
-              Center(
-                child: TextButton(
-                  onPressed:
-                      _isLoading ? null : () => context.go(RouteName.register),
-                  child: Text.rich(
-                    TextSpan(
-                      style: AppTextStyles.bodySmall,
-                      children: [
-                        const TextSpan(text: "Don't have an account? "),
-                        TextSpan(
-                          text: 'Sign Up',
-                          style: AppTextStyles.bodySmall.copyWith(
-                            color: AppColors.amber,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(height: AppDimensions.sm),
-              Center(
-                child: Text(
-                  'Contact your administrator if you cannot access your account.',
-                  style: AppTextStyles.caption,
-                  textAlign: TextAlign.center,
-                ),
-              ),
+              _buildLockoutBanner(),
             ],
-          ),
+            if (_errorMessage != null && !isLocked) ...[
+              const SizedBox(height: AppDimensions.md),
+              _buildErrorBanner(),
+            ],
+
+            const SizedBox(height: AppDimensions.xs),
+
+            // ── Forgot password ───────────────────────────────────────
+            // In-app reset: emailed code, then a new password. The new
+            // password works here straight away because sign-in
+            // authenticates against that same backend.
+            Align(
+              alignment: Alignment.centerRight,
+              child: TextButton(
+                onPressed: _isLoading
+                    ? null
+                    : () => context.go(RouteName.forgotPassword),
+                child: Text(
+                  'Forgot Password?',
+                  style: AppTextStyles.button.copyWith(
+                    color: AppColors.roastedBlack,
+                    decoration: TextDecoration.underline,
+                    decorationColor: AppColors.roastedBlack,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: AppDimensions.xs),
+
+            // ── Sign in button ────────────────────────────────────────
+            CbtlButton(
+              label: AppStrings.signIn,
+              onPressed: isLocked ? null : _onSubmit,
+              isFullWidth: true,
+              isLoading: _isLoading,
+            ),
+
+            const SizedBox(height: AppDimensions.md),
+            Center(
+              child: TextButton(
+                onPressed:
+                    _isLoading ? null : () => context.go(RouteName.register),
+                child: Text.rich(
+                  TextSpan(
+                    style: AppTextStyles.bodyMedium
+                        .copyWith(color: AppColors.ink2),
+                    children: [
+                      const TextSpan(text: "Don't have an account? "),
+                      TextSpan(
+                        text: 'Sign Up',
+                        style: AppTextStyles.bodyMedium.copyWith(
+                          color: AppColors.roastedBlack,
+                          fontWeight: FontWeight.w700,
+                          decoration: TextDecoration.underline,
+                          decorationColor: AppColors.roastedBlack,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: AppDimensions.xs),
+            const Center(
+              child: Text(
+                'Contact your administrator if you cannot access your account.',
+                style: AppTextStyles.caption,
+                textAlign: TextAlign.center,
+              ),
+            ),
+          ],
         ),
       ),
     );
   }
 
+  /// A warning: Roasted Black words on California Cream, edged in caramel.
   Widget _buildLockoutBanner() {
     return _BannerCard(
-      color: AppColors.warning.withValues(alpha: 0.12),
-      borderColor: AppColors.warning,
+      color: AppColors.californiaCream,
+      borderColor: AppColors.goldenCaramel,
       icon: Icons.lock_clock,
-      iconColor: AppColors.warning,
+      iconColor: AppColors.roastedBlack,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             'Account Temporarily Locked',
-            style: AppTextStyles.h3.copyWith(color: AppColors.warning),
+            style: AppTextStyles.h3.copyWith(color: AppColors.roastedBlack),
           ),
           const SizedBox(height: 4),
           _LockdownTimer(lockedUntil: _lockedUntil!),
@@ -424,24 +374,26 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   Widget _buildErrorBanner() {
     return _BannerCard(
-      color: AppColors.danger.withValues(alpha: 0.08),
-      borderColor: AppColors.danger,
+      color: AppColors.dangerSurface,
+      borderColor: AppColors.dangerBorder,
       icon: Icons.error_outline,
       iconColor: AppColors.danger,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(_errorMessage!, style: AppTextStyles.errorText),
+          Text(_errorMessage!,
+              style: AppTextStyles.bodyMedium
+                  .copyWith(color: AppColors.danger)),
           if (_attemptsRemaining != null && _attemptsRemaining! > 0)
             Text(
-              '${_attemptsRemaining} ${AppStrings.attemptsRemaining}',
-              style: AppTextStyles.caption
+              '$_attemptsRemaining ${AppStrings.attemptsRemaining}',
+              style: AppTextStyles.bodySmall
                   .copyWith(color: AppColors.danger),
             ),
           if (_attemptsRemaining != null && _attemptsRemaining! <= 0)
             Text(
               'Next attempt will lock your account for 30 minutes.',
-              style: AppTextStyles.caption
+              style: AppTextStyles.bodySmall
                   .copyWith(color: AppColors.danger),
             ),
         ],
@@ -468,16 +420,20 @@ class _BannerCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
+      width: double.infinity,
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: color,
         borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
-        border: Border.all(color: borderColor.withValues(alpha: 0.4), width: 1.5),
+        border: Border.all(color: borderColor),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, color: iconColor, size: 19),
+          Padding(
+            padding: const EdgeInsets.only(top: 1),
+            child: Icon(icon, color: iconColor, size: 20),
+          ),
           const SizedBox(width: 10),
           Expanded(child: child),
         ],
@@ -513,14 +469,14 @@ class _LockdownTimerState extends State<_LockdownTimer> {
         if (remaining.isNegative) {
           return Text('Please try again.',
               style: AppTextStyles.bodySmall
-                  .copyWith(color: AppColors.warning));
+                  .copyWith(color: AppColors.roastedBlack));
         }
         return Text(
           'Try again in ${DateFormatUtil.countdownTo(widget.lockedUntil)}',
-          style: AppTextStyles.bodySmall.copyWith(color: AppColors.warning),
+          style:
+              AppTextStyles.bodySmall.copyWith(color: AppColors.roastedBlack),
         );
       },
     );
   }
 }
-

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../core/brand/brand_transitions.dart';
 import '../presentation/providers/auth_flow_provider.dart';
 import '../presentation/providers/auth_provider.dart';
 import '../presentation/screens/auth/authenticator_setup_screen.dart';
@@ -64,9 +65,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: RouteName.splash,
         builder: (ctx, state) => const SplashScreen(),
       ),
+      // Moving between whole sections (splash, sign-in, the app itself),
+      // Golden Caramel pours down the screen. Pushes inside a section keep
+      // the platform's own transition.
       GoRoute(
         path: RouteName.login,
-        builder: (ctx, state) => const LoginScreen(),
+        pageBuilder: (ctx, state) =>
+            pourPage(key: state.pageKey, child: const LoginScreen()),
       ),
       GoRoute(
         path: RouteName.register,
@@ -91,14 +96,18 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       // not an on-device action, so there's no local "claim succeeded"
       // screen to route to anymore — this member-facing screen just displays
       // the code (see scan_screen.dart's doc comment).
+      // The caramel member-code button grows into this page.
       GoRoute(
         path: RouteName.scan,
-        builder: (ctx, state) => const ScanScreen(),
+        pageBuilder: (ctx, state) => revealFromButtonPage(
+            key: state.pageKey, child: const ScanScreen()),
       ),
 
       StatefulShellRoute.indexedStack(
-        builder: (context, state, navigationShell) =>
-            MainShellScreen(navigationShell: navigationShell),
+        pageBuilder: (context, state, navigationShell) => pourPage(
+          key: state.pageKey,
+          child: MainShellScreen(navigationShell: navigationShell),
+        ),
         branches: [
           // ── Branch 0: Home ──────────────────────────────────────────────
           StatefulShellBranch(

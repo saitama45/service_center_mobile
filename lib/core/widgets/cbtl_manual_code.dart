@@ -37,9 +37,9 @@ class CbtlManualCode extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(AppDimensions.md),
       decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
-        border: Border.all(color: AppColors.latte),
+        color: AppColors.creamyWhite,
+        borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
+        border: Border.all(color: AppColors.line),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -47,11 +47,11 @@ class CbtlManualCode extends StatelessWidget {
           Row(
             children: [
               const Icon(Icons.keyboard_alt_outlined,
-                  size: 14, color: AppColors.muted),
+                  size: 14, color: AppColors.ink3),
               const SizedBox(width: 6),
               Expanded(
                 child: Text(label,
-                    style: AppTextStyles.label.copyWith(color: AppColors.muted)),
+                    style: AppTextStyles.label.copyWith(color: AppColors.ink3)),
               ),
               _CopyButton(code: code),
             ],
@@ -87,7 +87,7 @@ class _CopyButton extends StatelessWidget {
           const SnackBar(
             content: Text('Code copied.'),
             duration: Duration(seconds: 2),
-            backgroundColor: AppColors.espresso,
+            backgroundColor: AppColors.roastedBlack,
           ),
         );
       },
@@ -96,10 +96,13 @@ class _CopyButton extends StatelessWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.copy_rounded, size: 13, color: AppColors.amber),
+            const Icon(Icons.copy_rounded,
+                size: 13, color: AppColors.roastedBlack),
             const SizedBox(width: 4),
             Text('Copy',
-                style: AppTextStyles.chip.copyWith(color: AppColors.amber)),
+                style: AppTextStyles.chip.copyWith(
+                    color: AppColors.roastedBlack,
+                    decoration: TextDecoration.underline)),
           ],
         ),
       ),

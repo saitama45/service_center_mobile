@@ -28,36 +28,36 @@ class ProfileScreen extends ConsumerWidget {
     }
 
     return Scaffold(
-      backgroundColor: AppColors.cream,
+      backgroundColor: AppColors.creamyWhite,
       // Members see no hamburger: the drawer's only unique content is the
       // admin module links.
       appBar: const CbtlAppBar(
         title: AppStrings.profile,
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(
-            AppDimensions.md, AppDimensions.md, AppDimensions.md, AppDimensions.xl),
+        padding: const EdgeInsets.fromLTRB(AppDimensions.gutter,
+            AppDimensions.md, AppDimensions.gutter, AppDimensions.xl),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // ── Identity hero ────────────────────────────────────────────
+            // The one Roasted Black element on the page: a Creamy White
+            // seal of initials beside the name in Herb capitals.
             CbtlHeroCard(
               padding: const EdgeInsets.all(AppDimensions.md + 2),
               child: Row(
                 children: [
                   Container(
-                    width: 54,
-                    height: 54,
+                    width: 56,
+                    height: 56,
                     alignment: Alignment.center,
-                    decoration: BoxDecoration(
-                      color: AppColors.amber,
-                      borderRadius:
-                          BorderRadius.circular(AppDimensions.radiusLg),
+                    decoration: const BoxDecoration(
+                      color: AppColors.creamyWhite,
+                      shape: BoxShape.circle,
                     ),
                     child: Text(
-                      user.initials,
-                      style: AppTextStyles.h2
-                          .copyWith(color: AppColors.white, fontSize: 19),
+                      AppTextStyles.caps(user.initials),
+                      style: AppTextStyles.h2.copyWith(fontSize: 20),
                     ),
                   ),
                   const SizedBox(width: 14),
@@ -66,17 +66,17 @@ class ProfileScreen extends ConsumerWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          user.fullName,
-                          style:
-                              AppTextStyles.h2.copyWith(color: AppColors.cream),
+                          AppTextStyles.caps(user.fullName),
+                          style: AppTextStyles.h2
+                              .copyWith(color: AppColors.creamyWhite),
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                         ),
-                        const SizedBox(height: 3),
+                        const SizedBox(height: 5),
                         Text(
                           '@${user.username}',
                           style: AppTextStyles.monoSmall
-                              .copyWith(color: AppColors.gold),
+                              .copyWith(color: AppColors.californiaCream),
                         ),
                       ],
                     ),
@@ -91,6 +91,7 @@ class ProfileScreen extends ConsumerWidget {
               title: 'Account Details',
               icon: Icons.badge_outlined,
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   if (user.email != null && user.email!.isNotEmpty)
                     _InfoRow(label: AppStrings.email, value: user.email!),
@@ -146,7 +147,7 @@ class ProfileScreen extends ConsumerWidget {
             CbtlCard(
               padding: EdgeInsets.zero,
               child: _NavRow(
-                icon: Icons.privacy_tip_outlined,
+                icon: Icons.shield_outlined,
                 label: 'Privacy Policy',
                 sub: 'How we collect, use and protect your data',
                 onTap: () =>
@@ -194,7 +195,7 @@ class ProfileScreen extends ConsumerWidget {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Sign Out', style: AppTextStyles.h2),
+        title: Text(AppTextStyles.caps('Sign Out'), style: AppTextStyles.h2),
         content: const Text('Are you sure you want to sign out?',
             style: AppTextStyles.bodyMedium),
         actions: [
@@ -204,8 +205,8 @@ class ProfileScreen extends ConsumerWidget {
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Sign Out',
-                style: TextStyle(color: AppColors.danger)),
+            style: TextButton.styleFrom(foregroundColor: AppColors.danger),
+            child: const Text('Sign Out'),
           ),
         ],
       ),
@@ -258,16 +259,7 @@ class _BiometricToggleCard extends ConsumerWidget {
     return CbtlCard(
       child: Row(
         children: [
-          Container(
-            width: 38,
-            height: 38,
-            decoration: BoxDecoration(
-              color: AppColors.latteLight,
-              borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
-            ),
-            child: const Icon(Icons.fingerprint,
-                size: 20, color: AppColors.caramel),
-          ),
+          const _IconDisc(Icons.fingerprint),
           const SizedBox(width: 12),
           const Expanded(
             child: Column(
@@ -275,8 +267,7 @@ class _BiometricToggleCard extends ConsumerWidget {
               children: [
                 Text('Biometric Login', style: AppTextStyles.h3),
                 SizedBox(height: 2),
-                Text('Face ID / fingerprint access',
-                    style: AppTextStyles.caption),
+                Text('Face ID / fingerprint access', style: _rowSubtitle),
               ],
             ),
           ),
@@ -363,14 +354,46 @@ class _InfoRow extends StatelessWidget {
         if (!isLast)
           const Padding(
             padding: EdgeInsets.symmetric(vertical: 12),
-            child: Divider(height: 1, color: AppColors.latteLight),
+            child: Divider(height: 1, color: AppColors.line),
           ),
       ],
     );
   }
 }
 
-/// Tappable row with a leading icon chip and a chevron.
+/// Subtitle under a row title: Booster in ink 2, one step below the title.
+const TextStyle _rowSubtitle = TextStyle(
+  fontFamily: AppTextStyles.body,
+  fontSize: 13,
+  fontWeight: FontWeight.w400,
+  color: AppColors.ink2,
+  letterSpacing: 0.26,
+  height: 1.45,
+);
+
+/// The Roasted Black disc that leads every Profile row, with a Creamy White
+/// line icon in it.
+class _IconDisc extends StatelessWidget {
+  const _IconDisc(this.icon);
+
+  final IconData icon;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 40,
+      height: 40,
+      alignment: Alignment.center,
+      decoration: const BoxDecoration(
+        color: AppColors.roastedBlack,
+        shape: BoxShape.circle,
+      ),
+      child: Icon(icon, size: 19, color: AppColors.creamyWhite),
+    );
+  }
+}
+
+/// Tappable row with a leading icon disc and a chevron.
 class _NavRow extends StatelessWidget {
   const _NavRow({
     required this.icon,
@@ -391,19 +414,13 @@ class _NavRow extends StatelessWidget {
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
+        splashColor: AppColors.californiaCream,
+        highlightColor: AppColors.californiaCream.withValues(alpha: 0.5),
         child: Padding(
           padding: const EdgeInsets.all(AppDimensions.md),
           child: Row(
             children: [
-              Container(
-                width: 38,
-                height: 38,
-                decoration: BoxDecoration(
-                  color: AppColors.latteLight,
-                  borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
-                ),
-                child: Icon(icon, size: 18, color: AppColors.caramel),
-              ),
+              _IconDisc(icon),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(
@@ -412,13 +429,14 @@ class _NavRow extends StatelessWidget {
                     Text(label, style: AppTextStyles.h3),
                     if (sub != null) ...[
                       const SizedBox(height: 2),
-                      Text(sub!, style: AppTextStyles.caption),
+                      Text(sub!, style: _rowSubtitle),
                     ],
                   ],
                 ),
               ),
+              const SizedBox(width: 8),
               const Icon(Icons.chevron_right,
-                  size: 20, color: AppColors.muted),
+                  size: 22, color: AppColors.ink3),
             ],
           ),
         ),

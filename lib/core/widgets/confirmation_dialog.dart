@@ -17,14 +17,14 @@ Future<bool> showConfirmationDialog(
     context: context,
     barrierDismissible: false,
     builder: (ctx) => AlertDialog(
-      title: Text(title, style: AppTextStyles.h2),
+      title: Text(AppTextStyles.caps(title), style: AppTextStyles.h2),
       content: Text(message, style: AppTextStyles.bodyMedium),
       actions: [
         TextButton(
           onPressed: () => Navigator.of(ctx).pop(false),
           child: Text(cancelLabel,
               style: AppTextStyles.button
-                  .copyWith(color: AppColors.mediumGray)),
+                  .copyWith(color: AppColors.ink2)),
         ),
         CbtlButton(
           label: confirmLabel,

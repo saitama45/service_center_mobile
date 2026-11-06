@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:qr_flutter/qr_flutter.dart';
+import '../../../core/brand/brand_widgets.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_dimensions.dart';
 import '../../../core/constants/app_text_styles.dart';
@@ -14,6 +15,7 @@ import '../../providers/app_providers.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/loyalty_provider.dart';
 import '../../../routing/route_names.dart';
+import '../home/widgets/coffee_stamp.dart';
 
 /// "My Member Code" — shows the member's signed, static QR code for staff to
 /// scan at checkout, and watches for the stamp that scan awards so the
@@ -107,7 +109,7 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
     unawaited(showDialog<void>(
       context: context,
       barrierDismissible: false,
-      barrierColor: Colors.black45,
+      // No barrierColor: the theme's Roasted Black scrim applies.
       builder: (_) => const _StampCollectedDialog(),
     ));
     await Future.delayed(const Duration(milliseconds: 1400));
@@ -121,54 +123,66 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
     final qr = ref.watch(memberQrProvider);
 
     return Scaffold(
-      backgroundColor: AppColors.white,
+      backgroundColor: AppColors.creamyWhite,
       appBar: AppBar(
-        backgroundColor: AppColors.white,
-        foregroundColor: AppColors.espresso,
+        backgroundColor: AppColors.creamyWhite,
+        foregroundColor: AppColors.roastedBlack,
+        surfaceTintColor: Colors.transparent,
         elevation: 0,
-        // The app-wide `appBarTheme.iconTheme` is cream, for the espresso bar
-        // every other screen uses. It takes precedence over `foregroundColor`,
-        // so on this screen's white bar the back arrow was cream-on-white —
-        // present, tappable, and all but invisible. Set it explicitly here.
-        iconTheme: const IconThemeData(color: AppColors.espresso, size: 24),
+        scrolledUnderElevation: 0,
+        // Set explicitly so the back arrow stays ink on this cream bar
+        // whatever the app-wide `appBarTheme.iconTheme` says — it once was
+        // cream, which left the arrow all but invisible here.
+        iconTheme: const IconThemeData(color: AppColors.roastedBlack, size: 24),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          color: AppColors.espresso,
+          color: AppColors.roastedBlack,
           tooltip: 'Back',
           onPressed: () => context.pop(),
         ),
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text('My Member Code',
-                style: AppTextStyles.h2.copyWith(color: AppColors.espresso)),
-            Text('Show this to staff at checkout',
-                style: AppTextStyles.caption),
-          ],
-        ),
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(
-            AppDimensions.lg, AppDimensions.md, AppDimensions.lg, AppDimensions.xl),
-        child: qr.when(
-          loading: () => const Padding(
-            padding: EdgeInsets.only(top: 80),
-            child: Center(child: CircularProgressIndicator()),
-          ),
-          error: (_, __) => _RetryState(
-            message: 'Could not load your member code.',
-            onRetry: () => ref.invalidate(memberQrProvider),
-          ),
-          data: (result) {
-            if (result.token == null) {
-              return _RetryState(
-                message: result.error ?? 'Your member code isn\'t available yet.',
-                onRetry: () => ref.invalidate(memberQrProvider),
-              );
-            }
-            return _MemberCode(token: result.token!, fromCache: result.fromCache);
-          },
+        padding: const EdgeInsets.fromLTRB(AppDimensions.gutter, AppDimensions.xs,
+            AppDimensions.gutter, AppDimensions.xl),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // The page title sits under the back arrow, as large as a tab's:
+            // Herb Display, capitals only. Still announced as the header.
+            Semantics(
+              header: true,
+              child: Text(AppTextStyles.caps('My Member Code'),
+                  style: AppTextStyles.h1),
+            ),
+            const SizedBox(height: 6),
+            Text('Show this to staff at checkout',
+                style: AppTextStyles.bodyMedium.copyWith(color: AppColors.ink2)),
+            const SizedBox(height: AppDimensions.lg),
+            SizedBox(
+              width: double.infinity,
+              child: qr.when(
+                loading: () => const Padding(
+                  padding: EdgeInsets.only(top: 80),
+                  child: Center(child: CircularProgressIndicator()),
+                ),
+                error: (_, __) => _RetryState(
+                  message: 'Could not load your member code.',
+                  onRetry: () => ref.invalidate(memberQrProvider),
+                ),
+                data: (result) {
+                  if (result.token == null) {
+                    return _RetryState(
+                      message: result.error ??
+                          'Your member code isn\'t available yet.',
+                      onRetry: () => ref.invalidate(memberQrProvider),
+                    );
+                  }
+                  return _MemberCode(
+                      token: result.token!, fromCache: result.fromCache);
+                },
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -180,26 +194,42 @@ class _StampCollectedDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // A key moment: the stamp lands on a Roasted Black sunburst, and the
+    // headline gets the purple squiggle underneath (brand book p37).
     return Dialog(
       backgroundColor: Colors.transparent,
       elevation: 0,
+      insetPadding: const EdgeInsets.symmetric(horizontal: 22, vertical: 24),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 32),
+        padding: const EdgeInsets.fromLTRB(24, 36, 24, 30),
         decoration: BoxDecoration(
-          color: AppColors.white,
+          color: AppColors.creamyWhite,
           borderRadius: BorderRadius.circular(AppDimensions.radiusXl),
-          boxShadow: AppColors.cardShadow,
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.check_circle_rounded, color: AppColors.amber, size: 56),
-            const SizedBox(height: AppDimensions.md),
-            Text('Stamp Collected!',
-                style: AppTextStyles.h2.copyWith(color: AppColors.espresso)),
-            const SizedBox(height: 6),
-            Text('Your card has been updated.',
-                style: AppTextStyles.caption, textAlign: TextAlign.center),
+            const SizedBox(
+              width: 128,
+              height: 128,
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  BrandMark.burst(width: 128, color: AppColors.roastedBlack),
+                  CoffeeStamp(
+                      filled: true, holiday: true, highlight: true, size: 70),
+                ],
+              ),
+            ),
+            const SizedBox(height: AppDimensions.lg),
+            Text(AppTextStyles.caps('Stamp Collected!'),
+                textAlign: TextAlign.center,
+                style: AppTextStyles.h2.copyWith(fontSize: 30, height: 0.93)),
+            const SizedBox(height: 10),
+            const BrandMark.squiggle(width: 122, color: AppColors.purplePop),
+            const SizedBox(height: 10),
+            const Text('Your card has been updated.',
+                style: AppTextStyles.bodySmall, textAlign: TextAlign.center),
           ],
         ),
       ),
@@ -218,7 +248,7 @@ class _RetryState extends StatelessWidget {
       padding: const EdgeInsets.only(top: 60),
       child: Column(
         children: [
-          const Icon(Icons.wifi_off_rounded, size: 40, color: AppColors.muted),
+          const Icon(Icons.wifi_off_rounded, size: 40, color: AppColors.ink3),
           const SizedBox(height: AppDimensions.md),
           Text(message, style: AppTextStyles.bodyMedium, textAlign: TextAlign.center),
           const SizedBox(height: AppDimensions.md),
@@ -239,45 +269,47 @@ class _MemberCode extends StatelessWidget {
     return Column(
       children: [
         // ── QR ────────────────────────────────────────────────────
+        // Pure white plate, Roasted Black modules: the one place the app
+        // leaves Creamy White, because scanners want the most contrast.
         Container(
           padding: const EdgeInsets.all(AppDimensions.md),
           decoration: BoxDecoration(
-            color: AppColors.white,
-            borderRadius: BorderRadius.circular(AppDimensions.radiusXl),
-            border: Border.all(color: AppColors.latte, width: 2),
-            boxShadow: AppColors.cardShadow,
+            color: AppColors.pureWhite,
+            borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
+            border: Border.all(color: AppColors.roastedBlack, width: 1.5),
           ),
           child: QrImageView(
             data: token,
             version: QrVersions.auto,
             size: 208,
-            backgroundColor: AppColors.white,
+            backgroundColor: AppColors.pureWhite,
             eyeStyle: const QrEyeStyle(
               eyeShape: QrEyeShape.square,
-              color: AppColors.espresso,
+              color: AppColors.roastedBlack,
             ),
             dataModuleStyle: const QrDataModuleStyle(
               dataModuleShape: QrDataModuleShape.square,
-              color: AppColors.espresso,
+              color: AppColors.roastedBlack,
             ),
           ),
         ),
         const SizedBox(height: AppDimensions.md),
 
+        // Online or offline, the same California Cream note — an offline
+        // code is still a valid one, so it is not styled as a warning.
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 11),
           decoration: BoxDecoration(
-            color: fromCache ? AppColors.cream : AppColors.latte.withValues(alpha: 0.35),
-            borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
-            border: Border.all(color: AppColors.latte),
+            color: AppColors.californiaCream,
+            borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
               Icon(
-                fromCache ? Icons.wifi_off_rounded : Icons.verified_rounded,
-                size: 14,
-                color: fromCache ? AppColors.muted : AppColors.espresso,
+                fromCache ? Icons.wifi_off_rounded : Icons.verified_outlined,
+                size: 15,
+                color: AppColors.ink2,
               ),
               const SizedBox(width: 8),
               Flexible(
@@ -285,7 +317,7 @@ class _MemberCode extends StatelessWidget {
                   fromCache
                       ? 'Offline — showing your saved code. Still valid.'
                       : 'Your code is up to date.',
-                  style: AppTextStyles.caption,
+                  style: AppTextStyles.bodySmall,
                 ),
               ),
             ],
@@ -299,7 +331,7 @@ class _MemberCode extends StatelessWidget {
         CbtlManualCode(code: token),
         const SizedBox(height: AppDimensions.lg),
 
-        CbtlSectionCard(
+        const CbtlSectionCard(
           title: 'How to earn a stamp',
           icon: Icons.storefront_outlined,
           child: Text(

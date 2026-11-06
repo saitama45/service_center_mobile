@@ -60,7 +60,7 @@ class _SuggestionBoxScreenState extends ConsumerState<SuggestionBoxScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Thank you! Your message has been sent.'),
-            backgroundColor: AppColors.success,
+            backgroundColor: AppColors.roastedBlack,
           ),
         );
         context.go('/dashboard/profile');
@@ -76,27 +76,29 @@ class _SuggestionBoxScreenState extends ConsumerState<SuggestionBoxScreen> {
     const max = SuggestionRemoteDatasource.maxMessageLength;
 
     return Scaffold(
-      backgroundColor: AppColors.cream,
+      backgroundColor: AppColors.creamyWhite,
       appBar: CbtlAppBar(
         title: 'Suggestion Box',
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppColors.white),
+          icon: const Icon(Icons.arrow_back, color: AppColors.roastedBlack),
           onPressed: () => context.go('/dashboard/profile'),
         ),
       ),
       body: Stack(
         children: [
           SingleChildScrollView(
-            padding: const EdgeInsets.all(AppDimensions.md),
+            padding: const EdgeInsets.fromLTRB(AppDimensions.gutter,
+                AppDimensions.md, AppDimensions.gutter, AppDimensions.lg),
             child: Form(
               key: _formKey,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const Text(
+                  Text(
                     'Have an idea, a compliment, or something we could do '
                     'better? Tell us — every message is read by our team.',
-                    style: AppTextStyles.bodyMedium,
+                    style: AppTextStyles.bodyLarge
+                        .copyWith(color: AppColors.ink2),
                   ),
                   const SizedBox(height: AppDimensions.md),
                   CbtlCard(
@@ -139,7 +141,7 @@ class _SuggestionBoxScreenState extends ConsumerState<SuggestionBoxScreen> {
                           textAlign: TextAlign.right,
                           style: AppTextStyles.caption.copyWith(
                             color:
-                                length > max ? AppColors.danger : AppColors.muted,
+                                length > max ? AppColors.danger : AppColors.ink3,
                           ),
                         ),
                       ],
@@ -150,10 +152,10 @@ class _SuggestionBoxScreenState extends ConsumerState<SuggestionBoxScreen> {
                     Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: AppColors.danger.withValues(alpha: 0.08),
+                        color: AppColors.dangerSurface,
                         borderRadius:
                             BorderRadius.circular(AppDimensions.radiusMd),
-                        border: Border.all(color: AppColors.danger),
+                        border: Border.all(color: AppColors.dangerBorder),
                       ),
                       child: SelectableText(_error!,
                           style: AppTextStyles.errorText),

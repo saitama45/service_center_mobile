@@ -7,6 +7,7 @@ import '../../../core/constants/app_strings.dart';
 import '../../../core/constants/app_text_styles.dart';
 import '../../../core/widgets/cbtl_app_bar.dart';
 import '../../../core/widgets/cbtl_button.dart';
+import '../../../core/widgets/cbtl_card.dart';
 import '../../../core/widgets/cbtl_loading_overlay.dart';
 import '../../../core/widgets/cbtl_text_field.dart';
 import '../../../core/utils/bcrypt_util.dart';
@@ -64,7 +65,7 @@ class _ChangePasswordScreenState
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text(AppStrings.passwordChanged),
-          backgroundColor: AppColors.success,
+          backgroundColor: AppColors.roastedBlack,
         ),
       );
       context.go('/dashboard/profile');
@@ -76,34 +77,25 @@ class _ChangePasswordScreenState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.cream,
+      backgroundColor: AppColors.creamyWhite,
       appBar: CbtlAppBar(
         title: AppStrings.changePassword,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppColors.white),
+          icon: const Icon(Icons.arrow_back, color: AppColors.roastedBlack),
           onPressed: () => context.go('/dashboard/profile'),
         ),
       ),
       body: Stack(
         children: [
           SingleChildScrollView(
-            padding: const EdgeInsets.all(AppDimensions.md),
+            padding: const EdgeInsets.fromLTRB(AppDimensions.gutter,
+                AppDimensions.md, AppDimensions.gutter, AppDimensions.lg),
             child: Form(
               key: _formKey,
               child: Column(
                 children: [
-                  Container(
-                    padding: const EdgeInsets.all(AppDimensions.md),
-                    decoration: BoxDecoration(
-                      color: AppColors.white,
-                      borderRadius:
-                          BorderRadius.circular(AppDimensions.radiusMd),
-                      boxShadow: [
-                        BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.05),
-                            blurRadius: 4)
-                      ],
-                    ),
+                  // Flat brand: an outlined card, no shadow.
+                  CbtlCard(
                     child: Column(
                       children: [
                         CbtlTextField(
@@ -119,7 +111,7 @@ class _ChangePasswordScreenState
                           label: AppStrings.newPassword,
                           controller: _newCtrl,
                           obscureText: true,
-                          prefixIcon: Icons.lock_reset,
+                          prefixIcon: Icons.key_outlined,
                           onChanged: (_) => setState(() {}),
                           validator: (v) {
                             if (v == null || v.isEmpty) return 'Required';
@@ -135,7 +127,7 @@ class _ChangePasswordScreenState
                             return null;
                           },
                         ),
-                        const SizedBox(height: AppDimensions.sm),
+                        const SizedBox(height: AppDimensions.md - 4),
                         _PasswordRequirements(password: _newCtrl.text),
                         const SizedBox(height: AppDimensions.md),
                         CbtlTextField(
@@ -159,10 +151,10 @@ class _ChangePasswordScreenState
                     Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: AppColors.danger.withValues(alpha: 0.08),
+                        color: AppColors.dangerSurface,
                         borderRadius:
                             BorderRadius.circular(AppDimensions.radiusMd),
-                        border: Border.all(color: AppColors.danger),
+                        border: Border.all(color: AppColors.dangerBorder),
                       ),
                       child: SelectableText(_error!, style: AppTextStyles.errorText),
                     ),
@@ -203,40 +195,49 @@ class _PasswordRequirements extends StatelessWidget {
           password.contains(RegExp(r'[!@#\$%^&*(),.?":{}|<>_\-]')),
     };
 
+    // A California Cream panel. A rule that is met turns Roasted Black (the
+    // brand confirms in its base colours, not green); one still to do stays
+    // in ink 3.
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.fromLTRB(12, 12, 12, 10),
       decoration: BoxDecoration(
-        color: AppColors.cream,
-        borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
+        color: AppColors.californiaCream,
+        borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text('Your new password must have:',
-              style: AppTextStyles.bodySmall
-                  .copyWith(fontWeight: FontWeight.w700)),
+              style: AppTextStyles.bodySmall.copyWith(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.roastedBlack)),
           const SizedBox(height: 6),
           for (final entry in rules.entries)
             Padding(
-              padding: const EdgeInsets.symmetric(vertical: 2),
+              padding: const EdgeInsets.symmetric(vertical: 3),
               child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   Icon(
                     entry.value
-                        ? Icons.check_circle
+                        ? Icons.check_circle_outline
                         : Icons.radio_button_unchecked,
-                    size: 15,
-                    color: entry.value ? AppColors.success : AppColors.muted,
+                    size: 16,
+                    color: entry.value
+                        ? AppColors.roastedBlack
+                        : AppColors.ink3,
                   ),
-                  const SizedBox(width: 6),
+                  const SizedBox(width: 8),
                   Expanded(
                     child: Text(
                       entry.key,
                       style: AppTextStyles.bodySmall.copyWith(
-                        color:
-                            entry.value ? AppColors.success : AppColors.muted,
+                        fontSize: 13,
+                        color: entry.value
+                            ? AppColors.roastedBlack
+                            : AppColors.ink3,
                       ),
                     ),
                   ),

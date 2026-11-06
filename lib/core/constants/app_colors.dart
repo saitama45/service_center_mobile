@@ -1,83 +1,114 @@
 import 'package:flutter/material.dart';
 
-/// Application colour palette — "BrewPass" warm espresso/cream design language.
+/// Application colour palette — the April 2026 brand book (p29), applied as
+/// "Option D: Craft".
+///
+/// The rules the book sets, which every screen follows:
+///   • Roasted Black and Creamy White are the base. Keep a layout to one base
+///     plus one accent; the accent is Golden Caramel.
+///   • Purple is used sparingly, for key brand moments only, and never as a
+///     default background.
 ///
 /// The palette is organised in three tiers:
-///   1. Brand ramp    — espresso → cream, the spine of the whole UI.
-///   2. Semantic      — success / warning / danger / info.
-///   3. Legacy aliases— the old blue/gray names, remapped onto the ramp so
-///                      existing screens pick up the new look automatically.
+///   1. Brand       — the book's seven colours, by their book names.
+///   2. Roles       — ink, lines and semantic states built from them.
+///   3. Ramp aliases— the previous "BrewPass" names, remapped onto the brand so
+///                    screens written against them keep working. Prefer the
+///                    brand and role names in new code.
 class AppColors {
   AppColors._();
 
-  // ── Brand ramp (dark → light) ────────────────────────────────────────────
-  /// Darkest surface. App bars, sidebars, primary buttons, headline text.
-  static const Color espresso = Color(0xFF1A0A02);
+  // ── Brand (p29) ──────────────────────────────────────────────────────────
+  /// The base. Text, primary buttons, the stamp card, the logo disc.
+  static const Color roastedBlack = Color(0xFF272323);
 
-  /// Gradient partner for [brown] on hero cards.
-  static const Color darkBrown = Color(0xFF2D1507);
+  /// The base. Page background, and text on Roasted Black.
+  static const Color creamyWhite = Color(0xFFFAEFE6);
 
-  /// Mid-dark surface — avatars, gradient tail.
-  static const Color brown = Color(0xFF4A2210);
+  /// Warmth: tinted panels, stat tiles, tracks.
+  static const Color californiaCream = Color(0xFFF2DECD);
 
-  /// Secondary accent — progress bar tails, chart series 2.
-  static const Color caramel = Color(0xFF7D3E1B);
+  /// The one accent: Holiday stamps, progress, the member-code button.
+  /// Never for text on cream — it reads at 1.8:1 there.
+  static const Color goldenCaramel = Color(0xFFE5A944);
 
-  /// Primary accent. Active states, FABs, selected nav, progress fills.
-  static const Color amber = Color(0xFFC4781A);
+  /// The accent's darker partner, for edges on caramel.
+  static const Color toastedCaramel = Color(0xFFC79445);
 
-  /// Highlight accent — tier badges, big numerals on dark surfaces.
-  static const Color gold = Color(0xFFDBA842);
+  /// Key moments only: the Purple Aura and the squiggle under a headline.
+  /// Not for small text: Roasted Black on it reads at 4.47:1.
+  static const Color purplePop = Color(0xFFB468E4);
 
-  /// Hairline borders, track backgrounds, disabled marks.
-  static const Color latte = Color(0xFFEDD9B7);
+  /// Key moments that carry text, such as "Reward unlocked". Creamy White on
+  /// it reads at 9.4:1.
+  static const Color purpleStraw = Color(0xFF532D6D);
 
-  /// Tinted fills — icon chips, table headers, subtle surfaces.
-  static const Color latteLight = Color(0xFFF5EDD9);
+  // ── Roles ────────────────────────────────────────────────────────────────
+  /// Secondary text and icons. 7.6:1 on Creamy White.
+  static const Color ink2 = Color(0xFF514A4C);
 
-  /// The default page background.
-  static const Color cream = Color(0xFFFAF6EF);
+  /// Captions and placeholders. 5.3:1 on Creamy White.
+  static const Color ink3 = Color(0xFF6A6260);
 
-  /// Secondary text, inactive icons, captions.
-  static const Color muted = Color(0xFF9C8070);
+  /// Hairlines between and around cards: Roasted Black at 15% on cream.
+  static const Color line = Color(0xFFDDD2C9);
 
-  // ── Semantic ─────────────────────────────────────────────────────────────
-  static const Color success = Color(0xFF3A8A5C);
-  static const Color warning = Color(0xFFD68910);
-  static const Color danger = Color(0xFFC0392B);
-  static const Color info = Color(0xFF7D3E1B);
+  /// Field outlines: Roasted Black at 50%.
+  static const Color fieldLine = Color(0x80272323);
 
-  /// Tinted backgrounds for semantic banners / chips.
-  static const Color successSurface = Color(0xFFEDF9F0);
-  static const Color dangerSurface = Color(0xFFFFF0F0);
-  static const Color dangerBorder = Color(0xFFFFCCCC);
+  /// The book has no error colour, so errors use the red of its own "do not"
+  /// marks (p22). 5.7:1 on Creamy White.
+  static const Color danger = Color(0xFFC00000);
+  static const Color dangerSurface = Color(0xFFF9E3DA);
+  static const Color dangerBorder = Color(0x59C00000);
+
+  /// Confirmations stay in the base colours rather than adding a green.
+  static const Color success = roastedBlack;
+  static const Color successSurface = californiaCream;
+
+  /// Warnings: Roasted Black text on California Cream, edged in caramel.
+  /// Use [goldenCaramel] for the edge and [roastedBlack] for the words.
+  static const Color warning = goldenCaramel;
+  static const Color info = ink2;
 
   // ── Neutral ──────────────────────────────────────────────────────────────
-  static const Color white = Color(0xFFFFFFFF);
-  static const Color black = espresso;
+  /// The brand's white is Creamy White; pure white is only for QR plates,
+  /// where scanners want the most contrast.
+  static const Color white = creamyWhite;
+  static const Color pureWhite = Color(0xFFFFFFFF);
+  static const Color black = roastedBlack;
 
-  // ── Legacy aliases ───────────────────────────────────────────────────────
-  // Kept so screens written against the previous palette restyle themselves.
-  // Prefer the ramp names above in new code.
-  static const Color primaryBlack = espresso;
-  static const Color primaryBlue = espresso; // primary brand surface
-  static const Color primaryDarkBlue = darkBrown;
-  static const Color secondaryBlue = amber; // interactive / link accent
-  static const Color lightBlue = latteLight; // tinted fill
-  static const Color accentBlue = caramel;
+  // ── Ramp aliases ─────────────────────────────────────────────────────────
+  static const Color espresso = roastedBlack;
+  static const Color darkBrown = roastedBlack;
+  static const Color brown = roastedBlack;
+  static const Color caramel = ink2;
+  static const Color amber = goldenCaramel;
+  static const Color gold = goldenCaramel;
+  static const Color latte = line;
+  static const Color latteLight = californiaCream;
+  static const Color cream = creamyWhite;
+  static const Color muted = ink3;
 
-  static const Color darkGray = espresso; // primary text
-  static const Color mediumGray = muted; // secondary text
-  static const Color lightGray = cream; // page background
-  static const Color borderGray = latte; // hairline border
+  static const Color primaryBlack = roastedBlack;
+  static const Color primaryBlue = roastedBlack;
+  static const Color primaryDarkBlue = roastedBlack;
+  static const Color secondaryBlue = roastedBlack;
+  static const Color lightBlue = californiaCream;
+  static const Color accentBlue = ink2;
+
+  static const Color darkGray = roastedBlack;
+  static const Color mediumGray = ink2;
+  static const Color lightGray = creamyWhite;
+  static const Color borderGray = line;
 
   // ── Permission badges ────────────────────────────────────────────────────
-  static const Color granted = amber;
-  static const Color denied = muted;
+  static const Color granted = roastedBlack;
+  static const Color denied = ink3;
 
   // ── Inspection status ────────────────────────────────────────────────────
   static const Color statusCompleted = success;
-  static const Color statusOngoing = warning;
+  static const Color statusOngoing = goldenCaramel;
   static const Color statusNotStarted = danger;
 
   // ── BNR condition colours ────────────────────────────────────────────────
@@ -88,34 +119,25 @@ class AppColors {
   static const Color conditionCritical = Color(0xFFC0392B);
 
   // ── Composite decorations ────────────────────────────────────────────────
-  /// The signature dark card gradient used on hero surfaces.
+  // The brand is flat: solid colour, no gradients on chrome, no card shadows.
+  // These stay so older call sites compile, and draw flat.
   static const LinearGradient heroGradient = LinearGradient(
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
-    colors: [darkBrown, brown],
+    colors: [roastedBlack, roastedBlack],
   );
 
-  /// Accent gradient for progress fills and the FAB.
   static const LinearGradient accentGradient = LinearGradient(
-    begin: Alignment.centerLeft,
-    end: Alignment.centerRight,
-    colors: [caramel, amber],
+    colors: [roastedBlack, roastedBlack],
   );
 
-  /// Soft drop shadow used by raised cards.
-  static List<BoxShadow> get cardShadow => [
-        BoxShadow(
-          color: espresso.withValues(alpha: 0.06),
-          blurRadius: 16,
-          offset: const Offset(0, 4),
-        ),
-      ];
+  static List<BoxShadow> get cardShadow => const [];
 
-  /// Pronounced shadow for hero cards sitting on cream.
-  static List<BoxShadow> get heroShadow => [
+  static List<BoxShadow> get heroShadow => const [];
+
+  /// The one lift in the app: the member-code button over the page.
+  static List<BoxShadow> get fabShadow => [
         BoxShadow(
-          color: espresso.withValues(alpha: 0.28),
-          blurRadius: 28,
+          color: roastedBlack.withValues(alpha: 0.28),
+          blurRadius: 18,
           offset: const Offset(0, 8),
         ),
       ];

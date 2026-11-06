@@ -3,6 +3,7 @@ import '../constants/app_colors.dart';
 import '../constants/app_dimensions.dart';
 import '../constants/app_strings.dart';
 import '../constants/app_text_styles.dart';
+import '../brand/brand_widgets.dart';
 
 class CbtlLoadingOverlay extends StatelessWidget {
   const CbtlLoadingOverlay({super.key, this.message = AppStrings.loading});
@@ -12,34 +13,24 @@ class CbtlLoadingOverlay extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ColoredBox(
-      // Espresso scrim rather than neutral black — keeps the warmth.
-      color: AppColors.espresso.withValues(alpha: 0.55),
+      color: AppColors.roastedBlack.withValues(alpha: 0.7),
       child: Center(
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 36, vertical: 30),
           decoration: BoxDecoration(
-            color: AppColors.cream,
+            color: AppColors.creamyWhite,
             borderRadius: BorderRadius.circular(AppDimensions.radiusXl),
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Opaque square mark — clipped to a rounded tile, not padded.
-              ClipRRect(
-                borderRadius: BorderRadius.circular(14),
-                child: Image.asset(
-                  'assets/images/app_logo.jpg',
-                  width: 52,
-                  height: 52,
-                  fit: BoxFit.cover,
-                ),
-              ),
+              const BrandLogo(size: 56),
               const SizedBox(height: 22),
               const SizedBox(
                 width: 26,
                 height: 26,
                 child: CircularProgressIndicator(
-                  color: AppColors.amber,
+                  color: AppColors.roastedBlack,
                   strokeWidth: 2.5,
                 ),
               ),

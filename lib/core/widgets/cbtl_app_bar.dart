@@ -3,7 +3,8 @@ import 'package:flutter/services.dart';
 import '../constants/app_colors.dart';
 import '../constants/app_text_styles.dart';
 
-/// Branded AppBar — espresso surface, serif title, flat.
+/// Branded AppBar — sits on the cream page, title in Herb Display capitals.
+/// A dark [backgroundColor] flips the title and icons to Creamy White.
 class CbtlAppBar extends StatelessWidget implements PreferredSizeWidget {
   const CbtlAppBar({
     super.key,
@@ -12,7 +13,7 @@ class CbtlAppBar extends StatelessWidget implements PreferredSizeWidget {
     this.actions,
     this.leading,
     this.centerTitle = false,
-    this.backgroundColor = AppColors.espresso,
+    this.backgroundColor = AppColors.creamyWhite,
     this.bottom,
   });
 
@@ -24,19 +25,37 @@ class CbtlAppBar extends StatelessWidget implements PreferredSizeWidget {
   final Color backgroundColor;
   final PreferredSizeWidget? bottom;
 
+  double get _toolbarHeight => subtitle != null ? 78 : 64;
+
   @override
   Size get preferredSize =>
-      Size.fromHeight(kToolbarHeight + (bottom?.preferredSize.height ?? 0.0));
+      Size.fromHeight(_toolbarHeight + (bottom?.preferredSize.height ?? 0.0));
 
   @override
   Widget build(BuildContext context) {
+    final onDark = backgroundColor.computeLuminance() < 0.3;
+    final ink = onDark ? AppColors.creamyWhite : AppColors.roastedBlack;
+    // One line at the approved size; a long title shrinks rather than clips.
+    final titleText = FittedBox(
+      fit: BoxFit.scaleDown,
+      alignment:
+          centerTitle ? Alignment.center : AlignmentDirectional.centerStart,
+      child: Text(
+        AppTextStyles.caps(title),
+        style: AppTextStyles.appBarTitle.copyWith(color: ink),
+        maxLines: 1,
+      ),
+    );
+
     return AppBar(
       backgroundColor: backgroundColor,
-      foregroundColor: AppColors.cream,
+      foregroundColor: ink,
       surfaceTintColor: Colors.transparent,
       elevation: 0,
       scrolledUnderElevation: 0,
-      systemOverlayStyle: SystemUiOverlayStyle.light,
+      toolbarHeight: _toolbarHeight,
+      systemOverlayStyle:
+          onDark ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark,
       leading: leading,
       centerTitle: centerTitle,
       bottom: bottom,
@@ -47,12 +66,18 @@ class CbtlAppBar extends StatelessWidget implements PreferredSizeWidget {
                   : CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text(title, style: AppTextStyles.appBarTitle),
-                const SizedBox(height: 1),
-                Text(subtitle!, style: AppTextStyles.appBarSubtitle),
+                titleText,
+                const SizedBox(height: 4),
+                Text(
+                  subtitle!,
+                  style: AppTextStyles.appBarSubtitle.copyWith(
+                      color: onDark
+                          ? AppColors.californiaCream
+                          : AppColors.ink2),
+                ),
               ],
             )
-          : Text(title, style: AppTextStyles.appBarTitle),
+          : titleText,
       actions: actions,
     );
   }

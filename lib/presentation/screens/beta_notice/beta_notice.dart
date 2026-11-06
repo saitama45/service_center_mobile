@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/constants/app_colors.dart';
+import '../../../core/constants/app_dimensions.dart';
 import '../../../core/constants/app_text_styles.dart';
 import '../../../core/widgets/cbtl_button.dart';
 import '../../../database/daos/settings_dao.dart';
@@ -161,12 +162,26 @@ class _BetaNoticeDialogState extends State<BetaNoticeDialog> {
     return PopScope(
       canPop: false,
       child: AlertDialog(
-        backgroundColor: AppColors.white,
-        title: const Row(
+        backgroundColor: AppColors.creamyWhite,
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Icon(Icons.lock_outline, color: AppColors.amber, size: 22),
-            SizedBox(width: 10),
-            Expanded(child: Text(BetaNotice.title, style: AppTextStyles.h2)),
+            // Lock on a California Cream tile: Roasted Black ink, never
+            // caramel, which reads at 1.8:1 on cream.
+            Container(
+              width: 46,
+              height: 46,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: AppColors.californiaCream,
+                borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
+              ),
+              child: const Icon(Icons.lock_outline,
+                  color: AppColors.roastedBlack, size: 22),
+            ),
+            const SizedBox(height: 14),
+            Text(AppTextStyles.caps(BetaNotice.title),
+                style: AppTextStyles.h2),
           ],
         ),
         content: SingleChildScrollView(
@@ -184,7 +199,8 @@ class _BetaNoticeDialogState extends State<BetaNoticeDialog> {
                     children: [
                       const Padding(
                         padding: EdgeInsets.only(top: 7, right: 10),
-                        child: Icon(Icons.circle, size: 6, color: AppColors.amber),
+                        child: Icon(Icons.circle,
+                            size: 6, color: AppColors.roastedBlack),
                       ),
                       Expanded(
                         child: Text(point, style: AppTextStyles.bodySmall),
@@ -193,13 +209,13 @@ class _BetaNoticeDialogState extends State<BetaNoticeDialog> {
                   ),
                 ),
               const SizedBox(height: 4),
+              // The theme's checkbox: Roasted Black when ticked.
               CheckboxListTile(
                 key: const Key('beta-notice-accept'),
                 value: _agreed,
                 onChanged: (v) => setState(() => _agreed = v ?? false),
                 controlAffinity: ListTileControlAffinity.leading,
                 contentPadding: EdgeInsets.zero,
-                activeColor: AppColors.amber,
                 title: Text(BetaNotice.acceptLabel,
                     style: AppTextStyles.bodyMedium
                         .copyWith(fontWeight: FontWeight.w600)),
@@ -211,8 +227,8 @@ class _BetaNoticeDialogState extends State<BetaNoticeDialog> {
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
             child: Text(BetaNotice.declineLabel,
-                style:
-                    AppTextStyles.button.copyWith(color: AppColors.mediumGray)),
+                style: AppTextStyles.button
+                    .copyWith(color: AppColors.roastedBlack)),
           ),
           CbtlButton(
             label: BetaNotice.continueLabel,

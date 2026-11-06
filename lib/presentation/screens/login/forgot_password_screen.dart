@@ -217,13 +217,14 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
           statusBarIconBrightness: Brightness.dark,
         ),
         child: Scaffold(
-          backgroundColor: AppColors.cream,
+          backgroundColor: AppColors.creamyWhite,
           appBar: AppBar(
-            backgroundColor: AppColors.cream,
-            foregroundColor: AppColors.espresso,
-            // The app theme paints app-bar icons cream (for espresso bars),
-            // which would make the back arrow invisible on this cream one.
-            iconTheme: const IconThemeData(color: AppColors.espresso),
+            // The bar is the page itself: creamy white, an ink back arrow.
+            backgroundColor: AppColors.creamyWhite,
+            foregroundColor: AppColors.roastedBlack,
+            iconTheme: const IconThemeData(color: AppColors.roastedBlack),
+            surfaceTintColor: Colors.transparent,
+            scrolledUnderElevation: 0,
             elevation: 0,
             leading: IconButton(
               icon: const Icon(Icons.arrow_back),
@@ -262,12 +263,12 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Forgot Password', style: AppTextStyles.h1),
-          const SizedBox(height: 4),
+          Text(AppTextStyles.caps('Forgot Password'), style: AppTextStyles.h1),
+          const SizedBox(height: AppDimensions.sm),
           Text(
             "Enter the email you signed up with and we'll send you a "
             'code to reset your password.',
-            style: AppTextStyles.bodySmall,
+            style: _lead,
           ),
           const SizedBox(height: AppDimensions.lg),
           CbtlTextField(
@@ -308,18 +309,20 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Check Your Email', style: AppTextStyles.h1),
-          const SizedBox(height: 4),
+          Text(AppTextStyles.caps('Check Your Email'), style: AppTextStyles.h1),
+          const SizedBox(height: AppDimensions.sm),
           Text.rich(
             TextSpan(
-              style: AppTextStyles.bodySmall,
+              style: _lead,
               children: [
                 const TextSpan(
                     text: 'If an account uses '),
                 TextSpan(
                   text: _email,
-                  style: AppTextStyles.bodySmall
-                      .copyWith(fontWeight: FontWeight.w700),
+                  style: _lead.copyWith(
+                    color: AppColors.roastedBlack,
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
                 const TextSpan(
                     text: ', we sent it a 6-digit code. It expires in '
@@ -361,14 +364,18 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
               onPressed: (_isLoading || _resendIn > 0)
                   ? null
                   : () => _sendCode(isResend: true),
+              // Counting down: a quiet ink3 caption. Ready: an ink link.
               child: Text(
                 _resendIn > 0
                     ? 'Resend code in ${_resendIn}s'
                     : 'Resend code',
-                style: AppTextStyles.bodySmall.copyWith(
-                  color: _resendIn > 0 ? AppColors.muted : AppColors.amber,
-                  fontWeight: FontWeight.w700,
-                ),
+                style: _resendIn > 0
+                    ? AppTextStyles.chip.copyWith(color: AppColors.ink3)
+                    : AppTextStyles.button.copyWith(
+                        color: AppColors.roastedBlack,
+                        decoration: TextDecoration.underline,
+                        decorationColor: AppColors.roastedBlack,
+                      ),
               ),
             ),
           ),
@@ -383,12 +390,13 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Set a New Password', style: AppTextStyles.h1),
-          const SizedBox(height: 4),
+          Text(AppTextStyles.caps('Set a New Password'),
+              style: AppTextStyles.h1),
+          const SizedBox(height: AppDimensions.sm),
           Text(
             'Choose a password you haven\'t used here before. You\'ll be '
             'signed out on every device once it\'s changed.',
-            style: AppTextStyles.bodySmall,
+            style: _lead,
           ),
           const SizedBox(height: AppDimensions.lg),
           CbtlTextField(
@@ -441,14 +449,19 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
         if (_errorMessage != null) ...[
           _Banner(
             message: _errorMessage!,
-            color: AppColors.danger,
+            background: AppColors.dangerSurface,
+            border: AppColors.dangerBorder,
+            foreground: AppColors.danger,
             icon: Icons.error_outline,
           ),
           const SizedBox(height: AppDimensions.md),
         ] else if (_infoMessage != null) ...[
+          // Confirmations stay in the base colours: no green.
           _Banner(
             message: _infoMessage!,
-            color: AppColors.success,
+            background: AppColors.successSurface,
+            border: AppColors.line,
+            foreground: AppColors.success,
             icon: Icons.mark_email_read_outlined,
           ),
           const SizedBox(height: AppDimensions.md),
@@ -456,35 +469,46 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
       ];
 }
 
+/// The lead paragraph under each step's headline.
+final TextStyle _lead = AppTextStyles.bodyLarge.copyWith(color: AppColors.ink2);
+
 class _Banner extends StatelessWidget {
   const _Banner({
     required this.message,
-    required this.color,
+    required this.background,
+    required this.border,
+    required this.foreground,
     required this.icon,
   });
 
   final String message;
-  final Color color;
+  final Color background;
+  final Color border;
+  final Color foreground;
   final IconData icon;
 
   @override
   Widget build(BuildContext context) {
     return Container(
+      width: double.infinity,
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.08),
+        color: background,
         borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
-        border: Border.all(color: color.withValues(alpha: 0.4), width: 1.5),
+        border: Border.all(color: border),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, color: color, size: 19),
+          Padding(
+            padding: const EdgeInsets.only(top: 1),
+            child: Icon(icon, color: foreground, size: 20),
+          ),
           const SizedBox(width: 10),
           Expanded(
             child: Text(
               message,
-              style: AppTextStyles.bodySmall.copyWith(color: color),
+              style: AppTextStyles.bodyMedium.copyWith(color: foreground),
             ),
           ),
         ],
@@ -493,7 +517,8 @@ class _Banner extends StatelessWidget {
   }
 }
 
-/// Three short bars — email, code, new password.
+/// Three short bars — email, code, new password. Done and current steps are
+/// Roasted Black; the steps still ahead are a hairline.
 class _StepIndicator extends StatelessWidget {
   const _StepIndicator({required this.current});
 
@@ -510,7 +535,7 @@ class _StepIndicator extends StatelessWidget {
               duration: const Duration(milliseconds: 200),
               height: 4,
               decoration: BoxDecoration(
-                color: i <= current ? AppColors.amber : AppColors.latte,
+                color: i <= current ? AppColors.roastedBlack : AppColors.line,
                 borderRadius: BorderRadius.circular(2),
               ),
             ),

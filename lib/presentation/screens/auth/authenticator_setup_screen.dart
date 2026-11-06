@@ -53,12 +53,13 @@ class _AuthenticatorSetupScreenState
     final enrolledAsync = ref.watch(authenticatorEnrolledProvider(user.id));
 
     return Scaffold(
-      backgroundColor: AppColors.cream,
+      backgroundColor: AppColors.creamyWhite,
       // Members see no hamburger: the drawer's only unique content is the
       // admin module links.
       appBar: const CbtlAppBar(title: 'Authenticator App'),
       body: enrolledAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator(color: AppColors.amber)),
+        loading: () => const Center(
+            child: CircularProgressIndicator(color: AppColors.roastedBlack)),
         error: (e, _) => Center(child: Text('Could not check enrolment: $e')),
         data: (enrolled) {
           if (enrolled && _candidateSecret == null) {
@@ -146,7 +147,8 @@ class _EnrollView extends ConsumerWidget {
     final secret = candidateSecret;
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(AppDimensions.md),
+      padding: const EdgeInsets.fromLTRB(AppDimensions.gutter,
+          AppDimensions.md, AppDimensions.gutter, AppDimensions.lg),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -154,14 +156,15 @@ class _EnrollView extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Why set this up?', style: AppTextStyles.h3),
+                const Text('Why set this up?', style: AppTextStyles.h3),
                 const SizedBox(height: 6),
-                const Text(
+                Text(
                   'When your phone has no signal, we can\'t email you a code. '
                   'An authenticator app (Google Authenticator, Authy, Microsoft '
                   'Authenticator) generates codes on-device, so you can still '
                   'verify a sign-in offline.',
-                  style: AppTextStyles.bodySmall,
+                  style:
+                      AppTextStyles.bodyMedium.copyWith(color: AppColors.ink2),
                 ),
               ],
             ),
@@ -181,12 +184,16 @@ class _EnrollView extends ConsumerWidget {
                   const Text('1. Scan this with your authenticator app',
                       style: AppTextStyles.h3, textAlign: TextAlign.center),
                   const SizedBox(height: AppDimensions.md),
+                  // QR plate: pure white (the one place it is used, since
+                  // scanners want the most contrast), Roasted Black modules
+                  // and outline.
                   Container(
-                    padding: const EdgeInsets.all(AppDimensions.md),
+                    padding: const EdgeInsets.all(AppDimensions.md - 2),
                     decoration: BoxDecoration(
-                      color: AppColors.white,
-                      borderRadius: BorderRadius.circular(AppDimensions.radiusXl),
-                      border: Border.all(color: AppColors.latte, width: 2),
+                      color: AppColors.pureWhite,
+                      borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
+                      border:
+                          Border.all(color: AppColors.roastedBlack, width: 1.5),
                     ),
                     child: QrImageView(
                       data: ref.read(authenticatorActionsProvider).provisioningUri(
@@ -195,17 +202,19 @@ class _EnrollView extends ConsumerWidget {
                           ),
                       version: QrVersions.auto,
                       size: 188,
-                      backgroundColor: AppColors.white,
+                      backgroundColor: AppColors.pureWhite,
                       eyeStyle: const QrEyeStyle(
-                          eyeShape: QrEyeShape.square, color: AppColors.espresso),
+                          eyeShape: QrEyeShape.square,
+                          color: AppColors.roastedBlack),
                       dataModuleStyle: const QrDataModuleStyle(
                           dataModuleShape: QrDataModuleShape.square,
-                          color: AppColors.espresso),
+                          color: AppColors.roastedBlack),
                     ),
                   ),
                   const SizedBox(height: AppDimensions.md),
                   Text("Can't scan? Enter this key manually:",
-                      style: AppTextStyles.caption),
+                      style: AppTextStyles.caption
+                          .copyWith(color: AppColors.ink2)),
                   const SizedBox(height: 6),
                   SelectableText(
                     TotpUtil.formatSecretForDisplay(secret),
@@ -229,9 +238,12 @@ class _EnrollView extends ConsumerWidget {
                     maxLength: 6,
                     textAlign: TextAlign.center,
                     style: AppTextStyles.monoLarge,
-                    decoration: const InputDecoration(
+                    cursorColor: AppColors.roastedBlack,
+                    decoration: InputDecoration(
                       counterText: '',
                       hintText: '000000',
+                      hintStyle: AppTextStyles.monoLarge
+                          .copyWith(color: AppColors.ink3),
                     ),
                     onChanged: (_) {},
                   ),
@@ -267,27 +279,33 @@ class _EnrolledView extends ConsumerWidget {
     final enrolledAt = ref.watch(authenticatorEnrolledAtProvider(userId)).valueOrNull;
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(AppDimensions.md),
+      padding: const EdgeInsets.fromLTRB(AppDimensions.gutter,
+          AppDimensions.md, AppDimensions.gutter, AppDimensions.lg),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           CbtlCard(
             child: Column(
               children: [
-                const Icon(Icons.verified_user, size: 40, color: AppColors.success),
+                // Connected reads in the base colours: Roasted Black, no green.
+                const Icon(Icons.verified_user_outlined,
+                    size: 40, color: AppColors.roastedBlack),
                 const SizedBox(height: AppDimensions.sm),
                 const Text('Authenticator app connected',
                     style: AppTextStyles.h3, textAlign: TextAlign.center),
                 if (enrolledAt != null) ...[
                   const SizedBox(height: 4),
                   Text('Set up ${DateFormatUtil.formatDateTime(enrolledAt)}',
-                      style: AppTextStyles.caption, textAlign: TextAlign.center),
+                      style: AppTextStyles.caption
+                          .copyWith(color: AppColors.ink2),
+                      textAlign: TextAlign.center),
                 ],
                 const SizedBox(height: 8),
-                const Text(
+                Text(
                   'When you sign in without a connection, we\'ll ask for the '
                   'code from your authenticator app instead of emailing one.',
-                  style: AppTextStyles.bodySmall,
+                  style:
+                      AppTextStyles.bodyMedium.copyWith(color: AppColors.ink2),
                   textAlign: TextAlign.center,
                 ),
               ],

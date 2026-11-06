@@ -72,3 +72,8 @@ windows/flutter/ephemeral/
 
 # Linux-specific
 linux/flutter/ephemeral/
+
+# Licensed brand fonts (CBTL Herb Display, Booster Sans). This repo is public, so
+# only assets/fonts/brand-fonts.zip.gpg (AES-256) is committed; the Play release
+# workflow decrypts it with the BRAND_FONTS_PASSPHRASE secret.
+assets/fonts/brand/

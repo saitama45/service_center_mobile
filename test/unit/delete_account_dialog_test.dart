@@ -10,6 +10,11 @@ import 'package:cbtl/presentation/screens/profile/delete_account_dialog.dart';
 /// Regression this guards: the Profile row used to open the web deletion
 /// request immediately, with no confirmation of any kind in between.
 void main() {
+  // Dialog titles are set in CBTL Herb Display, which has no lowercase, so
+  // the dialog renders them in capitals.
+  final confirmTitle = 'Delete Account?'.toUpperCase();
+  final passwordTitle = 'Confirm Deletion'.toUpperCase();
+
   Future<void> open(WidgetTester tester) async {
     await tester.pumpWidget(
       ProviderScope(
@@ -37,7 +42,7 @@ void main() {
       (tester) async {
     await open(tester);
 
-    expect(find.text('Delete Account?'), findsOneWidget);
+    expect(find.text(confirmTitle), findsOneWidget);
     expect(find.textContaining('unredeemed stamps and rewards are forfeited'),
         findsOneWidget);
     expect(find.text('Keep My Account'), findsOneWidget);
@@ -54,7 +59,7 @@ void main() {
     await tester.tap(find.text('Keep My Account'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Delete Account?'), findsNothing);
+    expect(find.text(confirmTitle), findsNothing);
     expect(find.byType(AlertDialog), findsNothing);
   });
 
@@ -64,7 +69,7 @@ void main() {
     await tester.tap(find.text('Continue'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Confirm Deletion'), findsOneWidget);
+    expect(find.text(passwordTitle), findsOneWidget);
     expect(find.byType(TextField), findsOneWidget);
     expect(find.text('Delete My Account'), findsOneWidget);
   });
@@ -79,7 +84,7 @@ void main() {
 
     // Still on the dialog, with an error — no request was made.
     expect(find.text('Enter your password to confirm.'), findsOneWidget);
-    expect(find.text('Confirm Deletion'), findsOneWidget);
+    expect(find.text(passwordTitle), findsOneWidget);
   });
 
   testWidgets('"Back" returns to the explanation and clears what was typed',
@@ -92,7 +97,7 @@ void main() {
     await tester.tap(find.text('Back'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Delete Account?'), findsOneWidget);
+    expect(find.text(confirmTitle), findsOneWidget);
 
     await tester.tap(find.text('Continue'));
     await tester.pumpAndSettle();

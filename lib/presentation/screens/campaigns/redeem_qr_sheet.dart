@@ -162,8 +162,9 @@ class _RedeemQrSheetState extends ConsumerState<_RedeemQrSheet> {
 
     return Container(
       decoration: const BoxDecoration(
-        color: AppColors.cream,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+        color: AppColors.creamyWhite,
+        borderRadius: BorderRadius.vertical(
+            top: Radius.circular(AppDimensions.radiusSheet)),
       ),
       padding: EdgeInsets.only(
         left: AppDimensions.lg,
@@ -179,20 +180,22 @@ class _RedeemQrSheetState extends ConsumerState<_RedeemQrSheet> {
               width: 44,
               height: 4,
               decoration: BoxDecoration(
-                color: AppColors.latte,
+                color: AppColors.line,
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
             const SizedBox(height: AppDimensions.lg),
+            // The reward is the headline: Herb Display, which has capitals
+            // only.
             Text(
-              widget.campaignName,
-              style: AppTextStyles.h3,
+              AppTextStyles.caps(widget.campaignName),
+              style: AppTextStyles.h2.copyWith(fontSize: 30, height: 0.93),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: AppDimensions.sm),
             Text(
               'Show this to the cashier to claim it.',
-              style: AppTextStyles.bodySmall,
+              style: AppTextStyles.bodyMedium.copyWith(color: AppColors.ink2),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: AppDimensions.lg),
@@ -217,46 +220,48 @@ class _RedeemCode extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
+        // Pure white plate, Roasted Black modules: the one place the app
+        // leaves Creamy White, because scanners want the most contrast.
         Container(
           padding: const EdgeInsets.all(AppDimensions.md),
           decoration: BoxDecoration(
-            color: AppColors.white,
-            borderRadius: BorderRadius.circular(AppDimensions.radiusXl),
-            border: Border.all(color: AppColors.amber, width: 2),
-            boxShadow: AppColors.cardShadow,
+            color: AppColors.pureWhite,
+            borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
+            border: Border.all(color: AppColors.roastedBlack, width: 1.5),
           ),
           child: QrImageView(
             data: token,
             version: QrVersions.auto,
             size: 208,
-            backgroundColor: AppColors.white,
+            backgroundColor: AppColors.pureWhite,
             eyeStyle: const QrEyeStyle(
               eyeShape: QrEyeShape.square,
-              color: AppColors.espresso,
+              color: AppColors.roastedBlack,
             ),
             dataModuleStyle: const QrDataModuleStyle(
               dataModuleShape: QrDataModuleShape.square,
-              color: AppColors.espresso,
+              color: AppColors.roastedBlack,
             ),
           ),
         ),
         const SizedBox(height: AppDimensions.md),
-        Row(
+        const Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const SizedBox(
-              width: 13,
-              height: 13,
+            SizedBox(
+              width: 14,
+              height: 14,
               child: CircularProgressIndicator(
                 strokeWidth: 2,
-                valueColor: AlwaysStoppedAnimation(AppColors.amber),
+                color: AppColors.roastedBlack,
+                backgroundColor: AppColors.line,
               ),
             ),
-            const SizedBox(width: 10),
+            SizedBox(width: 10),
             Flexible(
               child: Text(
                 'Waiting for the cashier to scan…',
-                style: AppTextStyles.caption,
+                style: AppTextStyles.bodySmall,
               ),
             ),
           ],
@@ -276,13 +281,13 @@ class _RedeemCode extends StatelessWidget {
         const SizedBox(height: AppDimensions.md),
 
         Container(
+          width: double.infinity,
           padding: const EdgeInsets.all(AppDimensions.md),
           decoration: BoxDecoration(
-            color: AppColors.latte.withValues(alpha: 0.35),
-            borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
-            border: Border.all(color: AppColors.latte),
+            color: AppColors.californiaCream,
+            borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
           ),
-          child: Text(
+          child: const Text(
             'Your card stays full until staff scan this code and hand the '
             'reward over — nothing is used up by opening this screen. It '
             'updates here by itself once they do.',
@@ -304,23 +309,23 @@ class _NoCodeYet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
+      width: double.infinity,
       padding: const EdgeInsets.all(AppDimensions.lg),
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: AppColors.californiaCream,
         borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
-        border: Border.all(color: AppColors.latte),
       ),
       child: Column(
         children: [
-          const Icon(Icons.wifi_off_rounded, size: 34, color: AppColors.muted),
+          const Icon(Icons.wifi_off_rounded, size: 34, color: AppColors.ink3),
           const SizedBox(height: AppDimensions.md),
           Text(
             'Your reward code isn\'t ready yet',
-            style: AppTextStyles.bodyMedium,
+            style: AppTextStyles.h3.copyWith(fontSize: 16),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: AppDimensions.sm),
-          Text(
+          const Text(
             'Connect to the internet once and it\'ll be saved to your phone — '
             'after that it works offline. Staff can still redeem your card at '
             'the counter in the meantime.',

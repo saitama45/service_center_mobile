@@ -4,19 +4,19 @@ import '../constants/app_dimensions.dart';
 import '../constants/app_text_styles.dart';
 
 enum CbtlButtonVariant {
-  /// Espresso fill — the single primary action on a screen.
+  /// Roasted Black block — the single primary action on a screen.
   primary,
 
-  /// White fill with a latte hairline — everything alongside the primary.
+  /// Cream with an ink outline — everything alongside the primary.
   secondary,
 
-  /// Amber fill — reserved for reward / accent moments.
+  /// Golden Caramel — reserved for reward / accent moments.
   accent,
 
   /// Tinted red — destructive actions.
   danger,
 
-  /// No fill, amber label — inline / tertiary actions.
+  /// No fill, underlined ink — inline / tertiary actions.
   ghost,
 }
 
@@ -41,6 +41,12 @@ class CbtlButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = _variantColors(variant);
+    final ghost = variant == CbtlButtonVariant.ghost;
+    // The label sets its own colour, so a disabled button must say so here or
+    // it keeps the enabled colour (cream on cream for primary). A loading
+    // button is disabled too, so its spinner needs the same.
+    final disabled = onPressed == null || isLoading;
+    final fg = disabled ? AppColors.ink3 : c.foreground;
 
     final Widget child = isLoading
         ? SizedBox(
@@ -48,21 +54,25 @@ class CbtlButton extends StatelessWidget {
             height: 20,
             child: CircularProgressIndicator(
               strokeWidth: 2.2,
-              color: c.foreground,
+              color: fg,
             ),
           )
         : Row(
             mainAxisSize: MainAxisSize.min,
             children: [
               if (icon != null) ...[
-                Icon(icon, size: 18, color: c.foreground),
+                Icon(icon, size: 18, color: fg),
                 const SizedBox(width: 8),
               ],
               Flexible(
                 child: Text(
                   label,
                   overflow: TextOverflow.ellipsis,
-                  style: AppTextStyles.button.copyWith(color: c.foreground),
+                  style: AppTextStyles.button.copyWith(
+                    color: fg,
+                    decoration: ghost ? TextDecoration.underline : null,
+                    decorationColor: fg,
+                  ),
                 ),
               ),
             ],
@@ -77,13 +87,13 @@ class CbtlButton extends StatelessWidget {
           foregroundColor: c.foreground,
           disabledBackgroundColor: c.background == Colors.transparent
               ? Colors.transparent
-              : AppColors.latte,
-          disabledForegroundColor: AppColors.muted,
+              : AppColors.californiaCream,
+          disabledForegroundColor: AppColors.ink3,
           elevation: 0,
           shadowColor: Colors.transparent,
           side: c.border == null
               ? BorderSide.none
-              : BorderSide(color: c.border!, width: 1.5),
+              : BorderSide(color: c.border!),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
           ),
@@ -100,21 +110,22 @@ class CbtlButton extends StatelessWidget {
 
   _ButtonColors _variantColors(CbtlButtonVariant v) => switch (v) {
         CbtlButtonVariant.primary =>
-          const _ButtonColors(AppColors.espresso, AppColors.cream),
+          const _ButtonColors(AppColors.roastedBlack, AppColors.creamyWhite),
         CbtlButtonVariant.secondary => const _ButtonColors(
-            AppColors.white,
-            AppColors.espresso,
-            border: AppColors.latte,
+            AppColors.creamyWhite,
+            AppColors.roastedBlack,
+            border: AppColors.fieldLine,
           ),
+        // Caramel carries ink, not white: white on caramel reads at 1.8:1.
         CbtlButtonVariant.accent =>
-          const _ButtonColors(AppColors.amber, AppColors.white),
+          const _ButtonColors(AppColors.goldenCaramel, AppColors.roastedBlack),
         CbtlButtonVariant.danger => const _ButtonColors(
             AppColors.dangerSurface,
             AppColors.danger,
             border: AppColors.dangerBorder,
           ),
         CbtlButtonVariant.ghost =>
-          const _ButtonColors(Colors.transparent, AppColors.amber),
+          const _ButtonColors(Colors.transparent, AppColors.roastedBlack),
       };
 }
 

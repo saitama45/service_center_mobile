@@ -1,16 +1,23 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import '../../../../core/brand/brand_art.dart';
+import '../../../../core/brand/brand_widgets.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_text_styles.dart';
 
 /// A single slot on the stamp card, drawn rather than imaged so it stays crisp
 /// at any size and can animate when newly filled.
 ///
-/// Filled slots render the coffee-cup mark from the reference design; empty
-/// slots are a latte ring with a faint centre dot. A [holiday] slot is drawn
-/// in gold with a star instead, filled or empty, so a member can tell the
-/// Holiday slots apart from the regular ones at a glance.
+/// Every slot is a coin cut by hand ("human and imperfect", brand book p17).
+/// A filled regular slot carries the brand's coffee bean and tea leaf (p37),
+/// always upright because the book asks that the motif is never rotated. An
+/// empty slot is a faint ring with a centre dot. A [holiday] slot is Golden
+/// Caramel with a star, filled or empty, so a member can tell the Holiday
+/// slots apart from the regular ones at a glance.
+///
+/// Drawn for the Roasted Black stamp card; [seed] varies the cut of the edge
+/// from slot to slot.
 class CoffeeStamp extends StatelessWidget {
   const CoffeeStamp({
     super.key,
@@ -18,161 +25,122 @@ class CoffeeStamp extends StatelessWidget {
     this.size = 32,
     this.highlight = false,
     this.holiday = false,
+    this.seed = 0,
   });
 
   final bool filled;
   final double size;
 
-  /// Draws the amber glow used for the stamp that was just earned.
+  /// The stamp that was just earned: it is pressed onto the card.
   final bool highlight;
 
   /// One of the campaign's Holiday slots rather than a regular one.
   final bool holiday;
 
+  final int seed;
+
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
+    final coin = SizedBox(
       width: size,
       height: size,
       child: CustomPaint(
-        painter: _StampPainter(
-            filled: filled, highlight: highlight, holiday: holiday),
+        painter: _StampPainter(filled: filled, holiday: holiday, seed: seed),
       ),
     );
+    // Lands a beat after the card does, so the member sees it arrive.
+    return highlight
+        ? PressIn(delay: const Duration(milliseconds: 520), child: coin)
+        : coin;
   }
 }
 
 class _StampPainter extends CustomPainter {
   _StampPainter({
     required this.filled,
-    required this.highlight,
     required this.holiday,
+    required this.seed,
   });
 
   final bool filled;
-  final bool highlight;
   final bool holiday;
+  final int seed;
 
   @override
   void paint(Canvas canvas, Size size) {
     final c = Offset(size.width / 2, size.height / 2);
-    final r = size.width / 2 - 1;
     final s = size.width / 34; // reference geometry is drawn at 34pt
+    final cut = handCutCircle(c, size.width / 2 - 1.5, seed);
+    final ring = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = math.max(1.4, 1.5 * s);
 
     if (holiday) {
-      _paintHoliday(canvas, c, r, s);
+      final star = _star(c, 8.6 * s, 3.7 * s);
+      if (filled) {
+        canvas.drawPath(cut, Paint()..color = AppColors.goldenCaramel);
+        canvas.drawPath(star, Paint()..color = AppColors.roastedBlack);
+      } else {
+        canvas.drawPath(cut, ring..color = AppColors.goldenCaramel);
+        canvas.drawPath(
+          star,
+          Paint()
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = 1.1 * s
+            ..strokeJoin = StrokeJoin.round
+            ..color = AppColors.goldenCaramel.withValues(alpha: 0.8),
+        );
+      }
       return;
     }
 
     if (!filled) {
-      canvas.drawCircle(
-        c,
-        r,
-        Paint()
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = 1.5 * s
-          ..color = AppColors.latte.withValues(alpha: 0.55),
-      );
-      canvas.drawCircle(
-        c,
-        3.5 * s,
-        Paint()..color = AppColors.latte.withValues(alpha: 0.35),
-      );
+      canvas.drawPath(
+          cut, ring..color = AppColors.creamyWhite.withValues(alpha: 0.38));
+      canvas.drawCircle(c, 2.6 * s,
+          Paint()..color = AppColors.creamyWhite.withValues(alpha: 0.3));
       return;
     }
 
-    _paintGlow(canvas, c, r, s);
-
-    canvas.drawCircle(c, r, Paint()..color = AppColors.amber);
-
-    // Cup — stacked ellipses give the shallow "crema on top" read.
-    final cx = c.dx;
-    final top = c.dy - size.height / 2;
-    void ellipse(double dy, double rx, double ry, Color color) {
-      canvas.drawOval(
-        Rect.fromCenter(
-          center: Offset(cx, top + dy * s),
-          width: rx * 2 * s,
-          height: ry * 2 * s,
-        ),
-        Paint()..color = color,
-      );
+    canvas.drawPath(cut, Paint()..color = AppColors.creamyWhite);
+    if (size.width < 24) {
+      _paintBean(canvas, c, s);
+      return;
     }
-
-    ellipse(21, 7, 4.5, AppColors.brown);
-    ellipse(20.5, 7, 4.5, AppColors.caramel);
-    ellipse(20, 6.5, 4, AppColors.brown);
-    ellipse(18, 3.5, 2.2, AppColors.darkBrown);
-
-    // Handle
-    final handle = Path()
-      ..moveTo(cx + 6.5 * s, top + 20 * s)
-      ..quadraticBezierTo(cx + 9 * s, top + 17 * s, cx + 7.5 * s, top + 14.5 * s)
-      ..quadraticBezierTo(cx + 6 * s, top + 12 * s, cx + 4 * s, top + 13.5 * s);
+    // The bean and leaf, 80% of the coin, centred and upright.
+    const m = BrandArt.stampMotif;
+    final k = size.width * 0.8 / m.width;
+    canvas.save();
+    canvas.translate(c.dx - m.width * k / 2, c.dy - m.height * k / 2);
+    canvas.scale(k);
     canvas.drawPath(
-      handle,
+        parseBrandPath(m.path), Paint()..color = AppColors.roastedBlack);
+    canvas.restore();
+  }
+
+  /// Too small for the drawn motif (the legend): a plain bean with its seam.
+  void _paintBean(Canvas canvas, Offset c, double s) {
+    canvas.save();
+    canvas.translate(c.dx, c.dy);
+    canvas.rotate(-24 * math.pi / 180);
+    canvas.drawOval(
+      Rect.fromCenter(center: Offset.zero, width: 21 * s, height: 14.4 * s),
+      Paint()..color = AppColors.roastedBlack,
+    );
+    canvas.restore();
+    final seam = Path()
+      ..moveTo(c.dx - 9.4 * s, c.dy + 3.8 * s)
+      ..cubicTo(c.dx - 4 * s, c.dy + 0.2 * s, c.dx - 1.8 * s, c.dy + 3.8 * s,
+          c.dx + 1.6 * s, c.dy + 0.6 * s)
+      ..cubicTo(c.dx + 4.2 * s, c.dy - 1.9 * s, c.dx + 6 * s, c.dy - 2 * s,
+          c.dx + 9.4 * s, c.dy - 3.8 * s);
+    canvas.drawPath(
+      seam,
       Paint()
         ..style = PaintingStyle.stroke
         ..strokeWidth = 1.5 * s
         ..strokeCap = StrokeCap.round
-        ..color = AppColors.latte,
-    );
-  }
-
-  /// Gold, with a star in place of the cup. Empty is a gold ring around a
-  /// star outline — still clearly gold, so an unfilled Holiday slot never
-  /// reads as an ordinary empty slot.
-  void _paintHoliday(Canvas canvas, Offset c, double r, double s) {
-    final star = _star(c, 8.5 * s, 3.6 * s);
-
-    if (!filled) {
-      canvas.drawCircle(
-        c,
-        r,
-        Paint()
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = 1.5 * s
-          ..color = AppColors.gold.withValues(alpha: 0.8),
-      );
-      canvas.drawPath(
-        star,
-        Paint()
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = 1.2 * s
-          ..strokeJoin = StrokeJoin.round
-          ..color = AppColors.gold.withValues(alpha: 0.6),
-      );
-      return;
-    }
-
-    _paintGlow(canvas, c, r, s);
-
-    canvas.drawCircle(c, r, Paint()..color = AppColors.gold);
-    // A thin inner ring gives it the pressed-seal look of a festive stamp.
-    canvas.drawCircle(
-      c,
-      r - 2.5 * s,
-      Paint()
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 1 * s
-        ..color = AppColors.darkBrown.withValues(alpha: 0.3),
-    );
-    canvas.drawPath(star, Paint()..color = AppColors.darkBrown);
-
-    // Two sparkles off the star's shoulder.
-    final sparkle = Paint()..color = AppColors.cream.withValues(alpha: 0.9);
-    canvas.drawCircle(c + Offset(8.5 * s, -8 * s), 1.3 * s, sparkle);
-    canvas.drawCircle(c + Offset(-9 * s, 6.5 * s), 0.9 * s, sparkle);
-  }
-
-  void _paintGlow(Canvas canvas, Offset c, double r, double s) {
-    if (!highlight) return;
-    canvas.drawCircle(
-      c,
-      r + 3 * s,
-      Paint()
-        ..color = AppColors.gold.withValues(alpha: 0.35)
-        ..maskFilter = MaskFilter.blur(BlurStyle.normal, 4 * s),
+        ..color = AppColors.creamyWhite,
     );
   }
 
@@ -195,9 +163,7 @@ class _StampPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(_StampPainter old) =>
-      old.filled != filled ||
-      old.highlight != highlight ||
-      old.holiday != holiday;
+      old.filled != filled || old.holiday != holiday || old.seed != seed;
 }
 
 /// The grid of stamp slots. Lays out 5 per row like the reference card.
@@ -211,7 +177,7 @@ class StampGrid extends StatelessWidget {
     super.key,
     required this.collected,
     required this.total,
-    this.stampSize = 32,
+    this.stampSize = 50,
     this.highlightLast = false,
     this.holidaySlots = 0,
     this.holidayCount = 0,
@@ -224,7 +190,7 @@ class StampGrid extends StatelessWidget {
   final int total;
   final double stampSize;
 
-  /// Adds the "just earned" glow to the most recent stamp.
+  /// Presses the most recent stamp onto the card as it appears.
   final bool highlightLast;
 
   final int holidaySlots;
@@ -249,14 +215,14 @@ class StampGrid extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, constraints) {
         const perRow = 5;
-        const gap = 8.0;
+        const minGap = 8.0;
         final width =
-            (constraints.maxWidth - gap * (perRow - 1)) / perRow;
+            (constraints.maxWidth - minGap * (perRow - 1)) / perRow;
         final size = width.clamp(0.0, stampSize);
 
         return Wrap(
-          spacing: gap,
-          runSpacing: gap,
+          spacing: minGap,
+          runSpacing: 12,
           children: List.generate(slots, (i) {
             final isHoliday = i < holiday;
             final filled =
@@ -268,6 +234,7 @@ class StampGrid extends StatelessWidget {
                   filled: filled,
                   holiday: isHoliday,
                   size: size,
+                  seed: i,
                   highlight: highlightLast && i == lastFilled,
                 ),
               ),
@@ -279,7 +246,7 @@ class StampGrid extends StatelessWidget {
   }
 }
 
-/// "★ 4 Holiday · ☕ 16 Regular" under a card that has Holiday slots, with
+/// "★ 4 Holiday · ● 16 Regular" under a card that has Holiday slots, with
 /// the two slot marks themselves as the key.
 class StampSlotLegend extends StatelessWidget {
   const StampSlotLegend({
@@ -292,23 +259,23 @@ class StampSlotLegend extends StatelessWidget {
   final int holidaySlots;
   final int regularSlots;
 
-  /// Text colour; defaults to the muted latte used on the dark hero card.
+  /// Text colour; defaults to California Cream for the dark stamp card.
   final Color? color;
 
   @override
   Widget build(BuildContext context) {
     final style = AppTextStyles.caption.copyWith(
-      color: color ?? AppColors.latte.withValues(alpha: 0.8),
+      color: color ?? AppColors.californiaCream,
     );
 
     return Row(
       children: [
-        const CoffeeStamp(filled: true, holiday: true, size: 13),
-        const SizedBox(width: 5),
+        const CoffeeStamp(filled: true, holiday: true, size: 16),
+        const SizedBox(width: 6),
         Text('$holidaySlots Holiday', style: style),
         Text('  ·  ', style: style),
-        const CoffeeStamp(filled: true, size: 13),
-        const SizedBox(width: 5),
+        const CoffeeStamp(filled: true, size: 16, seed: 3),
+        const SizedBox(width: 6),
         Text('$regularSlots Regular', style: style),
       ],
     );

@@ -7,7 +7,7 @@ import '../constants/app_text_styles.dart';
 /// The installed app version, e.g. "Version 1.0.1 (5)". Renders nothing until
 /// the platform answers, and nothing if it can't.
 class AppVersionText extends ConsumerWidget {
-  const AppVersionText({super.key, this.color = AppColors.muted});
+  const AppVersionText({super.key, this.color = AppColors.ink3});
 
   final Color color;
 

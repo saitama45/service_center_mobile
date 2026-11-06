@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../../core/brand/brand_widgets.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_dimensions.dart';
 import '../../../core/constants/app_text_styles.dart';
@@ -80,50 +81,47 @@ class _BiometricScreenState extends ConsumerState<BiometricScreen> {
         statusBarIconBrightness: Brightness.dark,
       ),
       child: Scaffold(
-        backgroundColor: AppColors.cream,
+        backgroundColor: AppColors.creamyWhite,
         body: SafeArea(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(
-                horizontal: AppDimensions.lg, vertical: AppDimensions.lg),
+            padding: const EdgeInsets.fromLTRB(AppDimensions.lg,
+                AppDimensions.xxl, AppDimensions.lg, AppDimensions.lg),
             child: Column(
               children: [
-                Text('Enable Biometric Login',
-                    style: AppTextStyles.displayMedium,
+                Text(AppTextStyles.caps('Enable Biometric Login'),
+                    style: AppTextStyles.h1,
                     textAlign: TextAlign.center),
-                const SizedBox(height: 8),
+                const SizedBox(height: AppDimensions.md),
                 Text(
                   'Use Face ID or your fingerprint for faster, more secure '
                   'access to your rewards',
-                  style: AppTextStyles.bodySmall,
+                  style:
+                      AppTextStyles.bodyLarge.copyWith(color: AppColors.ink2),
                   textAlign: TextAlign.center,
                 ),
-                const SizedBox(height: AppDimensions.xl),
+                const SizedBox(height: AppDimensions.xxl),
 
                 // ── Scan target ────────────────────────────────────────────
+                // A large ink-ruled circle on cream. While scanning it fills
+                // with caramel as a non-text accent; the words on it stay ink.
                 GestureDetector(
                   onTap: isAvailable ? _enable : null,
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 250),
+                    curve: BrandCurves.press,
                     width: 168,
                     height: 168,
                     decoration: BoxDecoration(
-                      color: _scanning ? AppColors.amber : AppColors.white,
-                      borderRadius: BorderRadius.circular(42),
+                      color: _scanning
+                          ? AppColors.goldenCaramel
+                          : AppColors.creamyWhite,
+                      shape: BoxShape.circle,
                       border: Border.all(
-                        color:
-                            _scanning ? AppColors.amber : AppColors.latte,
-                        width: 2,
+                        color: isAvailable || _scanning
+                            ? AppColors.roastedBlack
+                            : AppColors.fieldLine,
+                        width: 1.5,
                       ),
-                      boxShadow: _scanning
-                          ? [
-                              BoxShadow(
-                                color:
-                                    AppColors.amber.withValues(alpha: 0.4),
-                                blurRadius: 28,
-                                offset: const Offset(0, 8),
-                              ),
-                            ]
-                          : AppColors.cardShadow,
                     ),
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -131,11 +129,9 @@ class _BiometricScreenState extends ConsumerState<BiometricScreen> {
                         Icon(
                           Icons.fingerprint,
                           size: 62,
-                          color: _scanning
-                              ? AppColors.white
-                              : (isAvailable
-                                  ? AppColors.amber
-                                  : AppColors.muted),
+                          color: isAvailable || _scanning
+                              ? AppColors.roastedBlack
+                              : AppColors.ink3,
                         ),
                         const SizedBox(height: 10),
                         Text(
@@ -145,9 +141,7 @@ class _BiometricScreenState extends ConsumerState<BiometricScreen> {
                                   ? 'Touch to Scan'
                                   : 'Unavailable'),
                           style: AppTextStyles.chip.copyWith(
-                            color: _scanning
-                                ? AppColors.white
-                                : AppColors.espresso,
+                            color: AppColors.roastedBlack,
                           ),
                         ),
                       ],
@@ -155,26 +149,35 @@ class _BiometricScreenState extends ConsumerState<BiometricScreen> {
                   ),
                 ),
 
-                const SizedBox(height: AppDimensions.lg),
+                const SizedBox(height: AppDimensions.xl),
 
+                // A warning: Roasted Black words on California Cream, edged
+                // in caramel.
                 if (!isAvailable && available.hasValue)
                   Container(
-                    padding: const EdgeInsets.all(13),
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(14),
                     decoration: BoxDecoration(
-                      color: AppColors.latteLight,
+                      color: AppColors.californiaCream,
                       borderRadius:
                           BorderRadius.circular(AppDimensions.radiusMd),
+                      border: Border.all(color: AppColors.goldenCaramel),
                     ),
                     child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Icon(Icons.info_outline,
-                            size: 15, color: AppColors.caramel),
-                        const SizedBox(width: 9),
+                        const Padding(
+                          padding: EdgeInsets.only(top: 2),
+                          child: Icon(Icons.info_outline,
+                              size: 16, color: AppColors.roastedBlack),
+                        ),
+                        const SizedBox(width: 10),
                         Expanded(
                           child: Text(
                             'No fingerprint or face is enrolled on this device, '
                             'so biometric login can\'t be set up yet.',
-                            style: AppTextStyles.caption,
+                            style: AppTextStyles.bodySmall
+                                .copyWith(color: AppColors.roastedBlack),
                           ),
                         ),
                       ],
@@ -185,7 +188,8 @@ class _BiometricScreenState extends ConsumerState<BiometricScreen> {
                   Padding(
                     padding: const EdgeInsets.only(top: AppDimensions.sm),
                     child: Text(_error!,
-                        style: AppTextStyles.errorText,
+                        style: AppTextStyles.bodyMedium
+                            .copyWith(color: AppColors.danger),
                         textAlign: TextAlign.center),
                   ),
 

@@ -40,6 +40,10 @@ void main() {
   });
 
   group('BetaNoticeDialog', () {
+    // The title is set in CBTL Herb Display, which has no lowercase, so the
+    // dialog renders it in capitals.
+    final title = BetaNotice.title.toUpperCase();
+
     Future<Future<bool>> open(WidgetTester tester) async {
       late Future<bool> result;
       await tester.pumpWidget(MaterialApp(
@@ -60,7 +64,7 @@ void main() {
 
     testWidgets('Continue stays disabled until "I accept" is ticked', (tester) async {
       final result = await open(tester);
-      expect(find.text(BetaNotice.title), findsOneWidget);
+      expect(find.text(title), findsOneWidget);
       expect(continueButton(tester).onPressed, isNull);
 
       await tester.tap(find.byKey(const Key('beta-notice-accept')));
@@ -70,7 +74,7 @@ void main() {
       await tester.tap(find.text(BetaNotice.continueLabel));
       await tester.pumpAndSettle();
       expect(await result, isTrue);
-      expect(find.text(BetaNotice.title), findsNothing);
+      expect(find.text(title), findsNothing);
     });
 
     testWidgets('Sign out declines', (tester) async {
@@ -84,12 +88,12 @@ void main() {
       await open(tester);
       await tester.tapAt(const Offset(4, 4));
       await tester.pumpAndSettle();
-      expect(find.text(BetaNotice.title), findsOneWidget);
+      expect(find.text(title), findsOneWidget);
 
       final dynamic app = tester.state(find.byType(WidgetsApp));
       await app.didPopRoute();
       await tester.pumpAndSettle();
-      expect(find.text(BetaNotice.title), findsOneWidget);
+      expect(find.text(title), findsOneWidget);
     });
   });
 

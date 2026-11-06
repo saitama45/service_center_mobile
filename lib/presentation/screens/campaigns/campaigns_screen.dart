@@ -5,6 +5,7 @@ import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_dimensions.dart';
 import '../../../core/constants/app_text_styles.dart';
 import '../../../core/widgets/cbtl_app_bar.dart';
+import '../../../core/widgets/cbtl_button.dart';
 import '../../../core/widgets/cbtl_card.dart';
 import '../../../core/widgets/cbtl_empty_state.dart';
 import '../../../database/daos/loyalty_dao.dart';
@@ -40,7 +41,7 @@ class _CampaignsScreenState extends ConsumerState<CampaignsScreen> {
     final async = ref.watch(campaignCardsProvider);
 
     return Scaffold(
-      backgroundColor: AppColors.cream,
+      backgroundColor: AppColors.creamyWhite,
       // Members see no hamburger: the drawer's only unique content is the
       // admin module links.
       appBar: const CbtlAppBar(
@@ -49,7 +50,7 @@ class _CampaignsScreenState extends ConsumerState<CampaignsScreen> {
       ),
       body: async.when(
         loading: () => const Center(
-            child: CircularProgressIndicator(color: AppColors.amber)),
+            child: CircularProgressIndicator(color: AppColors.roastedBlack)),
         error: (e, _) => CbtlEmptyState(
           title: 'Could not load campaigns',
           message: '$e',
@@ -105,8 +106,8 @@ class _CampaignsScreenState extends ConsumerState<CampaignsScreen> {
                 ),
               Expanded(
                 child: RefreshIndicator(
-                  color: AppColors.amber,
-                  backgroundColor: AppColors.white,
+                  color: AppColors.roastedBlack,
+                  backgroundColor: AppColors.creamyWhite,
                   // A real server sync, not just a local re-query — pulling
                   // down only bumps loyaltyRevisionProvider AFTER sync()
                   // actually reaches the catalog endpoint (see SyncManager's
@@ -138,7 +139,7 @@ class _CampaignsScreenState extends ConsumerState<CampaignsScreen> {
                       : ListView.separated(
                           physics: const AlwaysScrollableScrollPhysics(),
                           padding: const EdgeInsets.fromLTRB(
-                              AppDimensions.md, 0, AppDimensions.md, 32),
+                              AppDimensions.gutter, 0, AppDimensions.gutter, 32),
                           itemCount: visible.length,
                           separatorBuilder: (_, __) =>
                               const SizedBox(height: AppDimensions.sm + 4),
@@ -188,6 +189,8 @@ class _CampaignsScreenState extends ConsumerState<CampaignsScreen> {
 
 /// Current-vs-redeemed segmented control, with counts so a member can see at
 /// a glance that claimed rewards are kept here rather than lost.
+///
+/// A California Cream track with the chosen segment pressed in Roasted Black.
 class _StatusFilter extends StatelessWidget {
   const _StatusFilter({
     required this.active,
@@ -212,13 +215,13 @@ class _StatusFilter extends StatelessWidget {
     ];
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(AppDimensions.md, AppDimensions.md,
-          AppDimensions.md, AppDimensions.sm + 4),
+      padding: const EdgeInsets.fromLTRB(AppDimensions.gutter, AppDimensions.md,
+          AppDimensions.gutter, AppDimensions.sm + 4),
       child: Container(
         padding: const EdgeInsets.all(3),
         decoration: BoxDecoration(
-          color: AppColors.latteLight,
-          borderRadius: BorderRadius.circular(AppDimensions.radiusRound),
+          color: AppColors.californiaCream,
+          borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
         ),
         child: Row(
           children: [
@@ -228,20 +231,20 @@ class _StatusFilter extends StatelessWidget {
                   onTap: () => onSelect(filter),
                   behavior: HitTestBehavior.opaque,
                   child: Container(
-                    height: 34,
+                    height: 36,
                     alignment: Alignment.center,
                     decoration: BoxDecoration(
-                      color: filter == active ? AppColors.white : null,
+                      color: filter == active ? AppColors.roastedBlack : null,
                       borderRadius:
-                          BorderRadius.circular(AppDimensions.radiusRound),
-                      boxShadow: filter == active ? AppColors.cardShadow : null,
+                          BorderRadius.circular(AppDimensions.radiusSm),
                     ),
                     child: Text(
                       '$label ($count)',
                       style: AppTextStyles.chip.copyWith(
+                        fontSize: 14,
                         color: filter == active
-                            ? AppColors.espresso
-                            : AppColors.muted,
+                            ? AppColors.creamyWhite
+                            : AppColors.ink2,
                       ),
                     ),
                   ),
@@ -276,7 +279,7 @@ class _TagFilter extends StatelessWidget {
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.fromLTRB(
-            AppDimensions.md, 0, AppDimensions.md, AppDimensions.sm + 4),
+            AppDimensions.gutter, 0, AppDimensions.gutter, AppDimensions.sm + 4),
         itemCount: tags.length,
         separatorBuilder: (_, __) => const SizedBox(width: 8),
         itemBuilder: (_, i) {
@@ -286,19 +289,21 @@ class _TagFilter extends StatelessWidget {
             onTap: () => onSelect(tag),
             child: Container(
               alignment: Alignment.center,
-              padding: const EdgeInsets.symmetric(horizontal: 16),
+              padding: const EdgeInsets.symmetric(horizontal: 14),
               decoration: BoxDecoration(
-                color: selected ? AppColors.espresso : AppColors.white,
-                borderRadius: BorderRadius.circular(AppDimensions.radiusRound),
+                color: selected ? AppColors.roastedBlack : AppColors.creamyWhite,
+                borderRadius: BorderRadius.circular(AppDimensions.radiusSm),
                 border: Border.all(
-                  color: selected ? AppColors.espresso : AppColors.latte,
-                  width: 1.5,
+                  color: selected ? AppColors.roastedBlack : AppColors.line,
                 ),
               ),
               child: Text(
                 tag,
                 style: AppTextStyles.chip.copyWith(
-                  color: selected ? AppColors.cream : AppColors.espresso,
+                  fontSize: 14,
+                  color: selected
+                      ? AppColors.creamyWhite
+                      : AppColors.roastedBlack,
                 ),
               ),
             ),
@@ -336,16 +341,18 @@ class _CampaignCard extends StatelessWidget {
         ? progress.cardLabel
         : null;
 
+    // Flat and outlined. A full card is edged in Purple Straw to match its
+    // "unlocked" band, a claimed one in Roasted Black to match its own.
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: AppColors.creamyWhite,
         borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
         border: Border.all(
           color: unlocked
-              ? AppColors.amber
+              ? AppColors.purpleStraw
               : redeemed
-                  ? AppColors.success
-                  : AppColors.latte,
+                  ? AppColors.roastedBlack
+                  : AppColors.line,
           width: unlocked || redeemed ? 1.5 : 1,
         ),
       ),
@@ -353,32 +360,46 @@ class _CampaignCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // A key moment, so it carries the brand's purple: Creamy White on
+          // Purple Straw (9.4:1), with the caramel accent on the icon only.
           if (unlocked)
             Container(
               width: double.infinity,
-              color: AppColors.amber,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              child: Text(
-                '🎉  REWARD UNLOCKED — Ready to redeem!',
-                style: AppTextStyles.chip.copyWith(color: AppColors.white),
+              color: AppColors.purpleStraw,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 9),
+              child: Row(
+                children: [
+                  const Icon(Icons.celebration,
+                      size: 16, color: AppColors.goldenCaramel),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'REWARD UNLOCKED — Ready to redeem!',
+                      style: AppTextStyles.chip.copyWith(
+                        fontSize: 14,
+                        color: AppColors.creamyWhite,
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
 
           // A claimed reward is a settled fact, so it is stated as firmly as
-          // the amber "unlocked" bar states an unclaimed one: a solid success
-          // bar, white type, a filled seal. It previously whispered it — muted
-          // text on `latteLight` behind the 0.75 opacity below — which read as
-          // "greyed out / inactive" rather than "you received this".
+          // the "unlocked" band states an unclaimed one: a solid Roasted
+          // Black band, Creamy White type, a seal. It previously whispered it
+          // — muted text on a pale tint behind the 0.75 opacity below — which
+          // read as "greyed out / inactive" rather than "you received this".
           if (redeemed)
             Container(
               width: double.infinity,
-              color: AppColors.success,
+              color: AppColors.roastedBlack,
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 9),
               child: Row(
                 children: [
-                  const Icon(Icons.verified_rounded,
-                      size: 16, color: AppColors.white),
-                  const SizedBox(width: 7),
+                  const Icon(Icons.verified_outlined,
+                      size: 16, color: AppColors.creamyWhite),
+                  const SizedBox(width: 8),
                   Expanded(
                     child: Text(
                       redeemedAt == null
@@ -386,9 +407,9 @@ class _CampaignCard extends StatelessWidget {
                           : 'REWARD CLAIMED — '
                               '${DateFormat('MMM d, y').format(redeemedAt.toLocal())}',
                       style: AppTextStyles.chip.copyWith(
-                        color: AppColors.white,
+                        fontSize: 14,
+                        color: AppColors.creamyWhite,
                         fontWeight: FontWeight.w700,
-                        letterSpacing: 0.6,
                       ),
                     ),
                   ),
@@ -409,14 +430,14 @@ class _CampaignCard extends StatelessWidget {
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      // The campaign's own emoji on a Roasted Black disc.
                       Container(
                         width: 46,
                         height: 46,
                         alignment: Alignment.center,
-                        decoration: BoxDecoration(
-                          color: AppColors.latteLight,
-                          borderRadius:
-                              BorderRadius.circular(AppDimensions.radiusMd),
+                        decoration: const BoxDecoration(
+                          color: AppColors.roastedBlack,
+                          shape: BoxShape.circle,
                         ),
                         child: Text(c.emoji ?? '☕',
                             style: const TextStyle(fontSize: 22)),
@@ -430,18 +451,21 @@ class _CampaignCard extends StatelessWidget {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Expanded(
-                                  child: Text(c.name, style: AppTextStyles.h3),
+                                  child: Text(c.name,
+                                      style: AppTextStyles.h3
+                                          .copyWith(fontSize: 16)),
                                 ),
                                 if (c.tag != null) ...[
                                   const SizedBox(width: 8),
-                                  CbtlStatusPill.neutral(c.tag!),
+                                  _CrateTag(c.tag!),
                                 ],
                               ],
                             ),
                             if (c.description != null) ...[
                               const SizedBox(height: 3),
                               Text(c.description!,
-                                  style: AppTextStyles.caption),
+                                  style: AppTextStyles.bodySmall
+                                      .copyWith(fontSize: 13.5)),
                             ],
                           ],
                         ),
@@ -449,94 +473,99 @@ class _CampaignCard extends StatelessWidget {
                     ],
                   ),
                   const SizedBox(height: AppDimensions.md),
-                  Row(
-                    children: [
-                      Text(
-                          '${progress.stamps} / ${progress.required} stamps'
-                          '${cardLabel == null ? '' : '  ·  $cardLabel'}',
-                          style: AppTextStyles.monoSmall),
-                      const Spacer(),
-                      if (c.endsAt != null)
+                  // Count and expiry share a line when they fit; with a card
+                  // label as well, the expiry drops to its own line instead
+                  // of colliding with it.
+                  // Full width, or a Wrap shrinks to its children and
+                  // spaceBetween has no space to spread.
+                  SizedBox(
+                    width: double.infinity,
+                    child: Wrap(
+                      alignment: WrapAlignment.spaceBetween,
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      spacing: 12,
+                      runSpacing: 2,
+                      children: [
                         Text(
-                          progress.isExpired
-                              ? 'Expired'
-                              : 'Expires ${DateFormat('MMM d, y').format(c.endsAt!.toLocal())}',
-                          style: AppTextStyles.caption.copyWith(
-                            color: progress.isExpired
-                                ? AppColors.danger
-                                : AppColors.muted,
+                            '${progress.stamps} / ${progress.required} stamps'
+                            '${cardLabel == null ? '' : '  ·  $cardLabel'}',
+                            style: AppTextStyles.monoSmall.copyWith(
+                                fontSize: 13.5, color: AppColors.ink2)),
+                        if (c.endsAt != null)
+                          Text(
+                            progress.isExpired
+                                ? 'Expired'
+                                : 'Expires ${DateFormat('MMM d, y').format(c.endsAt!.toLocal())}',
+                            style: AppTextStyles.bodySmall.copyWith(
+                              fontSize: 13,
+                              color: progress.isExpired
+                                  ? AppColors.danger
+                                  : AppColors.ink3,
+                            ),
                           ),
-                        ),
-                    ],
+                      ],
+                    ),
                   ),
-                  const SizedBox(height: 7),
+                  const SizedBox(height: 8),
+                  // Roasted Black while collecting; caramel (a fill, never
+                  // text) once the reward is ready.
                   CbtlProgressBar(
                     value: progress.progress,
-                    gradient: unlocked
-                        ? const LinearGradient(
-                            colors: [AppColors.amber, AppColors.gold])
-                        : null,
+                    color: unlocked
+                        ? AppColors.goldenCaramel
+                        : AppColors.roastedBlack,
                   ),
-                  const SizedBox(height: AppDimensions.sm + 2),
+                  const SizedBox(height: AppDimensions.sm),
                   if (c.termsAndConditions != null)
                     GestureDetector(
                       onTap: onToggleTerms,
                       behavior: HitTestBehavior.opaque,
                       child: Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 2),
+                        padding: const EdgeInsets.symmetric(vertical: 6),
                         child: Row(
                           children: [
                             Icon(
                               expanded
                                   ? Icons.keyboard_arrow_up
                                   : Icons.keyboard_arrow_down,
-                              size: 17,
-                              color: AppColors.amber,
+                              size: 18,
+                              color: AppColors.roastedBlack,
                             ),
-                            const SizedBox(width: 4),
-                            Text(
-                              expanded ? 'Hide Terms' : 'Terms & Conditions',
-                              style: AppTextStyles.chip
-                                  .copyWith(color: AppColors.amber),
+                            const SizedBox(width: 6),
+                            Flexible(
+                              child: Text(
+                                expanded ? 'Hide Terms' : 'Terms & Conditions',
+                                style: AppTextStyles.chip.copyWith(
+                                    fontSize: 14,
+                                    color: AppColors.roastedBlack),
+                              ),
                             ),
                           ],
                         ),
                       ),
                     ),
                   if (expanded && c.termsAndConditions != null) ...[
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 6),
                     Container(
                       width: double.infinity,
-                      padding: const EdgeInsets.all(12),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 14, vertical: 12),
                       decoration: BoxDecoration(
-                        color: AppColors.cream,
+                        color: AppColors.californiaCream,
                         borderRadius:
-                            BorderRadius.circular(AppDimensions.radiusMd),
+                            BorderRadius.circular(AppDimensions.radiusLg),
                       ),
                       child: Text(c.termsAndConditions!,
-                          style: AppTextStyles.caption),
+                          style:
+                              AppTextStyles.bodySmall.copyWith(fontSize: 13.5)),
                     ),
                   ],
                   if (unlocked) ...[
                     const SizedBox(height: AppDimensions.sm + 4),
-                    SizedBox(
-                      width: double.infinity,
-                      height: AppDimensions.buttonHeight,
-                      child: ElevatedButton(
-                        onPressed: onRedeem,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.amber,
-                          foregroundColor: AppColors.white,
-                          elevation: 0,
-                          shape: RoundedRectangleBorder(
-                            borderRadius:
-                                BorderRadius.circular(AppDimensions.radiusMd),
-                          ),
-                        ),
-                        child: Text('Redeem Now  →',
-                            style: AppTextStyles.button
-                                .copyWith(color: AppColors.white)),
-                      ),
+                    CbtlButton(
+                      label: 'Redeem Now  →',
+                      onPressed: onRedeem,
+                      isFullWidth: true,
                     ),
                   ],
                 ],
@@ -544,6 +573,30 @@ class _CampaignCard extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// A campaign tag ("Holiday", "Everyday") read like an outlined crate stamp
+/// (brand book p37): a thin Roasted Black edge, barely rounded, narrow type.
+class _CrateTag extends StatelessWidget {
+  const _CrateTag(this.label);
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(3),
+        border: Border.all(color: AppColors.roastedBlack),
+      ),
+      child: Text(
+        label,
+        style: AppTextStyles.chip
+            .copyWith(fontSize: 12.5, color: AppColors.roastedBlack),
       ),
     );
   }

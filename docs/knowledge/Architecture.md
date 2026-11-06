@@ -79,10 +79,15 @@ to `HomeScreen` when deep-linked without it.
 
 ## Theming
 
-All visual tokens are constants — `AppColors` (espresso, cream, amber, latte, caramel, gold),
-`AppDimensions`, `AppTextStyles`. Fonts: DMSans (body), PlayfairDisplay (display), DMMono
-(numerals/IDs). The theme is built once in `app.dart::_buildTheme()`; screens should read from
-`Theme.of(context)` or the constants rather than hardcoding colours.
+The look is the April 2026 brand book ("Option D: Craft", see CLAUDE.md for its rules). All
+visual tokens are constants — `AppColors` (the book's palette by name, plus roles such as
+`ink2`, `ink3`, `line`, `fieldLine`; the older espresso/amber/latte names are aliases),
+`AppDimensions`, `AppTextStyles`. Fonts: CBTL Herb Display (headlines, capitals only), Booster
+Sans (reading), Booster Sans Narrow (chips, codes). The theme is built once in
+`lib/app_theme.dart::buildAppTheme()`; screens should read from `Theme.of(context)` or the
+constants rather than hardcoding colours. Brand art and motion live in `lib/core/brand/`:
+`BrandLogo`, `BrandMark`, `PurpleAura`, `SealIn`/`PressIn`, and the route transitions
+(`pourPage` between sections, `revealFromButtonPage` into the member code).
 
 ## Code generation
 

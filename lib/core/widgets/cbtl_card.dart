@@ -3,8 +3,8 @@ import '../constants/app_colors.dart';
 import '../constants/app_dimensions.dart';
 import '../constants/app_text_styles.dart';
 
-/// The standard surface of the app: white, softly rounded, hairline latte
-/// border, no Material elevation. Everything that is not a hero sits in one.
+/// The standard surface of the app: outlined on the cream page with a
+/// hairline, never lifted off it. Everything that is not a hero sits in one.
 class CbtlCard extends StatelessWidget {
   const CbtlCard({
     super.key,
@@ -12,8 +12,8 @@ class CbtlCard extends StatelessWidget {
     this.padding = const EdgeInsets.all(AppDimensions.md),
     this.margin,
     this.radius = AppDimensions.radiusLg,
-    this.borderColor = AppColors.latte,
-    this.color = AppColors.white,
+    this.borderColor = AppColors.line,
+    this.color = AppColors.creamyWhite,
     this.onTap,
     this.raised = false,
   });
@@ -26,7 +26,7 @@ class CbtlCard extends StatelessWidget {
   final Color color;
   final VoidCallback? onTap;
 
-  /// Adds the soft drop shadow. Use sparingly — the border alone is the default.
+  /// Kept for older call sites. The brand is flat, so it no longer lifts.
   final bool raised;
 
   @override
@@ -53,8 +53,9 @@ class CbtlCard extends StatelessWidget {
               child: InkWell(
                 onTap: onTap,
                 borderRadius: borderRadius,
-                splashColor: AppColors.latteLight,
-                highlightColor: AppColors.latteLight.withValues(alpha: 0.5),
+                splashColor: AppColors.californiaCream,
+                highlightColor:
+                    AppColors.californiaCream.withValues(alpha: 0.5),
                 child: content,
               ),
             ),
@@ -93,7 +94,7 @@ class CbtlSectionCard extends StatelessWidget {
           Row(
             children: [
               if (icon != null) ...[
-                Icon(icon, size: 16, color: AppColors.caramel),
+                Icon(icon, size: 16, color: AppColors.roastedBlack),
                 const SizedBox(width: 8),
               ],
               Expanded(child: Text(title, style: AppTextStyles.h3)),
@@ -108,8 +109,8 @@ class CbtlSectionCard extends StatelessWidget {
   }
 }
 
-/// The signature dark gradient card. Reserved for the one hero element on a
-/// screen — a stamp card in the mock, the clock/status panel here.
+/// The Roasted Black card. Reserved for the one hero element on a screen,
+/// such as the stamp card or the member's identity on Profile.
 class CbtlHeroCard extends StatelessWidget {
   const CbtlHeroCard({
     super.key,
@@ -128,9 +129,8 @@ class CbtlHeroCard extends StatelessWidget {
       margin: margin,
       padding: padding,
       decoration: BoxDecoration(
-        gradient: AppColors.heroGradient,
+        color: AppColors.roastedBlack,
         borderRadius: BorderRadius.circular(AppDimensions.radiusXl),
-        boxShadow: AppColors.heroShadow,
       ),
       child: child,
     );
@@ -153,7 +153,7 @@ class CbtlFieldLabel extends StatelessWidget {
       );
 }
 
-/// Rounded status pill — the badge vocabulary used across lists and tables.
+/// Status tag — squared like the crate stamps in the brand book (p37).
 class CbtlStatusPill extends StatelessWidget {
   const CbtlStatusPill({
     super.key,
@@ -183,8 +183,8 @@ class CbtlStatusPill extends StatelessWidget {
 
   factory CbtlStatusPill.neutral(String label) => CbtlStatusPill(
         label: label,
-        color: AppColors.caramel,
-        background: AppColors.latteLight,
+        color: AppColors.roastedBlack,
+        background: AppColors.californiaCream,
       );
 
   final String label;
@@ -199,7 +199,7 @@ class CbtlStatusPill extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
         color: background ?? color.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(AppDimensions.radiusRound),
+        borderRadius: BorderRadius.circular(4),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -223,14 +223,16 @@ class CbtlStatusPill extends StatelessWidget {
   }
 }
 
-/// Horizontal progress bar with the amber accent gradient.
+/// Horizontal progress bar: Roasted Black on California Cream, or Golden
+/// Caramel ([color]) when a reward is ready.
 class CbtlProgressBar extends StatelessWidget {
   const CbtlProgressBar({
     super.key,
     required this.value,
-    this.height = 7,
-    this.trackColor = AppColors.latte,
+    this.height = 6,
+    this.trackColor = AppColors.californiaCream,
     this.gradient,
+    this.color = AppColors.roastedBlack,
   });
 
   /// 0.0 – 1.0
@@ -238,6 +240,7 @@ class CbtlProgressBar extends StatelessWidget {
   final double height;
   final Color trackColor;
   final Gradient? gradient;
+  final Color color;
 
   @override
   Widget build(BuildContext context) {
@@ -251,7 +254,8 @@ class CbtlProgressBar extends StatelessWidget {
             child: Container(
               height: height,
               decoration: BoxDecoration(
-                gradient: gradient ?? AppColors.accentGradient,
+                color: gradient == null ? color : null,
+                gradient: gradient,
                 borderRadius: BorderRadius.circular(height),
               ),
             ),

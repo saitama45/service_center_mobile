@@ -26,7 +26,7 @@ class LedgerScreen extends ConsumerWidget {
     final txns = ref.watch(transactionsProvider);
 
     return Scaffold(
-      backgroundColor: AppColors.cream,
+      backgroundColor: AppColors.creamyWhite,
       // Members see no hamburger: the drawer's only unique content is the
       // admin module links.
       appBar: const CbtlAppBar(
@@ -34,8 +34,8 @@ class LedgerScreen extends ConsumerWidget {
         subtitle: 'Your stamp activity',
       ),
       body: RefreshIndicator(
-        color: AppColors.amber,
-        backgroundColor: AppColors.white,
+        color: AppColors.roastedBlack,
+        backgroundColor: AppColors.creamyWhite,
         // Real server sync — transactions now have a genuine pull direction
         // (SyncManager._pullTransactions), not just local `loyalty_transactions`
         // rows. See the same comment in campaigns_screen.dart / home_screen.dart.
@@ -43,8 +43,8 @@ class LedgerScreen extends ConsumerWidget {
             .read(syncManagerProvider)
             .sync(userId: ref.read(currentUserProvider)?.id),
         child: txns.when(
-          loading: () =>
-              const Center(child: CircularProgressIndicator(color: AppColors.amber)),
+          loading: () => const Center(
+              child: CircularProgressIndicator(color: AppColors.roastedBlack)),
           error: (e, _) => CbtlEmptyState(
             title: 'Could not load history',
             message: '$e',
@@ -98,46 +98,46 @@ class LedgerScreen extends ConsumerWidget {
 
             return ListView(
               physics: const AlwaysScrollableScrollPhysics(),
-              padding: const EdgeInsets.fromLTRB(AppDimensions.md,
-                  AppDimensions.md, AppDimensions.md, 32),
+              padding: const EdgeInsets.fromLTRB(AppDimensions.gutter,
+                  AppDimensions.md, AppDimensions.gutter, 32),
               children: [
                 // ── Summary strip ──────────────────────────────────────────
-                Row(
-                  children: [
-                    Expanded(
-                      child: _Total(
-                        label: 'Stamps earned',
-                        value: _signed(earned, '+'),
-                        // Zero is neutral — colouring it green implies activity.
-                        color: earned > 0
-                            ? AppColors.success
-                            : AppColors.espresso,
+                // California Cream tiles with Herb numerals, all in Roasted
+                // Black: the brand keeps one base plus one accent, and the
+                // accent never carries text on cream.
+                IntrinsicHeight(
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Expanded(
+                        child: _Total(
+                          label: 'Stamps earned',
+                          value: _signed(earned, '+'),
+                        ),
                       ),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: _Total(
-                        label: rewards == 1 ? 'Reward claimed' : 'Rewards claimed',
-                        value: '$rewards',
-                        color: rewards > 0
-                            ? AppColors.amber
-                            : AppColors.espresso,
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: _Total(
+                          label: rewards == 1
+                              ? 'Reward claimed'
+                              : 'Rewards claimed',
+                          value: '$rewards',
+                        ),
                       ),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: _Total(
-                        // Counted off the member's actual cards, not derived
-                        // as `earned - redeemed` — see
-                        // `LoyaltyDao.getOpenCardStampsByCampaign`. This is
-                        // the one figure they can check against the cards in
-                        // front of them.
-                        label: 'On your cards',
-                        value: '$held',
-                        color: AppColors.espresso,
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: _Total(
+                          // Counted off the member's actual cards, not derived
+                          // as `earned - redeemed` — see
+                          // `LoyaltyDao.getOpenCardStampsByCampaign`. This is
+                          // the one figure they can check against the cards in
+                          // front of them.
+                          label: 'On your cards',
+                          value: '$held',
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
 
                 // ── Campaign filter ────────────────────────────────────────
@@ -146,7 +146,7 @@ class LedgerScreen extends ConsumerWidget {
                 // Scoping the whole screen — list and totals together — is
                 // what turns it into "how am I doing on this one?".
                 if (campaigns.length > 1) ...[
-                  const SizedBox(height: AppDimensions.sm + 2),
+                  const SizedBox(height: AppDimensions.md - 4),
                   _CampaignFilterBar(
                     campaigns: campaigns,
                     selectedId: activeId,
@@ -203,7 +203,7 @@ class _CampaignFilterBar extends StatelessWidget {
     final entries = campaigns.entries.toList();
 
     return SizedBox(
-      height: 34,
+      height: 38,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         itemCount: entries.length + 1,
@@ -213,22 +213,29 @@ class _CampaignFilterBar extends StatelessWidget {
           final label = i == 0 ? 'All' : entries[i - 1].value;
           final selected = id == selectedId;
 
+          // Squared like the campaign picker on Home: Roasted Black when
+          // chosen, an outlined cream tag otherwise.
           return GestureDetector(
             onTap: () => onSelect(id),
             child: Container(
               alignment: Alignment.center,
               padding: const EdgeInsets.symmetric(horizontal: 14),
               decoration: BoxDecoration(
-                color: selected ? AppColors.espresso : AppColors.white,
-                borderRadius: BorderRadius.circular(999),
+                color: selected
+                    ? AppColors.roastedBlack
+                    : AppColors.creamyWhite,
+                borderRadius: BorderRadius.circular(AppDimensions.radiusSm),
                 border: Border.all(
-                  color: selected ? AppColors.espresso : AppColors.latte,
+                  color: selected ? AppColors.roastedBlack : AppColors.line,
                 ),
               ),
               child: Text(
                 label,
                 style: AppTextStyles.chip.copyWith(
-                  color: selected ? AppColors.cream : AppColors.espresso,
+                  fontSize: 14,
+                  color: selected
+                      ? AppColors.creamyWhite
+                      : AppColors.roastedBlack,
                 ),
               ),
             ),
@@ -239,30 +246,38 @@ class _CampaignFilterBar extends StatelessWidget {
   }
 }
 
+/// One summary tile: a Herb Display figure over an ink caption, on a
+/// California Cream panel.
 class _Total extends StatelessWidget {
   const _Total({
     required this.label,
     required this.value,
-    required this.color,
   });
 
   final String label;
   final String value;
-  final Color color;
 
   @override
   Widget build(BuildContext context) {
     return CbtlCard(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
+      color: AppColors.californiaCream,
+      borderColor: AppColors.californiaCream,
+      padding: const EdgeInsets.fromLTRB(8, 14, 8, 12),
       child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Text(
-            value,
-            style: AppTextStyles.monoMedium
-                .copyWith(fontSize: 17, color: color),
+            AppTextStyles.caps(value),
+            style: AppTextStyles.statValue.copyWith(fontSize: 30),
+            maxLines: 1,
           ),
-          const SizedBox(height: 3),
-          Text(label, style: AppTextStyles.caption, textAlign: TextAlign.center),
+          const SizedBox(height: 6),
+          Text(
+            label,
+            style: AppTextStyles.caption
+                .copyWith(color: AppColors.ink2, height: 1.35),
+            textAlign: TextAlign.center,
+          ),
         ],
       ),
     );
@@ -285,20 +300,32 @@ class _TransactionRow extends StatelessWidget {
     final local = txn.occurredAt.toLocal();
 
     return CbtlCard(
-      padding: const EdgeInsets.all(13),
+      padding: const EdgeInsets.fromLTRB(12, 12, 14, 12),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Earns and redemptions sit on California Cream; a correction is
+          // the one row tinted red, so a stamp taken back stands out.
           Container(
             width: 38,
             height: 38,
             alignment: Alignment.center,
             decoration: BoxDecoration(
-              color: isGain ? AppColors.latteLight : AppColors.dangerSurface,
-              borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
+              color: isCorrection
+                  ? AppColors.dangerSurface
+                  : AppColors.californiaCream,
+              shape: BoxShape.circle,
             ),
-            child: Text(isCorrection ? '↩' : (isEarn ? '☕' : '🎁'),
-                style: const TextStyle(fontSize: 16)),
+            child: Icon(
+              isCorrection
+                  ? Icons.undo_rounded
+                  : (isEarn
+                      ? Icons.coffee_outlined
+                      : Icons.card_giftcard_outlined),
+              size: 19,
+              color:
+                  isCorrection ? AppColors.danger : AppColors.roastedBlack,
+            ),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -314,8 +341,7 @@ class _TransactionRow extends StatelessWidget {
                             (isCorrection
                                 ? 'Stamp correction'
                                 : (isEarn ? 'Stamp earned' : 'Reward redeemed')),
-                        style: AppTextStyles.bodyMedium
-                            .copyWith(fontWeight: FontWeight.w600),
+                        style: AppTextStyles.h3.copyWith(height: 1.3),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -324,8 +350,9 @@ class _TransactionRow extends StatelessWidget {
                     Text(
                       isGain ? '+${txn.points}' : '−${txn.points.abs()}',
                       style: AppTextStyles.monoMedium.copyWith(
-                        fontWeight: FontWeight.w500,
-                        color: isGain ? AppColors.success : AppColors.danger,
+                        color: isGain
+                            ? AppColors.roastedBlack
+                            : AppColors.danger,
                       ),
                     ),
                   ],
@@ -338,14 +365,16 @@ class _TransactionRow extends StatelessWidget {
                   Text(
                     entry.campaignName!,
                     style: AppTextStyles.caption
-                        .copyWith(color: AppColors.espresso),
+                        .copyWith(color: AppColors.roastedBlack),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
                 ],
                 if (txn.storeName != null) ...[
                   const SizedBox(height: 2),
-                  Text(txn.storeName!, style: AppTextStyles.caption),
+                  Text(txn.storeName!,
+                      style: AppTextStyles.caption
+                          .copyWith(color: AppColors.ink2)),
                 ],
                 // Why the stamps were taken back, in staff's own words.
                 if (isCorrection && (txn.note?.isNotEmpty ?? false)) ...[

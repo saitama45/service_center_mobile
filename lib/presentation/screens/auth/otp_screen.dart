@@ -177,7 +177,8 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
 
     if (_bootstrapping || otp.isIssuing) {
       return const _OtpScaffold(
-        child: Center(child: CircularProgressIndicator(color: AppColors.amber)),
+        child: Center(
+            child: CircularProgressIndicator(color: AppColors.roastedBlack)),
       );
     }
 
@@ -191,35 +192,36 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
     return _OtpScaffold(
       child: Column(
         children: [
-          const SizedBox(height: AppDimensions.md),
+          const SizedBox(height: AppDimensions.lg),
+          // A Roasted Black disc with a cream icon heads the step.
           Container(
-            width: 60,
-            height: 60,
+            width: 64,
+            height: 64,
             alignment: Alignment.center,
             decoration: const BoxDecoration(
-              color: AppColors.latte,
+              color: AppColors.roastedBlack,
               shape: BoxShape.circle,
             ),
             child: Icon(
               isEmail ? Icons.mark_email_read_outlined : Icons.smartphone,
-              size: 27,
-              color: AppColors.caramel,
+              size: 28,
+              color: AppColors.creamyWhite,
             ),
           ),
+          const SizedBox(height: AppDimensions.lg),
+          Text(AppTextStyles.caps('Verify Your Identity'),
+              style: AppTextStyles.h1, textAlign: TextAlign.center),
           const SizedBox(height: AppDimensions.md),
-          Text('Verify Your Identity',
-              style: AppTextStyles.displayMedium, textAlign: TextAlign.center),
-          const SizedBox(height: 8),
           Text.rich(
             TextSpan(
-              style: AppTextStyles.bodySmall,
+              style: AppTextStyles.bodyLarge.copyWith(color: AppColors.ink2),
               children: isEmail
                   ? [
                       const TextSpan(text: 'We sent a 6-digit code to\n'),
                       TextSpan(
                         text: destination,
-                        style: AppTextStyles.bodySmall.copyWith(
-                          color: AppColors.espresso,
+                        style: AppTextStyles.bodyLarge.copyWith(
+                          color: AppColors.roastedBlack,
                           fontWeight: FontWeight.w700,
                         ),
                       ),
@@ -241,16 +243,29 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
           const SizedBox(height: AppDimensions.lg),
 
           // ── Digit boxes ────────────────────────────────────────────
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: List.generate(6, (i) => _DigitBox(
-                  controller: _controllers[i],
-                  focusNode: _focusNodes[i],
-                  hasError: otp.error != null,
-                  enabled: !otp.isVerifying,
-                  onChanged: (v) => _onDigitChanged(i, v),
-                  onKey: (e) => _onKey(i, e),
-                )),
+          // Six boxes at 46 wide with 8 between, narrowing on small phones
+          // rather than overflowing.
+          LayoutBuilder(
+            builder: (context, constraints) {
+              const gap = 8.0;
+              final boxWidth =
+                  ((constraints.maxWidth - gap * 5) / 6).clamp(36.0, 46.0);
+              return Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: List.generate(6, (i) => Padding(
+                      padding: EdgeInsets.only(left: i == 0 ? 0 : gap),
+                      child: _DigitBox(
+                        width: boxWidth,
+                        controller: _controllers[i],
+                        focusNode: _focusNodes[i],
+                        hasError: otp.error != null,
+                        enabled: !otp.isVerifying,
+                        onChanged: (v) => _onDigitChanged(i, v),
+                        onKey: (e) => _onKey(i, e),
+                      ),
+                    )),
+              );
+            },
           ),
 
           if (otp.isVerifying) ...[
@@ -258,13 +273,17 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
             const SizedBox(
               width: 18,
               height: 18,
-              child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.amber),
+              child: CircularProgressIndicator(
+                  strokeWidth: 2, color: AppColors.roastedBlack),
             ),
           ],
 
           if (otp.error != null) ...[
             const SizedBox(height: AppDimensions.md),
-            Text(otp.error!, style: AppTextStyles.errorText, textAlign: TextAlign.center),
+            Text(otp.error!,
+                style:
+                    AppTextStyles.bodyMedium.copyWith(color: AppColors.danger),
+                textAlign: TextAlign.center),
           ],
           const SizedBox(height: AppDimensions.lg),
 
@@ -279,29 +298,37 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
           if (isEmail)
             _resendRemaining > Duration.zero
                 ? Text("Didn't receive it? Resend in ${_resendRemaining.inSeconds}s",
-                    style: AppTextStyles.caption)
+                    style: AppTextStyles.bodyMedium
+                        .copyWith(color: AppColors.ink2))
                 : TextButton(
                     onPressed: _resend,
                     child: Text('Resend code',
-                        style: AppTextStyles.button.copyWith(color: AppColors.amber)),
+                        style: AppTextStyles.button.copyWith(
+                          color: AppColors.roastedBlack,
+                          decoration: TextDecoration.underline,
+                          decorationColor: AppColors.roastedBlack,
+                        )),
                   ),
 
           if (otp.canSwitchToEmail)
             TextButton(
               onPressed: _switchToEmail,
               child: Text("Don't have your authenticator app? Send code by email",
-                  style: AppTextStyles.caption.copyWith(
-                    color: AppColors.muted,
+                  textAlign: TextAlign.center,
+                  style: AppTextStyles.bodyMedium.copyWith(
+                    color: AppColors.roastedBlack,
                     decoration: TextDecoration.underline,
+                    decorationColor: AppColors.roastedBlack,
                   )),
             )
           else if (otp.canSwitchToAuthenticator)
             TextButton(
               onPressed: _switchToAuthenticator,
               child: Text('Use authenticator app instead',
-                  style: AppTextStyles.caption.copyWith(
-                    color: AppColors.muted,
+                  style: AppTextStyles.bodyMedium.copyWith(
+                    color: AppColors.roastedBlack,
                     decoration: TextDecoration.underline,
+                    decorationColor: AppColors.roastedBlack,
                   )),
             ),
 
@@ -309,11 +336,11 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.lock_outline, size: 12, color: AppColors.muted),
+              const Icon(Icons.lock_outline, size: 14, color: AppColors.ink3),
               const SizedBox(width: 6),
               Text(
                 isEmail ? 'Expires in a few minutes' : 'Code refreshes every 30 seconds',
-                style: AppTextStyles.caption,
+                style: AppTextStyles.bodySmall.copyWith(color: AppColors.ink3),
               ),
             ],
           ),
@@ -336,10 +363,14 @@ class _OtpScaffold extends ConsumerWidget {
         statusBarIconBrightness: Brightness.dark,
       ),
       child: Scaffold(
-        backgroundColor: AppColors.cream,
+        backgroundColor: AppColors.creamyWhite,
         appBar: AppBar(
-          backgroundColor: AppColors.cream,
-          foregroundColor: AppColors.espresso,
+          // The bar is the page itself: creamy white, an ink back arrow.
+          backgroundColor: AppColors.creamyWhite,
+          foregroundColor: AppColors.roastedBlack,
+          iconTheme: const IconThemeData(color: AppColors.roastedBlack),
+          surfaceTintColor: Colors.transparent,
+          scrolledUnderElevation: 0,
           elevation: 0,
           leading: IconButton(
             icon: const Icon(Icons.arrow_back),
@@ -372,12 +403,25 @@ class _BlockedPanel extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: AppDimensions.xl),
       child: Column(
         children: [
-          const Icon(Icons.error_outline, size: 48, color: AppColors.danger),
+          Container(
+            width: 64,
+            height: 64,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: AppColors.dangerSurface,
+              shape: BoxShape.circle,
+              border: Border.all(color: AppColors.dangerBorder),
+            ),
+            child: const Icon(Icons.error_outline,
+                size: 30, color: AppColors.danger),
+          ),
+          const SizedBox(height: AppDimensions.lg),
+          Text(AppTextStyles.caps('Verification unavailable'),
+              style: AppTextStyles.h1, textAlign: TextAlign.center),
           const SizedBox(height: AppDimensions.md),
-          Text('Verification unavailable',
-              style: AppTextStyles.displayMedium, textAlign: TextAlign.center),
-          const SizedBox(height: 8),
-          Text(message, style: AppTextStyles.bodySmall, textAlign: TextAlign.center),
+          Text(message,
+              style: AppTextStyles.bodyLarge.copyWith(color: AppColors.ink2),
+              textAlign: TextAlign.center),
         ],
       ),
     );
@@ -390,21 +434,28 @@ class _InfoBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // A warning: Roasted Black words on California Cream, edged in caramel.
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(13),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: AppColors.warning.withValues(alpha: 0.10),
+        color: AppColors.californiaCream,
         borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
-        border: Border.all(color: AppColors.warning.withValues(alpha: 0.35)),
+        border: Border.all(color: AppColors.goldenCaramel),
       ),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Icon(Icons.info_outline, size: 14, color: AppColors.warning),
-          const SizedBox(width: 9),
+          const Padding(
+            padding: EdgeInsets.only(top: 2),
+            child: Icon(Icons.info_outline,
+                size: 16, color: AppColors.roastedBlack),
+          ),
+          const SizedBox(width: 10),
           Expanded(
             child: Text(message,
-                style: AppTextStyles.caption.copyWith(color: AppColors.warning)),
+                style: AppTextStyles.bodySmall
+                    .copyWith(color: AppColors.roastedBlack)),
           ),
         ],
       ),
@@ -412,8 +463,11 @@ class _InfoBanner extends StatelessWidget {
   }
 }
 
+/// One digit. Empty: cream with a field line. Focused: a 2px ink edge.
+/// Filled: a Roasted Black tile with the digit in Herb. Wrong: a red edge.
 class _DigitBox extends StatelessWidget {
   const _DigitBox({
+    required this.width,
     required this.controller,
     required this.focusNode,
     required this.hasError,
@@ -422,6 +476,7 @@ class _DigitBox extends StatelessWidget {
     required this.onKey,
   });
 
+  final double width;
   final TextEditingController controller;
   final FocusNode focusNode;
   final bool hasError;
@@ -432,46 +487,49 @@ class _DigitBox extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final filled = controller.text.isNotEmpty;
+    final restColor = hasError
+        ? AppColors.danger
+        : (filled ? AppColors.roastedBlack : AppColors.fieldLine);
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 5),
-      child: SizedBox(
-        width: 46,
-        height: 56,
-        child: KeyboardListener(
-          focusNode: FocusNode(skipTraversal: true),
-          onKeyEvent: onKey,
-          child: TextField(
-            controller: controller,
-            focusNode: focusNode,
-            enabled: enabled,
-            onChanged: onChanged,
-            keyboardType: TextInputType.number,
-            textAlign: TextAlign.center,
-            maxLength: 1,
-            showCursor: false,
-            style: AppTextStyles.monoLarge.copyWith(
-              fontSize: 22,
-              color: filled ? AppColors.cream : AppColors.espresso,
-            ),
-            decoration: InputDecoration(
-              counterText: '',
-              filled: true,
-              fillColor: filled ? AppColors.espresso : AppColors.white,
-              contentPadding: EdgeInsets.zero,
-              enabledBorder: _border(
-                  hasError ? AppColors.danger : (filled ? AppColors.espresso : AppColors.latte)),
-              focusedBorder: _border(AppColors.amber, 2),
-              border: _border(AppColors.latte),
-            ),
+    return SizedBox(
+      width: width,
+      height: 58,
+      child: KeyboardListener(
+        focusNode: FocusNode(skipTraversal: true),
+        onKeyEvent: onKey,
+        child: TextField(
+          controller: controller,
+          focusNode: focusNode,
+          enabled: enabled,
+          onChanged: onChanged,
+          keyboardType: TextInputType.number,
+          textAlign: TextAlign.center,
+          maxLength: 1,
+          showCursor: false,
+          // Digits are safe in Herb Display, which only lacks lowercase.
+          style: AppTextStyles.h2.copyWith(
+            fontSize: 28,
+            height: 1,
+            color: filled ? AppColors.creamyWhite : AppColors.roastedBlack,
+          ),
+          decoration: InputDecoration(
+            counterText: '',
+            filled: true,
+            fillColor: filled ? AppColors.roastedBlack : AppColors.creamyWhite,
+            contentPadding: EdgeInsets.zero,
+            enabledBorder: _border(restColor, hasError ? 1.5 : 1),
+            disabledBorder: _border(restColor, hasError ? 1.5 : 1),
+            focusedBorder: _border(
+                hasError ? AppColors.danger : AppColors.roastedBlack, 2),
+            border: _border(AppColors.fieldLine),
           ),
         ),
       ),
     );
   }
 
-  OutlineInputBorder _border(Color c, [double w = 2]) => OutlineInputBorder(
-        borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
+  OutlineInputBorder _border(Color c, [double w = 1]) => OutlineInputBorder(
+        borderRadius: BorderRadius.circular(AppDimensions.radiusSm),
         borderSide: BorderSide(color: c, width: w),
       );
 }

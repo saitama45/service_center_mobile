@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../../core/brand/brand_widgets.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_strings.dart';
 import '../../../core/constants/app_dimensions.dart';
@@ -30,28 +31,27 @@ class HomeScreen extends ConsumerWidget {
     final all = ref.watch(campaignProgressProvider);
 
     return Scaffold(
-      backgroundColor: AppColors.cream,
+      backgroundColor: AppColors.creamyWhite,
       // Members see no hamburger: the drawer's only unique content is the
       // admin module links.
       appBar: AppBar(
-        backgroundColor: AppColors.cream,
-        foregroundColor: AppColors.espresso,
+        backgroundColor: AppColors.creamyWhite,
+        foregroundColor: AppColors.roastedBlack,
         elevation: 0,
-        iconTheme: const IconThemeData(color: AppColors.espresso),
+        toolbarHeight: 44,
         title: const SizedBox.shrink(),
-        actions: const [_SyncChip(), SizedBox(width: AppDimensions.md)],
+        actions: const [_SyncChip(), SizedBox(width: AppDimensions.gutter)],
       ),
+      // Golden Caramel: the one accent object on the page. It grows into the
+      // member-code page (revealFromButtonPage).
       floatingActionButton: FloatingActionButton(
         onPressed: () => context.push(RouteName.scan),
-        backgroundColor: AppColors.amber,
-        foregroundColor: AppColors.white,
-        elevation: 4,
-        shape: const CircleBorder(),
-        child: const Icon(Icons.qr_code_2, size: 26),
+        tooltip: 'My member code',
+        child: const Icon(Icons.qr_code_2, size: 28),
       ),
       body: RefreshIndicator(
-        color: AppColors.amber,
-        backgroundColor: AppColors.white,
+        color: AppColors.roastedBlack,
+        backgroundColor: AppColors.creamyWhite,
         // Real server sync — see the same comment in campaigns_screen.dart.
         // The featured campaign shown here comes from the same catalogue,
         // and pulling with a userId is what picks up a stamp ghelpdesk staff
@@ -62,13 +62,13 @@ class HomeScreen extends ConsumerWidget {
         child: ListView(
           physics: const AlwaysScrollableScrollPhysics(),
           padding: const EdgeInsets.fromLTRB(
-              AppDimensions.md, AppDimensions.sm, AppDimensions.md, 96),
+              AppDimensions.gutter, 0, AppDimensions.gutter, 104),
           children: [
             _Greeting(
               name: user?.fullName ?? '',
               tier: _tierFor(totals.valueOrNull?.earned ?? 0),
             ),
-            const SizedBox(height: AppDimensions.md),
+            const SizedBox(height: AppDimensions.md + 2),
 
             // ── Campaign picker ────────────────────────────────────────────
             // Only earns its space when there's an actual choice to make —
@@ -81,7 +81,7 @@ class HomeScreen extends ConsumerWidget {
                     .read(selectedHomeCampaignIdProvider.notifier)
                     .state = id,
               ),
-              const SizedBox(height: AppDimensions.sm + 2),
+              const SizedBox(height: AppDimensions.md - 2),
             ],
 
             // ── Stamp card hero(es) ────────────────────────────────────────
@@ -108,7 +108,7 @@ class HomeScreen extends ConsumerWidget {
                     sub: 'in progress',
                   ),
                 ),
-                const SizedBox(width: AppDimensions.sm + 2),
+                const SizedBox(width: AppDimensions.sm + 4),
                 Expanded(
                   child: _StatCard(
                     label: 'Lifetime Stamps',
@@ -123,8 +123,9 @@ class HomeScreen extends ConsumerWidget {
             // ── Campaign teaser ────────────────────────────────────────────
             Row(
               children: [
-                const Expanded(
-                    child: Text('Active Campaign', style: AppTextStyles.h3)),
+                Expanded(
+                    child: Text(AppTextStyles.caps('Active Campaign'),
+                        style: AppTextStyles.h2)),
                 TextButton(
                   onPressed: () => context.go(RouteName.campaigns),
                   style: TextButton.styleFrom(
@@ -133,12 +134,13 @@ class HomeScreen extends ConsumerWidget {
                     tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                   ),
                   child: Text('View all',
-                      style: AppTextStyles.button
-                          .copyWith(color: AppColors.amber)),
+                      style: AppTextStyles.button.copyWith(
+                          color: AppColors.roastedBlack,
+                          decoration: TextDecoration.underline)),
                 ),
               ],
             ),
-            const SizedBox(height: AppDimensions.sm),
+            const SizedBox(height: AppDimensions.sm + 2),
             featured.when(
               loading: () => const SizedBox.shrink(),
               error: (_, __) => const SizedBox.shrink(),
@@ -187,13 +189,14 @@ class _Greeting extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Text(AppStrings.appNameFull,
-                  style: AppTextStyles.bodySmall,
+                  style: AppTextStyles.bodyMedium,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis),
-              const SizedBox(height: 2),
+              const SizedBox(height: 6),
               Text(
-                name.isEmpty ? 'Welcome' : name.split(' ').first,
-                style: AppTextStyles.h1,
+                AppTextStyles.caps(
+                    name.isEmpty ? 'Welcome' : name.split(' ').first),
+                style: AppTextStyles.displayLarge,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
@@ -206,31 +209,27 @@ class _Greeting extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
             decoration: BoxDecoration(
-              color: AppColors.gold,
-              borderRadius: BorderRadius.circular(AppDimensions.radiusRound),
+              color: AppColors.goldenCaramel,
+              borderRadius: BorderRadius.circular(4),
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Icon(Icons.star, size: 11, color: AppColors.espresso),
+                const Icon(Icons.star, size: 11, color: AppColors.roastedBlack),
                 const SizedBox(width: 4),
                 Text(tier,
                     style:
-                        AppTextStyles.chip.copyWith(color: AppColors.espresso)),
+                        AppTextStyles.chip.copyWith(color: AppColors.roastedBlack)),
               ],
             ),
           ),
           const SizedBox(width: 10),
         ],
-        // App logo stands in for the user's initials here — the avatar was
-        // decorative, and the mark reads as the brand at this size.
-        ClipOval(
-          child: Image.asset(
-            'assets/images/app_logo.jpg',
-            width: 40,
-            height: 40,
-            fit: BoxFit.cover,
-          ),
+        // The hero logo (brand book p20) on the cream page, pressed on like a
+        // seal. It stands in for the user's initials, as the old mark did.
+        const SealIn(
+          delay: Duration(milliseconds: 120),
+          child: BrandLogo(size: 60),
         ),
       ],
     );
@@ -264,7 +263,7 @@ class _CampaignPicker extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: 38,
+      height: 40,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         padding: EdgeInsets.zero,
@@ -280,10 +279,12 @@ class _CampaignPicker extends StatelessWidget {
               alignment: Alignment.center,
               padding: const EdgeInsets.symmetric(horizontal: 14),
               decoration: BoxDecoration(
-                color: selected ? AppColors.espresso : AppColors.white,
-                borderRadius: BorderRadius.circular(AppDimensions.radiusRound),
+                color: selected
+                    ? AppColors.roastedBlack
+                    : AppColors.creamyWhite,
+                borderRadius: BorderRadius.circular(AppDimensions.radiusSm),
                 border: Border.all(
-                  color: selected ? AppColors.espresso : AppColors.latte,
+                  color: selected ? AppColors.roastedBlack : AppColors.line,
                 ),
               ),
               child: Row(
@@ -292,20 +293,27 @@ class _CampaignPicker extends StatelessWidget {
                   if (p.isUnlocked) ...[
                     Icon(Icons.celebration,
                         size: 13,
-                        color: selected ? AppColors.gold : AppColors.amber),
+                        color: selected
+                            ? AppColors.goldenCaramel
+                            : AppColors.roastedBlack),
                     const SizedBox(width: 6),
                   ],
                   Text(
                     p.campaign.name,
                     style: AppTextStyles.chip.copyWith(
-                      color: selected ? AppColors.cream : AppColors.espresso,
+                      color: selected
+                          ? AppColors.creamyWhite
+                          : AppColors.roastedBlack,
                     ),
                   ),
                   const SizedBox(width: 7),
                   Text(
                     '${p.stamps}/${p.required}',
-                    style: AppTextStyles.caption.copyWith(
-                      color: selected ? AppColors.latte : AppColors.muted,
+                    style: AppTextStyles.chip.copyWith(
+                      fontWeight: FontWeight.w400,
+                      color: selected
+                          ? AppColors.californiaCream
+                          : AppColors.ink3,
                     ),
                   ),
                 ],
@@ -350,7 +358,7 @@ class _StampCardStack extends ConsumerWidget {
     return Column(
       children: [
         for (var i = 0; i < cards.length; i++) ...[
-          if (i > 0) const SizedBox(height: AppDimensions.sm + 4),
+          if (i > 0) const SizedBox(height: AppDimensions.md - 2),
           _StampCardHero(
             progress: cards[i],
             cardLabel: labelled ? cards[i].cardLabel : null,
@@ -371,104 +379,165 @@ class _StampCardHero extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final pct = (progress.progress * 100).round();
+    final unlocked = progress.isUnlocked;
 
-    return CbtlHeroCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+    // Own the headline with type (brand book p44): the campaign and the count
+    // lead in Herb Display. A full card is a key moment, so it alone gets the
+    // one Purple Aura the book allows per layout (p40).
+    return Container(
+      clipBehavior: Clip.antiAlias,
+      decoration: BoxDecoration(
+        color: AppColors.roastedBlack,
+        borderRadius: BorderRadius.circular(AppDimensions.radiusXl),
+      ),
+      child: Stack(
         children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: Column(
+          if (unlocked)
+            const Positioned(
+              top: 0,
+              bottom: 0,
+              right: 0,
+              child: PurpleAura(
+                width: 20,
+                delay: Duration(milliseconds: 260),
+              ),
+            ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // The campaign this card belongs to, named above its own
+                // count — with several cards in play, "8 of 12" means
+                // nothing until you know which campaign it's counting.
+                Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // The campaign this card belongs to, named above its own
-                    // count — with several cards in play, "8 of 12" means
-                    // nothing until you know which campaign it's counting.
-                    // Replaces the old generic "STAMP CARD" label.
-                    Row(
-                      children: [
-                        Flexible(
-                          child: Text(
-                            progress.campaign.name.toUpperCase(),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: AppTextStyles.label.copyWith(
-                                color: AppColors.latte.withValues(alpha: 0.9)),
-                          ),
-                        ),
-                        if (cardLabel != null) ...[
-                          const SizedBox(width: 8),
-                          _CardNumberPill(label: cardLabel!),
-                        ],
-                      ],
+                    Expanded(
+                      child: Text(
+                        AppTextStyles.caps(progress.campaign.name),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: AppTextStyles.h2.copyWith(
+                            color: AppColors.creamyWhite,
+                            fontSize: 30,
+                            height: 0.93),
+                      ),
                     ),
-                    const SizedBox(height: 3),
-                    Text(
-                      '${progress.stamps} of ${progress.required} collected',
-                      style: AppTextStyles.h2.copyWith(color: AppColors.cream),
+                    if (cardLabel != null) ...[
+                      const SizedBox(width: 10),
+                      _CardNumberPill(label: cardLabel!),
+                    ],
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    _CountUp(
+                      value: progress.stamps,
+                      style: AppTextStyles.displayLarge.copyWith(
+                          color: AppColors.creamyWhite,
+                          fontSize: 76,
+                          height: 0.86),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.only(bottom: 6),
+                        child: Text(
+                          'of ${progress.required} collected',
+                          style: AppTextStyles.bodyMedium
+                              .copyWith(color: AppColors.californiaCream),
+                        ),
+                      ),
+                    ),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Text('Progress',
+                            style: AppTextStyles.caption
+                                .copyWith(color: AppColors.californiaCream)),
+                        Text('$pct%',
+                            style: AppTextStyles.statValue.copyWith(
+                                color: AppColors.goldenCaramel,
+                                fontSize: 32)),
+                      ],
                     ),
                   ],
                 ),
-              ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Text('Progress',
-                      style: AppTextStyles.caption
-                          .copyWith(color: AppColors.latte)),
-                  Text('$pct%',
-                      style: AppTextStyles.monoLarge
-                          .copyWith(color: AppColors.gold, fontSize: 22)),
-                ],
-              ),
-            ],
-          ),
-          const SizedBox(height: AppDimensions.md),
-          StampGrid(
-            collected: progress.stamps,
-            total: progress.required,
-            holidaySlots: progress.holidaySlots,
-            holidayCount: progress.holidayCollected,
-            regularCount: progress.regularCollected,
-          ),
-          if (progress.holidaySlots > 0) ...[
-            const SizedBox(height: 10),
-            StampSlotLegend(
-              holidaySlots: progress.holidaySlots,
-              regularSlots: progress.regularSlots,
-            ),
-          ],
-          const SizedBox(height: AppDimensions.sm + 4),
-          const Divider(color: Color(0x1AFFFFFF), height: 1),
-          const SizedBox(height: 10),
-          Row(
-            children: [
-              Icon(
-                progress.isUnlocked ? Icons.celebration : Icons.lock_outline,
-                size: 13,
-                color: progress.isUnlocked
-                    ? AppColors.gold
-                    : AppColors.latte.withValues(alpha: 0.7),
-              ),
-              const SizedBox(width: 7),
-              Expanded(
-                child: Text(
-                  progress.isUnlocked
-                      ? 'Reward unlocked — ${progress.campaign.name} is ready to redeem'
-                      : '${progress.remaining} more to unlock ${progress.campaign.name}',
-                  style: AppTextStyles.caption.copyWith(
-                    color: progress.isUnlocked
-                        ? AppColors.gold
-                        : AppColors.latte.withValues(alpha: 0.75),
-                  ),
+                const SizedBox(height: 18),
+                StampGrid(
+                  collected: progress.stamps,
+                  total: progress.required,
+                  holidaySlots: progress.holidaySlots,
+                  holidayCount: progress.holidayCollected,
+                  regularCount: progress.regularCollected,
                 ),
-              ),
-            ],
+                if (progress.holidaySlots > 0) ...[
+                  const SizedBox(height: 14),
+                  StampSlotLegend(
+                    holidaySlots: progress.holidaySlots,
+                    regularSlots: progress.regularSlots,
+                  ),
+                ],
+                const SizedBox(height: 14),
+                const Divider(color: Color(0x2EFAEFE6), height: 1),
+                const SizedBox(height: 12),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.only(top: 2),
+                      child: Icon(
+                        unlocked ? Icons.celebration : Icons.lock_outline,
+                        size: 15,
+                        color: unlocked
+                            ? AppColors.goldenCaramel
+                            : AppColors.californiaCream,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        unlocked
+                            ? 'Reward unlocked — ${progress.campaign.name} is ready to redeem'
+                            : '${progress.remaining} more to unlock ${progress.campaign.name}',
+                        style: AppTextStyles.bodySmall.copyWith(
+                          color: unlocked
+                              ? AppColors.goldenCaramel
+                              : AppColors.californiaCream,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
         ],
       ),
+    );
+  }
+}
+
+/// Counts up to [value] once, on the curve the rest of the card arrives on.
+class _CountUp extends StatelessWidget {
+  const _CountUp({required this.value, required this.style});
+
+  final int value;
+  final TextStyle style;
+
+  @override
+  Widget build(BuildContext context) {
+    if (MediaQuery.maybeDisableAnimationsOf(context) ?? false) {
+      return Text('$value', style: style);
+    }
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: 0, end: value.toDouble()),
+      duration: const Duration(milliseconds: 800),
+      curve: BrandCurves.slowOut,
+      builder: (_, v, __) => Text('${v.round()}', style: style),
     );
   }
 }
@@ -479,16 +548,16 @@ class _CardNumberPill extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
         decoration: BoxDecoration(
-          color: AppColors.gold.withValues(alpha: 0.14),
-          borderRadius: BorderRadius.circular(AppDimensions.radiusRound),
-          border: Border.all(color: AppColors.gold.withValues(alpha: 0.5)),
+          color: AppColors.goldenCaramel,
+          borderRadius: BorderRadius.circular(3),
         ),
         child: Text(
           label,
           maxLines: 1,
-          style: AppTextStyles.chip.copyWith(color: AppColors.gold, fontSize: 10),
+          style: AppTextStyles.chip
+              .copyWith(color: AppColors.roastedBlack, fontSize: 12),
         ),
       );
 }
@@ -497,7 +566,7 @@ class _HeroSkeleton extends StatelessWidget {
   const _HeroSkeleton();
 
   @override
-  Widget build(BuildContext context) => CbtlHeroCard(
+  Widget build(BuildContext context) => const CbtlHeroCard(
         child: SizedBox(
           height: 168,
           child: Center(
@@ -505,7 +574,7 @@ class _HeroSkeleton extends StatelessWidget {
               width: 22,
               height: 22,
               child: CircularProgressIndicator(
-                  strokeWidth: 2.2, color: AppColors.gold),
+                  strokeWidth: 2.2, color: AppColors.goldenCaramel),
             ),
           ),
         ),
@@ -520,12 +589,14 @@ class _NoCampaignsCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text("You haven't started a card yet",
-                style: AppTextStyles.h2.copyWith(color: AppColors.cream)),
-            const SizedBox(height: 6),
+            Text(AppTextStyles.caps("You haven't started a card yet"),
+                style: AppTextStyles.h2.copyWith(
+                    color: AppColors.creamyWhite, fontSize: 28)),
+            const SizedBox(height: 10),
             Text(
               'Show your member code at checkout to get your first stamp.',
-              style: AppTextStyles.bodySmall.copyWith(color: AppColors.latte),
+              style: AppTextStyles.bodyMedium
+                  .copyWith(color: AppColors.californiaCream),
             ),
           ],
         ),
@@ -548,15 +619,19 @@ class _StatCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return CbtlCard(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      color: AppColors.californiaCream,
+      borderColor: AppColors.californiaCream,
+      padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label, style: AppTextStyles.caption),
-          const SizedBox(height: 4),
+          Text(label,
+              style: AppTextStyles.bodySmall.copyWith(color: AppColors.ink2)),
+          const SizedBox(height: 8),
           Text(value, style: AppTextStyles.statValue),
-          const SizedBox(height: 2),
-          Text(sub, style: AppTextStyles.caption),
+          const SizedBox(height: 6),
+          Text(sub,
+              style: AppTextStyles.caption.copyWith(color: AppColors.ink2)),
         ],
       ),
     );
@@ -579,12 +654,12 @@ class _CampaignTeaser extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            width: 42,
-            height: 42,
+            width: 44,
+            height: 44,
             alignment: Alignment.center,
-            decoration: BoxDecoration(
-              color: AppColors.latteLight,
-              borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
+            decoration: const BoxDecoration(
+              color: AppColors.californiaCream,
+              shape: BoxShape.circle,
             ),
             child: Text(progress.campaign.emoji ?? '☕',
                 style: const TextStyle(fontSize: 20)),
@@ -600,10 +675,15 @@ class _CampaignTeaser extends StatelessWidget {
                   progress.isUnlocked
                       ? 'Ready to redeem'
                       : 'Collect ${progress.remaining} more stamps',
-                  style: AppTextStyles.caption,
+                  style: AppTextStyles.bodySmall,
                 ),
-                const SizedBox(height: 9),
-                CbtlProgressBar(value: progress.progress, height: 6),
+                const SizedBox(height: 10),
+                CbtlProgressBar(
+                  value: progress.progress,
+                  color: progress.isUnlocked
+                      ? AppColors.goldenCaramel
+                      : AppColors.roastedBlack,
+                ),
               ],
             ),
           ),
@@ -628,16 +708,18 @@ class _SyncChip extends ConsumerWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
-        color: AppColors.warning.withValues(alpha: 0.15),
-        borderRadius: BorderRadius.circular(AppDimensions.radiusRound),
+        color: AppColors.californiaCream,
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: AppColors.goldenCaramel),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(Icons.cloud_off, size: 13, color: AppColors.warning),
+          const Icon(Icons.cloud_off, size: 13, color: AppColors.roastedBlack),
           const SizedBox(width: 6),
           Text('Offline',
-              style: AppTextStyles.chip.copyWith(color: AppColors.warning)),
+              style:
+                  AppTextStyles.chip.copyWith(color: AppColors.roastedBlack)),
         ],
       ),
     );

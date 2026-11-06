@@ -24,20 +24,20 @@ class PrivacyPolicyScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.cream,
+      backgroundColor: AppColors.creamyWhite,
       appBar: CbtlAppBar(
         title: 'Privacy Policy',
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppColors.white),
+          icon: const Icon(Icons.arrow_back, color: AppColors.roastedBlack),
           onPressed: () => context.go('/dashboard/profile'),
         ),
       ),
       body: SafeArea(
         child: ListView(
           padding: const EdgeInsets.fromLTRB(
+            AppDimensions.gutter,
             AppDimensions.md,
-            AppDimensions.md,
-            AppDimensions.md,
+            AppDimensions.gutter,
             AppDimensions.xl,
           ),
           children: const [
@@ -295,16 +295,19 @@ class _Header extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('The Fine Print – Made Simple',
-            style: AppTextStyles.chip.copyWith(color: AppColors.amber)),
+        // An eyebrow in wide-tracked capitals over a Herb Display title.
+        Text('The Fine Print – Made Simple'.toUpperCase(),
+            style: AppTextStyles.label.copyWith(
+                fontSize: 11, color: AppColors.roastedBlack)),
         const SizedBox(height: 6),
-        Text('Privacy Policy', style: AppTextStyles.h1),
-        const SizedBox(height: 4),
+        Text(AppTextStyles.caps('Privacy Policy'),
+            style: AppTextStyles.h2.copyWith(fontSize: 28)),
+        const SizedBox(height: 6),
         Text('Coffee Bean & Tea Leaf Rewards · CBTL App',
-            style: AppTextStyles.bodySmall),
+            style: AppTextStyles.bodyMedium.copyWith(color: AppColors.ink2)),
         const SizedBox(height: 2),
-        Text(PrivacyPolicyScreen._effectiveDate,
-            style: AppTextStyles.bodySmall.copyWith(color: AppColors.muted)),
+        const Text(PrivacyPolicyScreen._effectiveDate,
+            style: AppTextStyles.caption),
       ],
     );
   }
@@ -316,15 +319,14 @@ class _Summary extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // A California Cream panel: the brand's tint for a highlighted block.
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(AppDimensions.md),
-      decoration: const BoxDecoration(
-        color: AppColors.white,
-        border: Border(
-          left: BorderSide(color: AppColors.brown, width: 4),
-        ),
-        borderRadius: BorderRadius.horizontal(right: Radius.circular(12)),
+      padding: const EdgeInsets.symmetric(
+          horizontal: AppDimensions.md, vertical: AppDimensions.md - 2),
+      decoration: BoxDecoration(
+        color: AppColors.californiaCream,
+        borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
       ),
       child: Text(text, style: AppTextStyles.bodyMedium),
     );
@@ -338,15 +340,8 @@ class _Section extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(top: AppDimensions.lg, bottom: 8),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(title, style: AppTextStyles.h3),
-          const SizedBox(height: 6),
-          const Divider(height: 1, color: AppColors.latte),
-        ],
-      ),
+      padding: const EdgeInsets.only(top: AppDimensions.lg, bottom: 10),
+      child: Text(title, style: AppTextStyles.h3),
     );
   }
 }
@@ -359,7 +354,8 @@ class _Body extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
-      child: Text(text, style: AppTextStyles.bodyMedium),
+      child: Text(text,
+          style: AppTextStyles.bodyMedium.copyWith(color: AppColors.ink2)),
     );
   }
 }
@@ -381,12 +377,16 @@ class _Bullet extends StatelessWidget {
               width: 5,
               height: 5,
               decoration: const BoxDecoration(
-                color: AppColors.amber,
+                color: AppColors.roastedBlack,
                 shape: BoxShape.circle,
               ),
             ),
           ),
-          Expanded(child: Text(text, style: AppTextStyles.bodyMedium)),
+          Expanded(
+            child: Text(text,
+                style:
+                    AppTextStyles.bodyMedium.copyWith(color: AppColors.ink2)),
+          ),
         ],
       ),
     );
@@ -402,22 +402,20 @@ class _ContactCard extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(AppDimensions.md),
       decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
-        border: Border.all(color: AppColors.latte),
+        color: AppColors.creamyWhite,
+        borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
+        border: Border.all(color: AppColors.line),
       ),
-      child: Column(
+      child: const Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Table Group Inc.',
-              style:
-                  AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.w700)),
-          const SizedBox(height: 8),
-          const _Body(
+          Text('Table Group Inc.', style: AppTextStyles.h3),
+          SizedBox(height: 8),
+          _Body(
             'Privacy questions: info@tablegroup.com.ph '
             '(subject line: CBTL Privacy Request)',
           ),
-          const _Body(
+          _Body(
             'Account deletion: tasservices@tablegroup.com.ph '
             '(subject line: Account Deletion Request)',
           ),

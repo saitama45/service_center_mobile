@@ -224,5 +224,9 @@ Removing them is safe only after confirming no screen imports them.
   (from the retired `google_maps_flutter_ios`) failed the archive on 2026-09-28 while local
   builds passed.
 - `start_emulator.ps1` launches the `Pixel_6_API_35` AVD.
-- Fonts are bundled locally in `assets/fonts/` (DMSans, PlayfairDisplay, DMMono) — no network
-  font loading.
+- Fonts are bundled locally in `assets/fonts/brand/` (CBTL Herb Display, Booster Sans, Booster
+  Sans Narrow) — no network font loading. They are licensed, so they are gitignored; git
+  holds only `assets/fonts/brand-fonts.zip.gpg`, which the Play release workflow decrypts
+  with the `BRAND_FONTS_PASSPHRASE` secret. The old DM Sans,
+  Playfair and DM Mono files in `assets/fonts/` are no longer bundled; the design generator
+  in `design/` still reads them.

@@ -79,7 +79,8 @@ class DeleteAccountDialogState extends ConsumerState<DeleteAccountDialog> {
   /// Step 1 — no input and nothing destructive. "Continue" only advances.
   Widget _confirmStage() {
     return AlertDialog(
-      title: const Text('Delete Account?', style: AppTextStyles.h2),
+      title: Text(AppTextStyles.caps('Delete Account?'),
+          style: AppTextStyles.h2),
       content: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -107,14 +108,15 @@ class DeleteAccountDialogState extends ConsumerState<DeleteAccountDialog> {
             const SizedBox(height: AppDimensions.sm),
             InkWell(
               onTap: () => openExternalUrl(context, AppUrls.accountDeletion),
-              child: const Padding(
-                padding: EdgeInsets.symmetric(vertical: 4),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 4),
                 child: Text(
                   'Read the full deletion policy',
-                  style: TextStyle(
-                    color: AppColors.caramel,
+                  style: AppTextStyles.chip.copyWith(
+                    fontSize: 14,
+                    color: AppColors.roastedBlack,
                     decoration: TextDecoration.underline,
-                    fontSize: 13,
+                    decorationColor: AppColors.roastedBlack,
                   ),
                 ),
               ),
@@ -129,8 +131,8 @@ class DeleteAccountDialogState extends ConsumerState<DeleteAccountDialog> {
         ),
         TextButton(
           onPressed: () => setState(() => _stage = DeleteAccountStage.password),
-          child: const Text('Continue',
-              style: TextStyle(color: AppColors.danger)),
+          style: TextButton.styleFrom(foregroundColor: AppColors.danger),
+          child: const Text('Continue'),
         ),
       ],
     );
@@ -139,7 +141,8 @@ class DeleteAccountDialogState extends ConsumerState<DeleteAccountDialog> {
   /// Step 2 — re-authenticate, then the request goes out.
   Widget _passwordStage() {
     return AlertDialog(
-      title: const Text('Confirm Deletion', style: AppTextStyles.h2),
+      title: Text(AppTextStyles.caps('Confirm Deletion'),
+          style: AppTextStyles.h2),
       content: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -157,13 +160,21 @@ class DeleteAccountDialogState extends ConsumerState<DeleteAccountDialog> {
               obscureText: _obscured,
               autofocus: true,
               autofillHints: const [AutofillHints.password],
+              style: AppTextStyles.bodyLarge,
+              cursorColor: AppColors.roastedBlack,
               decoration: InputDecoration(
                 labelText: 'Your password',
                 errorText: _error,
+                errorStyle: AppTextStyles.errorText,
+                errorMaxLines: 3,
                 suffixIcon: IconButton(
-                  icon: Icon(_obscured
-                      ? Icons.visibility_outlined
-                      : Icons.visibility_off_outlined),
+                  icon: Icon(
+                    _obscured
+                        ? Icons.visibility_outlined
+                        : Icons.visibility_off_outlined,
+                    color: AppColors.ink3,
+                    size: 20,
+                  ),
                   onPressed: () => setState(() => _obscured = !_obscured),
                 ),
               ),
@@ -187,14 +198,15 @@ class DeleteAccountDialogState extends ConsumerState<DeleteAccountDialog> {
         ),
         TextButton(
           onPressed: _busy ? null : _submit,
+          style: TextButton.styleFrom(foregroundColor: AppColors.danger),
           child: _busy
               ? const SizedBox(
                   width: 16,
                   height: 16,
-                  child: CircularProgressIndicator(strokeWidth: 2),
+                  child: CircularProgressIndicator(
+                      strokeWidth: 2, color: AppColors.danger),
                 )
-              : const Text('Delete My Account',
-                  style: TextStyle(color: AppColors.danger)),
+              : const Text('Delete My Account'),
         ),
       ],
     );

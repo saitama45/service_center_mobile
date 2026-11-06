@@ -20,14 +20,15 @@ class MainShellScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.cream,
+      backgroundColor: AppColors.creamyWhite,
       // Closed-beta confidentiality notice, once per member (Android only).
       body: BetaNoticeGate(child: navigationShell),
       bottomNavigationBar: Container(
-        // Hairline top border instead of a shadow — matches the card language.
+        // A Roasted Black rule over a cream bar, like the band on the cup
+        // sleeve; the active tab is a black pill (theme).
         decoration: const BoxDecoration(
-          color: AppColors.white,
-          border: Border(top: BorderSide(color: AppColors.latte)),
+          color: AppColors.creamyWhite,
+          border: Border(top: BorderSide(color: AppColors.roastedBlack)),
         ),
         child: NavigationBar(
           backgroundColor: Colors.transparent,

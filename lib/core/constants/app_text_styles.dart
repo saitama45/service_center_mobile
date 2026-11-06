@@ -1,194 +1,214 @@
 import 'package:flutter/material.dart';
 import 'app_colors.dart';
 
-/// Typography for the "BrewPass" design language.
+/// Typography from the April 2026 brand book (p31-35).
 ///
-/// Three typefaces, each with one job:
-///   • [display] — Playfair Display, a serif reserved for headings and hero
-///     numerals. It is what makes the app read as premium rather than generic.
-///   • [body]    — DM Sans, everything else.
-///   • [mono]    — DM Mono, for figures that need to line up: IDs, timestamps,
-///     counters, coordinates.
+/// Three faces, each with one job:
+///   • [display] — CBTL Herb Display, for headlines and big numbers. It has
+///     no lowercase letters, so every string set in it must be passed through
+///     `.toUpperCase()`; a lowercase letter would fall back to another font.
+///     Leading 90%, tracking 0, one to three lines.
+///   • [body]    — Booster Sans, everything you read. Tracking 2%, leading
+///     160% for running text. Semibold only for short emphasis.
+///   • [mono]    — Booster Sans Narrow ("Body Copy Tall"), for chips, codes
+///     and timestamps where width is tight.
 class AppTextStyles {
   AppTextStyles._();
 
-  static const String display = 'PlayfairDisplay';
-  static const String body = 'DMSans';
-  static const String mono = 'DMMono';
+  static const String display = 'CBTLHerbDisplay';
+  static const String body = 'BoosterSans';
+  static const String mono = 'BoosterSansNarrow';
 
-  // ── Display / Hero text ───────────────────────────────────────────────────
+  /// Herb Display has no lowercase. Use for every string set in a display
+  /// style (displayLarge/Medium, h1, h2, appBarTitle, statValue).
+  static String caps(String text) => text.toUpperCase();
+
+  // ── Display / Hero text (Herb Display, capitals) ──────────────────────────
   static const TextStyle displayLarge = TextStyle(
     fontFamily: display,
-    fontSize: 30,
-    fontWeight: FontWeight.w700,
-    color: AppColors.espresso,
-    letterSpacing: -0.4,
-    height: 1.15,
+    fontSize: 52,
+    fontWeight: FontWeight.w900,
+    color: AppColors.roastedBlack,
+    height: 0.9,
   );
 
   static const TextStyle displayMedium = TextStyle(
     fontFamily: display,
-    fontSize: 24,
-    fontWeight: FontWeight.w700,
-    color: AppColors.espresso,
-    height: 1.2,
+    fontSize: 36,
+    fontWeight: FontWeight.w900,
+    color: AppColors.roastedBlack,
+    height: 0.92,
   );
 
   // ── Headings ──────────────────────────────────────────────────────────────
-  /// Screen titles. Serif — the signature of the design.
+  /// Screen titles. Herb Display, capitals.
   static const TextStyle h1 = TextStyle(
     fontFamily: display,
-    fontSize: 21,
-    fontWeight: FontWeight.w700,
-    color: AppColors.espresso,
-    height: 1.25,
+    fontSize: 36,
+    fontWeight: FontWeight.w900,
+    color: AppColors.roastedBlack,
+    height: 0.92,
   );
 
+  /// Section and dialog titles. Herb Display, capitals.
   static const TextStyle h2 = TextStyle(
     fontFamily: display,
-    fontSize: 17,
-    fontWeight: FontWeight.w700,
-    color: AppColors.espresso,
-    height: 1.3,
+    fontSize: 24,
+    fontWeight: FontWeight.w900,
+    color: AppColors.roastedBlack,
+    height: 0.95,
   );
 
-  /// Section labels inside cards — sans, so it sits below [h2] in the hierarchy.
+  /// Labels inside cards — Booster Semibold, below [h2] in the hierarchy.
   static const TextStyle h3 = TextStyle(
     fontFamily: body,
-    fontSize: 14,
-    fontWeight: FontWeight.w700,
-    color: AppColors.espresso,
-    height: 1.35,
+    fontSize: 15,
+    fontWeight: FontWeight.w600,
+    color: AppColors.roastedBlack,
+    letterSpacing: 0.3,
+    height: 1.4,
   );
 
-  // ── Body ──────────────────────────────────────────────────────────────────
+  // ── Body (Booster Sans, 2% tracking) ──────────────────────────────────────
   static const TextStyle bodyLarge = TextStyle(
     fontFamily: body,
     fontSize: 15,
     fontWeight: FontWeight.w400,
-    color: AppColors.espresso,
-    height: 1.45,
+    color: AppColors.roastedBlack,
+    letterSpacing: 0.3,
+    height: 1.6,
   );
 
   static const TextStyle bodyMedium = TextStyle(
     fontFamily: body,
-    fontSize: 13.5,
+    fontSize: 14,
     fontWeight: FontWeight.w400,
-    color: AppColors.espresso,
-    height: 1.45,
+    color: AppColors.roastedBlack,
+    letterSpacing: 0.28,
+    height: 1.55,
   );
 
   static const TextStyle bodySmall = TextStyle(
     fontFamily: body,
-    fontSize: 12,
+    fontSize: 12.5,
     fontWeight: FontWeight.w400,
-    color: AppColors.muted,
-    height: 1.4,
+    color: AppColors.ink2,
+    letterSpacing: 0.25,
+    height: 1.55,
   );
 
   // ── Button ────────────────────────────────────────────────────────────────
   static const TextStyle button = TextStyle(
     fontFamily: body,
-    fontSize: 14,
-    fontWeight: FontWeight.w700,
-    letterSpacing: 0.2,
+    fontSize: 15,
+    fontWeight: FontWeight.w600,
+    letterSpacing: 0.3,
   );
 
   // ── Label / Caption ───────────────────────────────────────────────────────
-  /// Field labels — small, uppercase, wide-tracked. Straight from the mock.
+  /// Field labels — small, uppercase, wide-tracked. Pass uppercase text.
   static const TextStyle label = TextStyle(
     fontFamily: body,
-    fontSize: 10,
+    fontSize: 10.5,
     fontWeight: FontWeight.w600,
-    color: AppColors.muted,
-    letterSpacing: 0.9,
+    color: AppColors.ink2,
+    letterSpacing: 1.2,
   );
 
+  /// The book's caption: Booster 12, tracking 2%, leading 160% (p35).
   static const TextStyle caption = TextStyle(
     fontFamily: body,
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: FontWeight.w400,
-    color: AppColors.muted,
-    height: 1.4,
+    color: AppColors.ink3,
+    letterSpacing: 0.24,
+    height: 1.6,
   );
 
   // ── Specialised ───────────────────────────────────────────────────────────
+  /// App bar titles sit on cream, in Herb Display capitals.
   static const TextStyle appBarTitle = TextStyle(
     fontFamily: display,
-    fontSize: 18,
-    fontWeight: FontWeight.w700,
-    color: AppColors.cream,
-    letterSpacing: 0.2,
+    fontSize: 32,
+    fontWeight: FontWeight.w900,
+    color: AppColors.roastedBlack,
+    height: 0.95,
   );
 
   static const TextStyle appBarSubtitle = TextStyle(
     fontFamily: body,
-    fontSize: 11,
+    fontSize: 12.5,
     fontWeight: FontWeight.w400,
-    color: AppColors.latte,
+    color: AppColors.ink2,
+    letterSpacing: 0.25,
   );
 
   static const TextStyle chip = TextStyle(
-    fontFamily: body,
-    fontSize: 11,
-    fontWeight: FontWeight.w700,
-    letterSpacing: 0.2,
+    fontFamily: mono,
+    fontSize: 13,
+    fontWeight: FontWeight.w600,
+    letterSpacing: 0.26,
   );
 
   static const TextStyle errorText = TextStyle(
     fontFamily: body,
     fontSize: 12.5,
-    fontWeight: FontWeight.w500,
+    fontWeight: FontWeight.w400,
     color: AppColors.danger,
-    height: 1.4,
+    letterSpacing: 0.25,
+    height: 1.5,
   );
 
   static const TextStyle tableHeader = TextStyle(
     fontFamily: body,
-    fontSize: 10,
-    fontWeight: FontWeight.w700,
-    color: AppColors.muted,
-    letterSpacing: 0.8,
+    fontSize: 10.5,
+    fontWeight: FontWeight.w600,
+    color: AppColors.ink3,
+    letterSpacing: 1.2,
   );
 
   static const TextStyle tableCell = TextStyle(
     fontFamily: body,
     fontSize: 13,
     fontWeight: FontWeight.w400,
-    color: AppColors.espresso,
+    color: AppColors.roastedBlack,
+    letterSpacing: 0.26,
   );
 
-  // ── Monospace ─────────────────────────────────────────────────────────────
-  /// Record IDs, timestamps, coordinates — anything that should align.
+  // ── Codes and figures (Booster Sans Narrow) ───────────────────────────────
+  /// Record IDs, timestamps — anything that should stay compact.
   static const TextStyle monoSmall = TextStyle(
     fontFamily: mono,
-    fontSize: 11,
+    fontSize: 12.5,
     fontWeight: FontWeight.w400,
-    color: AppColors.muted,
+    color: AppColors.ink3,
+    letterSpacing: 0.4,
   );
 
+  /// Codes a cashier may have to type, so every character must be distinct.
   static const TextStyle monoMedium = TextStyle(
     fontFamily: mono,
-    fontSize: 13,
-    fontWeight: FontWeight.w500,
-    color: AppColors.espresso,
+    fontSize: 15,
+    fontWeight: FontWeight.w600,
+    color: AppColors.roastedBlack,
+    letterSpacing: 0.5,
   );
 
-  /// Big figures — clock readouts, counters, KPI values.
+  /// Big figures that may hold letters — counters, keys.
   static const TextStyle monoLarge = TextStyle(
     fontFamily: mono,
     fontSize: 22,
-    fontWeight: FontWeight.w500,
-    color: AppColors.espresso,
-    letterSpacing: -0.5,
+    fontWeight: FontWeight.w600,
+    color: AppColors.roastedBlack,
+    letterSpacing: 0.4,
   );
 
-  /// Hero statistic on a card — serif, heavy.
+  /// Hero statistic on a card — Herb Display numerals.
   static const TextStyle statValue = TextStyle(
     fontFamily: display,
-    fontSize: 26,
-    fontWeight: FontWeight.w700,
-    color: AppColors.espresso,
-    height: 1.1,
+    fontSize: 40,
+    fontWeight: FontWeight.w900,
+    color: AppColors.roastedBlack,
+    height: 0.9,
   );
 }
