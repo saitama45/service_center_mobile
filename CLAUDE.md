@@ -204,7 +204,8 @@ The suite in `test/` runs with `flutter.bat` + the `test` subcommand; it uses on
 
 **Play releases are CI** (`.github/workflows/play-release.yml`, added 2026-10-19): bump
 `version:` in `pubspec.yaml` (the `+N` is the Play version code and must exceed every code Play
-has seen), edit `distribution/whatsnew/whatsnew-en-US` (≤500 chars, tester-facing), commit, then
+has seen), edit `distribution/whatsnew/whatsnew-en-US` (≤500 chars; it is also the in-app "What's
+new" popup, iOS included, so it must never call the app a beta — Guideline 2.2), commit, then
 push a tag equal to the version name (`v1.0.3`). The job restores the brand fonts, tests, signs from repository secrets,
 and uploads to Closed testing (Alpha); "Run workflow" can target internal/production. It builds
 with no `--dart-define`, so it always targets production.
@@ -305,12 +306,24 @@ with no `--dart-define`, so it always targets production.
 - Stamp replay protection is the **unique index on `loyalty_transactions.scan_token`**, not the
   friendly pre-check inside `earnStamp`.
 - `package:cbtl/...` is the import prefix everywhere, including in `test/`.
-- **Play Store in-app update prompt** (added 2026-09-24, `AppUpdateChecker`,
-  `lib/core/utils/app_update_checker.dart`) runs on launch and every resume from `CbtlApp`.
-  Prefers Play's full-screen immediate update, falls back to flexible; a decline is
-  re-asked after 1 hour. Works only on Play-installed builds (any testing track) — debug
-  and sideloaded runs throw inside Play and are silently skipped, so test it through
-  Internal testing / internal app sharing, never `flutter run`.
+- **Every new store release is a forced update, on Android and iOS** (2026-11-09, replaced the
+  dismissible in-app prompt). `AppUpdateChecker.findUpdate` runs on launch (the splash waits up
+  to 4s) and on every resume; while `forceUpdateProvider` holds a store URL the router keeps
+  every route on `ForceUpdateScreen`, whose only action opens that store's app. A check that
+  fails opens the app (the member QR must work offline). **Android** asks Play, which answers
+  per install and per track; the listing URL is the same for closed testing and production, so
+  there is nothing to switch at launch, and halting a rollout unblocks members. It works only on
+  Play-installed builds — debug and sideloaded runs throw inside Play and are skipped, so test
+  it through Internal testing / internal app sharing, never `flutter run`. **iOS** compares the
+  installed version with Apple's public lookup (`itunes.apple.com/lookup`, `country=ph`, so the
+  app must be sold in the PH storefront). Only a strictly newer store version blocks, so
+  TestFlight and App Review builds pass, and the lookup is empty until the app is public. It
+  sees only the version name, so **an iOS release must bump `x.y.z`, not just `+N`**.
+- **"What's new" popup after an update** (2026-11-09, `screens/whats_new/whats_new.dart`). Once
+  per release per device, on first reaching the signed-in shell, after the beta notice
+  (`BetaNoticeGate` runs both so they never stack). The text is the bundled
+  `distribution/whatsnew/whatsnew-en-US`, so a release's notes are written once. A fresh install
+  is recognised before seeding (no `arch_reset_v7` yet) and marked as already told.
 - **`flutter build appbundle` ends with "failed to strip debug symbols"** on this machine —
   a false alarm: `cmdline-tools/latest` has no `bin/apkanalyzer`. The AAB is written,
   signed and stripped; confirm with `unzip -l … | grep .sym`.

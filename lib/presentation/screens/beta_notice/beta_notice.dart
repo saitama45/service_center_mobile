@@ -9,6 +9,7 @@ import '../../../core/widgets/cbtl_button.dart';
 import '../../../database/daos/settings_dao.dart';
 import '../../providers/app_providers.dart';
 import '../../providers/auth_provider.dart';
+import '../whats_new/whats_new.dart';
 
 /// The closed-beta confidentiality notice every member must accept once,
 /// the first time they reach the app after signing in.
@@ -85,7 +86,9 @@ final betaNoticeStoreProvider = Provider<BetaNoticeStore>(
 /// post-login gate, so OTP and biometrics are always done first.
 ///
 /// Declining signs the member out — the app is not usable without the
-/// acceptance, and they are asked again at their next sign-in.
+/// acceptance, and they are asked again at their next sign-in. Once it is
+/// settled (or on iOS, where it never shows) the release's "What's new"
+/// follows, on every platform.
 class BetaNoticeGate extends ConsumerStatefulWidget {
   const BetaNoticeGate({super.key, required this.child});
 
@@ -105,20 +108,27 @@ class _BetaNoticeGateState extends ConsumerState<BetaNoticeGate> {
   }
 
   Future<void> _maybeShow() async {
-    if (!BetaNotice.enabled || _showing || !mounted) return;
+    if (_showing || !mounted) return;
     final user = ref.read(currentUserProvider);
     if (user == null) return;
 
     _showing = true;
     try {
-      final store = ref.read(betaNoticeStoreProvider);
-      if (await store.isAccepted(user.id) || !mounted) return;
-
-      if (await showBetaNoticeDialog(context)) {
-        await store.accept(user.id);
-      } else {
-        await ref.read(authProvider.notifier).logout();
+      if (BetaNotice.enabled) {
+        final store = ref.read(betaNoticeStoreProvider);
+        if (!await store.isAccepted(user.id)) {
+          if (!mounted) return;
+          if (await showBetaNoticeDialog(context)) {
+            await store.accept(user.id);
+          } else {
+            await ref.read(authProvider.notifier).logout();
+            return;
+          }
+        }
       }
+
+      // Held until the notice is settled so the two dialogs never stack.
+      if (mounted) await showWhatsNewIfDue(context, ref);
     } finally {
       _showing = false;
     }

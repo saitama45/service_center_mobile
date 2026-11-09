@@ -204,7 +204,7 @@ catch up on the next resume/refresh/login.
 | `bcrypt` | pure-Dart password hashing (no native bindings) | `BcryptUtil`, `LoginUseCase` |
 | `crypto` | SHA-256 token hashing | `TokenUtil`, `permission_provider.dart` |
 | `uuid` | client-generated PKs, deterministic v5 seed ids | tables, `SeedRunner` |
-| `in_app_update` | Play Store "update available" prompt (Android, Play installs only) | `AppUpdateChecker`, `app.dart` |
+| `in_app_update` | asks Play whether a newer build exists, for the forced update screen (Android, Play installs only; iOS uses Apple's public lookup instead) | `AppUpdateChecker`, `forceUpdateProvider` |
 | `package_info_plus` | installed "Version x.y.z (build)" on Splash + Profile | `appVersionProvider`, `AppVersionText` |
 
 ## Declared but currently unused

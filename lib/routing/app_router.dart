@@ -4,10 +4,12 @@ import 'package:go_router/go_router.dart';
 import '../core/brand/brand_transitions.dart';
 import '../presentation/providers/auth_flow_provider.dart';
 import '../presentation/providers/auth_provider.dart';
+import '../presentation/providers/force_update_provider.dart';
 import '../presentation/screens/auth/authenticator_setup_screen.dart';
 import '../presentation/screens/auth/biometric_screen.dart';
 import '../presentation/screens/auth/otp_screen.dart';
 import '../presentation/screens/campaigns/campaigns_screen.dart';
+import '../presentation/screens/force_update/force_update_screen.dart';
 import '../presentation/screens/home/home_screen.dart';
 import '../presentation/screens/ledger/ledger_screen.dart';
 import '../presentation/screens/login/forgot_password_screen.dart';
@@ -34,6 +36,14 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       final isAuthenticated = authState is AuthAuthenticated;
       final location = state.matchedLocation;
       final step = ref.read(postLoginStepProvider);
+
+      // A required update outranks everything, signed in or not. If it goes
+      // away (a release pulled from the store), splash re-routes the member.
+      final updateRequired = ref.read(forceUpdateProvider) != null;
+      if (location == RouteName.updateRequired) {
+        return updateRequired ? null : RouteName.splash;
+      }
+      if (updateRequired) return RouteName.updateRequired;
 
       // Splash, login, sign-up and password reset need no session.
       if (location == RouteName.splash ||
@@ -64,6 +74,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: RouteName.splash,
         builder: (ctx, state) => const SplashScreen(),
+      ),
+      GoRoute(
+        path: RouteName.updateRequired,
+        builder: (ctx, state) => const ForceUpdateScreen(),
       ),
       // Moving between whole sections (splash, sign-in, the app itself),
       // Golden Caramel pours down the screen. Pushes inside a section keep
@@ -181,5 +195,6 @@ class _AuthStateListenable extends ChangeNotifier {
     ref.listen<AuthState>(authProvider, (_, __) => notifyListeners());
     ref.listen<PostLoginStep>(
         postLoginStepProvider, (_, __) => notifyListeners());
+    ref.listen<String?>(forceUpdateProvider, (_, __) => notifyListeners());
   }
 }

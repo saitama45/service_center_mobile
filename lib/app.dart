@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'core/utils/app_update_checker.dart';
 import 'app_theme.dart';
+import 'presentation/providers/force_update_provider.dart';
 import 'routing/app_router.dart';
 
 class CbtlApp extends ConsumerStatefulWidget {
@@ -12,15 +12,17 @@ class CbtlApp extends ConsumerStatefulWidget {
 }
 
 class _CbtlAppState extends ConsumerState<CbtlApp> {
-  // Checks Play for a newer build on launch and whenever the app returns to
-  // the foreground, so members pick up a release without being told to.
+  // Splash checks the store for a newer build on launch. This repeats the check
+  // whenever the app returns to the foreground, for a member who left it open
+  // while a release went out.
   late final AppLifecycleListener _lifecycle;
 
   @override
   void initState() {
     super.initState();
-    _lifecycle = AppLifecycleListener(onResume: AppUpdateChecker.check);
-    AppUpdateChecker.check();
+    _lifecycle = AppLifecycleListener(
+      onResume: () => ref.read(forceUpdateProvider.notifier).check(),
+    );
   }
 
   @override

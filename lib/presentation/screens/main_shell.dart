@@ -21,7 +21,8 @@ class MainShellScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.creamyWhite,
-      // Closed-beta confidentiality notice, once per member (Android only).
+      // Closed-beta confidentiality notice, once per member (Android only),
+      // then this release's "What's new", once per release.
       body: BetaNoticeGate(child: navigationShell),
       bottomNavigationBar: Container(
         // A Roasted Black rule over a cream bar, like the band on the cup

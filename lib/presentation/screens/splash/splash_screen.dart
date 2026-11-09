@@ -7,7 +7,9 @@ import '../../../core/constants/app_colors.dart';
 import '../../../core/widgets/app_version_text.dart';
 import '../../providers/app_providers.dart';
 import '../../providers/auth_provider.dart';
+import '../../providers/force_update_provider.dart';
 import '../../providers/loyalty_provider.dart';
+import '../whats_new/whats_new.dart';
 import '../../../routing/route_names.dart';
 
 class SplashScreen extends ConsumerStatefulWidget {
@@ -24,12 +26,26 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
     _initialize();
   }
 
+  /// How long a slow store may hold the splash. A later answer still blocks
+  /// the app, through the router.
+  static const _updateCheckWait = Duration(seconds: 4);
+
   Future<void> _initialize() async {
+    // Asked now, awaited just before leaving the splash, so a member who must
+    // update never sees the app first and nobody else waits any longer.
+    final updateCheck = ref
+        .read(forceUpdateProvider.notifier)
+        .check()
+        .timeout(_updateCheckWait, onTimeout: () {});
+
     try {
       debugPrint('Splash: Starting initialization...');
       // 1. Run database seeds if needed
       debugPrint('Splash: Running SeedRunner...');
+      // Read first: seeding writes the marker a fresh install is told apart by.
+      final freshInstall = await ref.read(whatsNewStoreProvider).isFreshInstall();
       await ref.read(seedRunnerProvider).runIfNeeded();
+      if (freshInstall) await skipWhatsNewForThisRelease(ref);
       debugPrint('Splash: SeedRunner complete.');
 
       // 2. Check for an existing valid session
@@ -37,6 +53,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
       await ref.read(authProvider.notifier).checkSession();
       debugPrint('Splash: Session check complete.');
 
+      await updateCheck;
       if (!mounted) return;
 
       // 3. Navigate based on auth state
@@ -56,6 +73,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
     } catch (e, stack) {
       debugPrint('Splash: Initialization error: $e');
       debugPrint('Splash: Stack trace: $stack');
+      await updateCheck;
       if (mounted) {
         context.go(RouteName.login);
       }

@@ -5,6 +5,7 @@ abstract class RouteName {
   static const String forgotPassword = '/forgot-password';
   static const String otp = '/otp';
   static const String biometric = '/biometric';
+  static const String updateRequired = '/update-required';
 
   /// Member home — branch 0 of the shell.
   static const String dashboard = '/dashboard';
