@@ -97,10 +97,13 @@ void main() {
     });
   });
 
-  test('the notice is shown on Android only — never to App Store review', () {
+  // 1.0.7 goes to Play Production, public: no member may be told it is an
+  // invite-only beta. Only a build made with --dart-define=BETA_NOTICE=true
+  // shows the notice, and then on Android alone, never to App Store review.
+  test('the public release shows the notice on no platform', () {
     addTearDown(() => debugDefaultTargetPlatformOverride = null);
     debugDefaultTargetPlatformOverride = TargetPlatform.android;
-    expect(BetaNotice.enabled, isTrue);
+    expect(BetaNotice.enabled, isFalse);
     debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
     expect(BetaNotice.enabled, isFalse);
   });

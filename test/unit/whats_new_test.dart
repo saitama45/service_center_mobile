@@ -124,8 +124,13 @@ void main() {
       await tester.pumpAndSettle();
     }
 
+    // The beta notice is off since 1.0.7 (the public release), so this order
+    // only exists in a build made with --dart-define=BETA_NOTICE=true. Cover it
+    // with `flutter test --dart-define=BETA_NOTICE=true` before turning it on.
+    const betaNoticeBuild = bool.fromEnvironment('BETA_NOTICE');
+
     testWidgets('waits behind it on Android, so they never stack',
-        (tester) async {
+        skip: !betaNoticeBuild, (tester) async {
       await enterApp(tester);
 
       expect(find.text(BetaNotice.title.toUpperCase()), findsOneWidget);
@@ -140,13 +145,17 @@ void main() {
       expect(find.text(title), findsOneWidget);
     });
 
-    testWidgets('appears on its own on iOS, where there is no beta notice',
+    testWidgets('appears on its own wherever there is no beta notice',
         (tester) async {
       await enterApp(tester);
 
       expect(find.text(BetaNotice.title.toUpperCase()), findsNothing);
       expect(find.text(title), findsOneWidget);
-    }, variant: TargetPlatformVariant.only(TargetPlatform.iOS));
+    },
+        variant: betaNoticeBuild
+            ? TargetPlatformVariant.only(TargetPlatform.iOS)
+            : const TargetPlatformVariant(
+                {TargetPlatform.android, TargetPlatform.iOS}));
   });
 
   group('telling an update from a fresh install', () {

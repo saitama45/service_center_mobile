@@ -14,17 +14,21 @@ import '../whats_new/whats_new.dart';
 /// The closed-beta confidentiality notice every member must accept once,
 /// the first time they reach the app after signing in.
 ///
-/// **Android only, on purpose.** The Play build is in closed testing, where
-/// this is true. The iOS build goes through App Store review, and Guideline
-/// 2.2 rejects an app that presents itself as a beta ("use TestFlight
-/// instead") — so the same notice there would cost a rejection.
-/// Turn it off for the public Play release by setting the default below to
-/// false (or building with `--dart-define=BETA_NOTICE=false`).
+/// **Off since 1.0.7 (2026-11-25)**, the first release that goes to Play
+/// Production, public in the Philippines. Telling the public it is an
+/// invite-only beta would be false. Play promotes the same bundle between
+/// tracks without rebuilding, so the default below has to be off in the build
+/// itself. A per-track build flag would not work. For a private test build
+/// only, turn it back on with `--dart-define=BETA_NOTICE=true`.
+///
+/// **Never on iOS.** The iOS build goes through App Store review, and
+/// Guideline 2.2 rejects an app that presents itself as a beta ("use
+/// TestFlight instead").
 class BetaNotice {
   const BetaNotice._();
 
   static bool get enabled =>
-      const bool.fromEnvironment('BETA_NOTICE', defaultValue: true) &&
+      const bool.fromEnvironment('BETA_NOTICE', defaultValue: false) &&
       defaultTargetPlatform == TargetPlatform.android;
 
   /// Bump to ask everyone again after the wording materially changes.

@@ -187,10 +187,12 @@ check (14-day cached-session limit, 5 attempts → 30-min lockout). The raw toke
 `flutter_secure_storage`; only `SHA-256(token)` is stored in `sessions`. After the password
 step: OTP screen → biometric screen → `PostLoginStep.done`; the router blocks the app until
 done. Then `BetaNoticeGate` (wrapping the tab shell, `screens/beta_notice/beta_notice.dart`)
-shows the closed-beta confidentiality notice once per member — "I accept" ticked → Continue;
-"Sign out" declines. **Android only**: App Store Guideline 2.2 rejects apps that call themselves
-betas. Turn it off for the public Play release (`BetaNotice.enabled` / `--dart-define=BETA_NOTICE=false`).
-Acceptance is per device, an `app_settings` row keyed `beta_notice_v1:<userId>`. The legacy RBAC (`role_module_permissions`, role × module × permission, resolved into a
+runs the closed-beta confidentiality notice, then "What's new". **The notice is OFF since 1.0.7**
+(2026-11-25, the first Play Production release, public in PH): `BetaNotice.enabled` defaults to
+false, and only a `--dart-define=BETA_NOTICE=true` build shows it, on Android alone (App Store
+Guideline 2.2 rejects apps that call themselves betas). It is off in the code, not per track,
+because Play promotes the same bundle between tracks. When on: "I accept" ticked → Continue,
+"Sign out" declines, acceptance per device in `app_settings` `beta_notice_v1:<userId>`. The legacy RBAC (`role_module_permissions`, role × module × permission, resolved into a
 `PermissionCache`) still exists as data, but no route or member screen reads it since the admin
 console was removed (2026-09-28). **No row = denied.**
 
@@ -216,7 +218,12 @@ has seen), edit `distribution/whatsnew/whatsnew-en-US` (≤500 chars; it is also
 new" popup, iOS included, so it must never call the app a beta — Guideline 2.2), commit, then
 push a tag equal to the version name (`v1.0.3`). The job restores the brand fonts, tests, signs from repository secrets,
 and uploads to Closed testing (Alpha); "Run workflow" can target internal/production. It builds
-with no `--dart-define`, so it always targets production.
+with no `--dart-define`, so it always targets production. The upload is saved in Play **but not
+sent for review** (`changesNotSentForReview: true`): finish in Play Console → Publishing
+overview → "Submit changes for review". Without that flag Play refused the v1.0.6 commit
+("Changes cannot be sent for review automatically") while other changes were pending, so the
+run failed after the bundle had uploaded and 1.0.6 never reached Play. A tagged build only
+lands on Alpha, so when Production is pending, swap the new build into that release yourself.
 
 ## Known pitfalls (details → `docs/knowledge/Decisions.md`)
 

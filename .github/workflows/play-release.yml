@@ -7,6 +7,12 @@
 # upload is refused. A tag goes to Closed testing (Alpha); "Run workflow" in the
 # Actions tab can pick another track.
 #
+# The release is saved in Play but NOT sent for review: finish it in Play Console
+# → Publishing overview → "Submit changes for review". Play refuses to send for
+# review over the API while the app has other unsent changes or a recent
+# rejection ("Changes cannot be sent for review automatically"), which failed
+# the v1.0.6 run after the bundle had already uploaded.
+#
 # Built with no --dart-define, so ApiClient uses its production default.
 #
 # Repository secrets (Settings → Secrets and variables → Actions):
@@ -122,6 +128,7 @@ jobs:
           track: ${{ inputs.track || 'alpha' }}
           status: completed
           whatsNewDirectory: distribution/whatsnew
+          changesNotSentForReview: true
 
       - name: Remove signing material
         if: always()

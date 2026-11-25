@@ -124,9 +124,11 @@ barrier and Back; "Sign out" declines and logs out, so they are asked again at t
 - Acceptance: `BetaNoticeStore` → `app_settings` row `beta_notice_v{version}:{userId}` with a
   NULL `user_id` (that column's FK to `users` would block account deletion). Per device: a
   reinstall or another phone asks again. Bump `BetaNotice.version` to re-ask everyone.
-- `BetaNotice.enabled` is **Android only** — the iOS build goes to App Store review, where
-  Guideline 2.2 rejects apps presented as betas. Default it to false (or build with
-  `--dart-define=BETA_NOTICE=false`) for the public Play release.
+- **Off since 1.0.7** (2026-11-25, the first public Play Production release):
+  `BetaNotice.enabled` defaults to false. Only a `--dart-define=BETA_NOTICE=true` build shows it,
+  and only on Android; the iOS build goes to App Store review, where Guideline 2.2 rejects apps
+  presented as betas. It must be off in the build itself, because Play promotes the same bundle
+  from Closed testing to Production without rebuilding.
 - The wording lives in `BetaNotice` constants; tests in `test/unit/beta_notice_test.dart`.
 
 ## Authorization (RBAC)
