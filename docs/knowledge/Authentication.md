@@ -64,16 +64,26 @@ resets `postLoginStepProvider`.
 
 `postLoginStepProvider` (`PostLoginStep.otp | biometric | done`) gates the router: while the
 step is not `done`, every route redirects to `/otp` or `/biometric`; once done, those two
-screens redirect away. `beginVerification({required bool offline})` records whether the
-password step itself was checked offline — `OtpController` uses that, not live connectivity,
-to pick a channel.
+screens redirect away. `beginVerification({required bool offline, bool otpRequired = true})`
+records whether the password step itself was checked offline — `OtpController` uses that, not
+live connectivity, to pick a channel.
+
+**Store-review accounts skip the OTP step** (1.0.6). `/api/login` and `/api/register` return
+`otp_required`; ghelpdesk sends `false` only for addresses in `APP_REVIEW_EMAIL`
+(`AuthController::otpRequiredFor`). `LoginSuccess`/`RegisterSuccess.otpRequired` carry it, and
+`beginVerification(otpRequired: false)` starts at `PostLoginStep.biometric`, so the login and
+sign-up screens route straight to `/biometric`. Only a JSON `false` skips. Absent (older
+server), `null`, `"false"` or `0` all keep the step. Google Play rejected the earlier approach,
+a fixed code for the review account (`APP_REVIEW_OTP`), on 2026-11-25: its reviewers must not
+meet a code screen at all. Pre-1.0.6 builds ignore the flag and still use that fixed code.
+Tests: `test/unit/review_account_sign_in_test.dart`.
 
 **The OTP step is a real two-factor check with two channels** ([auth_flow_provider.dart](../../lib/presentation/providers/auth_flow_provider.dart)):
 
 - **Email (online)** — `OtpRemoteDatasource` calls `POST /api/otp/send` /
   `POST /api/otp/verify`. The code is generated, hashed, expired and attempt-limited entirely
-  server-side; the device never sees or checks the value. **These routes do not exist on
-  `support.tablegroup.com.ph` yet** — until deployed, `send()`/`verify()` get a 404, which
+  server-side; the device never sees or checks the value. The routes are live on
+  `support.tablegroup.com.ph` (verified 2026-09-10). A server without them answers 404, which
   `OtpController` reports as `OtpSendUnsupported`/`OtpVerifyUnsupported`.
 - **Authenticator app (offline, or as an online fallback)** — `TotpUtil` is a from-scratch
   RFC 6238 implementation (HMAC-SHA1, 6 digits, 30s step, ±1 step drift window) verified

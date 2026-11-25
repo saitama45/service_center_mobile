@@ -109,8 +109,16 @@ the route for someone who has lost access to the app — but it is a different r
 a code and leaves the account open for the support desk to archive, whereas the app, having just
 re-authenticated, closes it there and then.
 
-The post-login email OTP has a server-side allowlist (`APP_REVIEW_EMAIL` / `APP_REVIEW_OTP`
-on the backend) so a reviewer's demo account gets a fixed code; nothing in this app changes.
+**Store-review accounts skip the OTP screen entirely** (1.0.6, 2026-11-25). Google Play
+rejected the app ("Multi-factor authentication blocks access") because the reviewer stopped at
+"We sent a 6-digit code", even though the server gave that account a fixed code: Google wants
+the review login to *bypass* OTP, not to need a code. ghelpdesk's `/api/login` and
+`/api/register` now return `otp_required: false` for accounts in `APP_REVIEW_EMAIL`
+(`AuthController::otpRequiredFor`), and the app goes straight to the biometric offer
+(`LoginSuccess.otpRequired` → `beginVerification(otpRequired:)`). Only a JSON `false` skips;
+a missing flag keeps the step. Builds before 1.0.6 ignore the flag and still get the fixed
+`APP_REVIEW_OTP`. Guarded by `test/unit/review_account_sign_in_test.dart` and ghelpdesk's
+`tests/Feature/Api/AuthControllerTest.php`. Never put a real member's address in that list.
 `APP_REVIEW_EMAIL` takes a comma-separated list (ghelpdesk `App\Support\AppReviewAccounts`):
 the review notes name **two** accounts, one pre-loaded with stamps that must not be deleted and
 one for the reviewer's deletion test. A reviewer cannot earn stamps (only counter staff can),
@@ -228,8 +236,8 @@ with no `--dart-define`, so it always targets production.
   2026-09-10: both answer 401, not 404), so every online sign-in now emails a 5-minute
   code. `OtpPolicy.allowSkipWhenServerHasNoOtp` (in `auth_flow_provider.dart`) only skips on
   404/501, so it no longer fires in practice; flipping it to `false` is still pending the
-  user's go-ahead. Play reviewers cannot receive that email — the review account needs a
-  server-side fixed-code bypass, which does not exist yet.
+  user's go-ahead. Store reviewers cannot receive that email, so review accounts skip the
+  step (see "Store review" above).
 - **Forgot Password is in-app** (added 2026-09-24, `ForgotPasswordScreen`, public route
   `/forgot-password`) — email → emailed 6-digit code → new password, via ghelpdesk's
   public `POST /api/password/forgot|verify|reset` (`PasswordResetOtpController`). Reset

@@ -81,10 +81,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           ),
         );
       }
-      ref
-          .read(postLoginStepProvider.notifier)
-          .beginVerification(offline: result.isOffline);
-      context.go(RouteName.otp);
+      ref.read(postLoginStepProvider.notifier).beginVerification(
+          offline: result.isOffline, otpRequired: result.otpRequired);
+      context.go(result.otpRequired ? RouteName.otp : RouteName.biometric);
       return;
     }
 

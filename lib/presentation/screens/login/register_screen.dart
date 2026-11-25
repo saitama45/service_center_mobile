@@ -76,10 +76,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     setState(() => _isLoading = false);
 
     if (result is RegisterSuccess) {
-      ref
-          .read(postLoginStepProvider.notifier)
-          .beginVerification(offline: false);
-      context.go(RouteName.otp);
+      ref.read(postLoginStepProvider.notifier).beginVerification(
+          offline: false, otpRequired: result.otpRequired);
+      context.go(result.otpRequired ? RouteName.otp : RouteName.biometric);
       return;
     }
 

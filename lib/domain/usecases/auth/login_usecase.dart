@@ -15,9 +15,18 @@ sealed class LoginResult {
 }
 
 class LoginSuccess extends LoginResult {
-  const LoginSuccess(this.user, {this.isOffline = false});
+  const LoginSuccess(this.user,
+      {this.isOffline = false, this.otpRequired = true});
   final UserEntity user;
   final bool isOffline;
+
+  /// False only when the server said this account skips the one-time-code
+  /// step (`otp_required: false`). ghelpdesk sends that for the store-review
+  /// demo accounts alone: Google Play rejected the app (2026-11-25) because
+  /// its reviewer stopped at the emailed-code screen, even with a fixed code
+  /// in the review notes. A missing or non-boolean value keeps the step, so an
+  /// older server changes nothing.
+  final bool otpRequired;
 }
 
 class LoginFailure extends LoginResult {
@@ -164,20 +173,24 @@ class LoginUseCase {
       deviceInfo: deviceName,
     );
 
-    return LoginSuccess(UserEntity(
-      id: user.id,
-      roleId: user.roleId,
-      roleCode: roleName.toUpperCase(),
-      roleName: roleName,
-      username: user.username,
-      fullName: user.fullName,
-      email: user.email,
-      isActive: user.isActive,
-      failedLoginCount: 0,
-      lastLoginAt: now,
-      createdAt: user.createdAt,
-      updatedAt: user.updatedAt,
-    ));
+    return LoginSuccess(
+      UserEntity(
+        id: user.id,
+        roleId: user.roleId,
+        roleCode: roleName.toUpperCase(),
+        roleName: roleName,
+        username: user.username,
+        fullName: user.fullName,
+        email: user.email,
+        isActive: user.isActive,
+        failedLoginCount: 0,
+        lastLoginAt: now,
+        createdAt: user.createdAt,
+        updatedAt: user.updatedAt,
+      ),
+      // Only an explicit JSON `false` skips the code step.
+      otpRequired: data['otp_required'] != false,
+    );
   }
 
   Future<LoginResult> _attemptLocalLogin(
@@ -267,8 +280,12 @@ sealed class RegisterResult {
 }
 
 class RegisterSuccess extends RegisterResult {
-  const RegisterSuccess(this.user);
+  const RegisterSuccess(this.user, {this.otpRequired = true});
   final UserEntity user;
+
+  /// Same meaning as [LoginSuccess.otpRequired]: a review account that signs
+  /// up again after the deletion test skips the code step too.
+  final bool otpRequired;
 }
 
 class RegisterFailure extends RegisterResult {
@@ -323,7 +340,8 @@ class RegisterUseCase {
           final result = await loginUseCase._handleRemoteSuccess(
               response.body, password, deviceName);
           return switch (result) {
-            LoginSuccess(:final user) => RegisterSuccess(user),
+            LoginSuccess(:final user, :final otpRequired) =>
+              RegisterSuccess(user, otpRequired: otpRequired),
             LoginFailure(:final failure) => RegisterFailure(failure),
           };
         } catch (e) {

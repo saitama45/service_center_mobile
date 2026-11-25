@@ -38,9 +38,14 @@ class PostLoginStepNotifier extends StateNotifier<PostLoginStep> {
   bool get wasOfflineLogin => _wasOfflineLogin;
 
   /// Call right after a password login succeeds.
-  void beginVerification({required bool offline}) {
+  ///
+  /// [otpRequired] is false only when the server exempted this account from
+  /// the code step. Only the store-review demo accounts are exempt (see
+  /// `LoginSuccess.otpRequired`). They go straight to the biometric offer,
+  /// which has its own "Skip for now".
+  void beginVerification({required bool offline, bool otpRequired = true}) {
     _wasOfflineLogin = offline;
-    state = PostLoginStep.otp;
+    state = otpRequired ? PostLoginStep.otp : PostLoginStep.biometric;
   }
 
   void otpVerified() => state = PostLoginStep.biometric;
